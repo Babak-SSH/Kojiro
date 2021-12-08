@@ -1,0 +1,6 @@
+all:
+    gcc kojiro.cpp -o kojiro
+    x86_64-w64-mingw32-gcc -oFast kojiro.cpp -o kojiro
+debug:
+    gcc kojiro.cpp -o kojiro
+    x86_64-w64-mingw32-gcc kojiro.cpp -o kojiro

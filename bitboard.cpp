@@ -1,3 +1,10 @@
+/***********************************************\
+=================================================
+                BIT MANIPULATION
+=================================================
+\***********************************************/
+
+
 #include "bitboard.h"
 
 
@@ -21,20 +28,20 @@ void print_bitboard(uint64_t  bitboard){
 /////////////////////////////////////////////////
 // set a bit to 1 with or operater.
 /////////////////////////////////////////////////
-void set_bit(uint64_t &bitboard, square pos){
+void set_bit(uint64_t &bitboard, int pos){
     bitboard |= (1ull << pos);
 }
 
 /////////////////////////////////////////////////
 // get the value of the bit (1 or 0).
 /////////////////////////////////////////////////
-int get_bit(uint64_t bitboard, square pos){
+int get_bit(uint64_t bitboard, int pos){
     return bitboard & (1ull << pos) ? 1:0; 
 }
 
 /////////////////////////////////////////////////
 // remove value 1 and turn it to 0 with xor operator.
 /////////////////////////////////////////////////
-void pop_bit(uint64_t &bitboard, square pos){
+void pop_bit(uint64_t &bitboard, int pos){
     bitboard ^= (1ull << pos);
 }

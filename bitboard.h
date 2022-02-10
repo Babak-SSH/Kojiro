@@ -1,10 +1,11 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
-#include "cstdint"
+#include <cstdint>
 #include "stdio.h"
 
-// square names
+// names representing each square in chess board 
+// according to their file and rank
 enum square {a1,b1,c1,d1,e1,f1,g1,h1,
              a2,b2,c2,d2,e2,f2,g2,h2,
              a3,b3,c3,d3,e3,f3,g3,h3,
@@ -15,8 +16,8 @@ enum square {a1,b1,c1,d1,e1,f1,g1,h1,
              a8,b8,c8,d8,e8,f8,g8,h8};
 
 void print_bitboard(uint64_t bitboard);
-void set_bit(uint64_t &bitboard, square pos);
-int get_bit(uint64_t bitboard, square pos);
-void pop_bit(uint64_t &bitboard, square pos);
+void set_bit(uint64_t &bitboard, int pos);
+int get_bit(uint64_t bitboard, int pos);
+void pop_bit(uint64_t &bitboard, int pos);
 
 #endif

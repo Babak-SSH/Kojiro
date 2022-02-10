@@ -15,14 +15,14 @@
 void print_bitboard(uint64_t  bitboard){
     int s;
     for (int rank = 0; rank < 8; rank++){
-        printf("%c ", 'a'+rank);
+        printf("%d ", 8-rank);
         for (int file = 0; file < 8; file++){
             s = rank * 8 + file;
             printf(" %d ", get_bit(bitboard, square(s)));
         }
         printf("\n");
     }
-    printf("   1  2  3  4  5  6  7  8\n\n");
+    printf("   a  b  c  d  e  f  g  h\n\n");
 }
 
 /////////////////////////////////////////////////

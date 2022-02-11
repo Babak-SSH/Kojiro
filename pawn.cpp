@@ -8,10 +8,6 @@
 #include "pawn.h"
 
 
-const uint64_t not_A_file = 18374403900871474942ull;
-const uint64_t not_H_file = 9187201950435737471ull;
-
-
 /////////////////////////////////////////////////
 // masking position that can be attacked by the 
 // specified pawn. this is done by shifting 

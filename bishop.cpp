@@ -19,7 +19,7 @@ uint64_t mask_bishop_attacks(int pos){
     // rank, file
     int r, f;
 
-    r = pos/8;
+    r = 7-(pos/8);
     f = pos%8;
 
     set_bit(attacks, pos);

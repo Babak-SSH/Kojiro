@@ -3,6 +3,6 @@
 
 #include "bitboard.h"
 
-uint64_t mask_king_attacks(int pos);
+uint64_t mask_bishop_attacks(int pos);
 
 #endif

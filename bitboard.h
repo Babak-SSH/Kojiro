@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "stdio.h"
+#include "util.h"
 
 // names representing each square in chess board 
 // according to their file and rank
@@ -19,5 +20,6 @@ void print_bitboard(uint64_t bitboard);
 void set_bit(uint64_t &bitboard, int pos);
 int get_bit(uint64_t bitboard, int pos);
 void pop_bit(uint64_t &bitboard, int pos);
+uint64_t set_occupancy(int index, int mask_bit_count, uint64_t attack_mask);
 
 #endif

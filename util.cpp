@@ -29,6 +29,7 @@ int count_bits(uint64_t bitboard){
 int get_ls1b_index(uint64_t bitboard){
     int idx;
     if(bitboard){
+        /* should try shifting too*/
         idx = count_bits((bitboard & -bitboard)-1);
         // printing square name
         // printf("%s", convert_to_square[idx]);

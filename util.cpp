@@ -1,5 +1,6 @@
 #include "util.h"
 
+unsigned int seed_state = 1804289383;
 
 /*there is a hardware bit count for gcc which requieres cpu type with march arg in command 
     more analyse required to compare custome bit count and built in bit count performance :)
@@ -38,4 +39,19 @@ int get_ls1b_index(uint64_t bitboard){
     // if bitboard is invalid
     else
         return -1;
+}
+
+/////////////////////////////////////////////////
+// generate 32-bit pseudo random number. 
+/////////////////////////////////////////////////
+int get_random_number(){
+    unsigned int number = seed_state;
+    // XOR shift algorithm
+    number ^= number << 13;
+    number ^= number << 17;
+    number ^= number << 5;
+
+    seed_state = number;
+
+    return number;
 }

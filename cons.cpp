@@ -17,7 +17,27 @@ const char *convert_to_square[64] = {"a8","b8","c8","d8","e8","f8","g8","h8",
                                      "a2","b2","c2","d2","e2","f2","g2","h2",
                                      "a1","b1","c1","d1","e1","f1","g1","h1"};
 
+// numbers are bitboards in ull format
 const uint64_t not_A_file = 18374403900871474942ull;
 const uint64_t not_H_file = 9187201950435737471ull;
 const uint64_t not_AB_file = 18229723555195321596ull;
 const uint64_t not_GH_file = 4557430888798830399ull;
+
+// number of bits available(relative) for each bishop in each position of board.
+const int bishop_bits_relative[64] = {6, 5, 5, 5, 5, 5, 5, 6,
+                                      5, 5, 5, 5, 5, 5, 5, 5,
+                                      5, 5, 7, 7, 7, 7, 5, 5,
+                                      5, 5, 7, 9, 9, 7, 5, 5,
+                                      5, 5, 7, 9, 9, 7, 5, 5,
+                                      5, 5, 7, 7, 7, 7, 5, 5,
+                                      5, 5, 5, 5, 5, 5, 5, 5,
+                                      6, 5, 5, 5, 5, 5, 5, 6};
+// number of bits available(relative) for each rook in each position of board.
+const int rook_bits_relative[64] = {6, 5, 5, 5, 5, 5, 5, 6,
+                                    5, 5, 5, 5, 5, 5, 5, 5,
+                                    5, 5, 7, 7, 7, 7, 5, 5,
+                                    5, 5, 7, 9, 9, 7, 5, 5,
+                                    5, 5, 7, 9, 9, 7, 5, 5,
+                                    5, 5, 7, 7, 7, 7, 5, 5,
+                                    5, 5, 5, 5, 5, 5, 5, 5,
+                                    6, 5, 5, 5, 5, 5, 5, 6};

@@ -8,6 +8,8 @@ int count_bits(uint64_t bitboard);
 
 int get_ls1b_index(uint64_t bitboard);
 
-int get_random_number();
+int get_random_U32_number();
+
+uint64_t get_random_U64_number();
 
 #endif

@@ -44,7 +44,7 @@ int get_ls1b_index(uint64_t bitboard){
 /////////////////////////////////////////////////
 // generate 32-bit pseudo random number. 
 /////////////////////////////////////////////////
-int get_random_number(){
+int get_random_U32_number(){
     unsigned int number = seed_state;
     // XOR shift algorithm
     number ^= number << 13;
@@ -52,6 +52,26 @@ int get_random_number(){
     number ^= number << 5;
 
     seed_state = number;
+
+    return number;
+}
+
+/////////////////////////////////////////////////
+// generate 32-bit pseudo random number. 
+/////////////////////////////////////////////////
+uint64_t get_random_U64_number(){
+    // define 4 random numbers
+    uint64_t number, n1, n2, n3, n4;
+    
+    // slicing 16 bits from MS1B sides of random numbers
+    n1 = (uint64_t)(get_random_U32_number()) & 0xFFFF;
+    n2 = (uint64_t)(get_random_U32_number()) & 0xFFFF;
+    n3 = (uint64_t)(get_random_U32_number()) & 0xFFFF;
+    n4 = (uint64_t)(get_random_U32_number()) & 0xFFFF;
+    
+    // putting toghether the first 16 bits of each part to create
+    // a new 64 bit random number.
+    number = n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
 
     return number;
 }

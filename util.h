@@ -12,4 +12,6 @@ int get_random_U32_number();
 
 uint64_t get_random_U64_number();
 
+uint64_t find_magic(int square, int relevant_bits, int bishop);
+
 #endif

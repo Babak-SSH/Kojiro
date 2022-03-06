@@ -90,15 +90,16 @@ int get_ls1b_index(uint64_t bitboard){
 // returns some orintaion regarding of each attack
 // mask and index of sliding pieces.
 /////////////////////////////////////////////////
-uint64_t set_occupancy(int index, int mask_bit_count, uint64_t attack_mask){
+uint64_t set_occupancy(int index, uint64_t attack_mask){
     uint64_t occupancy = 0ull;
+    int bit_count = count_bits(attack_mask);
 
-    for (int i = 0; i < mask_bit_count; i++){
+    for (int i = 0; i < bit_count; i++){
         int square = get_ls1b_index(attack_mask);
 
         pop_bit(attack_mask, square);
 
-        if(index & (1ull << square))
+        if(index & (1ull << i))
             occupancy |= (1ull << square);
     }
 

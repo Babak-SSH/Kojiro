@@ -25,6 +25,6 @@ int get_bit(uint64_t bitboard, int pos);
 void pop_bit(uint64_t &bitboard, int pos);
 int count_bits(uint64_t bitboard);
 int get_ls1b_index(uint64_t bitboard);
-uint64_t set_occupancy(int index, int mask_bit_count, uint64_t attack_mask);
+uint64_t set_occupancy(int index, uint64_t attack_mask);
 
 #endif

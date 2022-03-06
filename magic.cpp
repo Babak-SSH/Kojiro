@@ -49,17 +49,17 @@ uint64_t random_fewbits() {
 // generate magics.(yoinked from stockfish source code :))
 // www.chessprogramming.org/Looking_for_Magics
 // @TODO needs rework!
-uint64_t find_magic(int square, int relevant_bits, piece type)
+uint64_t find_magic(int square, int relevant_bits, PieceType type)
 {
     uint64_t occupancies[4096];
     uint64_t attacks[4096];
     uint64_t used_attacks[4096];
     uint64_t attack_mask;
     
-    if(type == bishop){
+    if(type == BISHOP){
         attack_mask = mask_bishop_attacks_relevant(square);
     }
-    else if(type == rook){
+    else if(type == ROOK){
         attack_mask = mask_rook_attacks_relevant(square);
     }
     
@@ -71,10 +71,10 @@ uint64_t find_magic(int square, int relevant_bits, piece type)
     {
         occupancies[index] = set_occupancy(index, attack_mask);
     
-        if(type == bishop){
+        if(type == BISHOP){
             attacks[index] = mask_bishop_attacks_on_fly(square, occupancies[index]);
         }
-        else if(type == rook){
+        else if(type == ROOK){
             attacks[index] = mask_rook_attacks_on_fly(square, occupancies[index]);
         }
     }

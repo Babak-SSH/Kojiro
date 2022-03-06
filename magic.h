@@ -36,6 +36,6 @@ uint64_t random_fewbits();
  * @param type rook or bishop (sliding pieces)
  * @return uint64_t 
  */
-uint64_t find_magic(int square, int relevant_bits, piece type);
+uint64_t find_magic(int square, int relevant_bits, PieceType type);
 
 #endif

@@ -1,59 +1,21 @@
 #include <string.h>
 
-#include "util.h"
+#include "magic.h"
 #include "bishop.h"
 #include "rook.h"
 
 
 unsigned int seed_state = 1804289383;
 
-/*there is a hardware bit count for gcc which requieres cpu type with march arg in command 
-    more analyse required to compare custome bit count and built in bit count performance :)
-    cool link: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetTable*/
-//#define count_bits(bitboard) __builtin_popcountll(bitboard)
-/////////////////////////////////////////////////
-// counts bits in a bitboard by removing each 1 bit 
-// in each loop until the bitboard becomes 0.
-/////////////////////////////////////////////////
-int count_bits(uint64_t bitboard){
-    int count = 0;
-    while(bitboard){
-        bitboard &= bitboard - 1;
-        count++;
-    }
-    
-    return count;
-}
-
-/////////////////////////////////////////////////
-// gets the index of the least significant 1st bit
-// in the bitboard. (bb & -bb) will remove all 1s 
-// except lsb 1 and by summing with -1 we will convert
-// all zeros behind the lsb to 1 and count them to find
-// the index.
-/////////////////////////////////////////////////
-int get_ls1b_index(uint64_t bitboard){
-    int idx;
-    if(bitboard){
-        /* should try shifting too*/
-        idx = count_bits((bitboard & -bitboard)-1);
-        // printing square name
-        // printf("%s", convert_to_square[idx]);
-        return idx;
-    }
-    // if bitboard is invalid
-    else
-        return -1;
-}
-
 /////////////////////////////////////////////////
 // generate 32-bit pseudo random number. 
+// possible candidates to replace xorshift : xoshiro256** - xorshift*
 /////////////////////////////////////////////////
 int get_random_U32_number(){
     unsigned int number = seed_state;
     // XOR shift algorithm
     number ^= number << 13;
-    number ^= number << 17;
+    number ^= number >> 17;
     number ^= number << 5;
 
     seed_state = number;
@@ -81,18 +43,29 @@ uint64_t get_random_U64_number(){
     return number;
 }
 
+// get random few bits
+uint64_t random_fewbits() {
+    return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
+}
+
 /////////////////////////////////////////////////
 // generate magics.(yoinked from stockfish source code :))
 // www.chessprogramming.org/Looking_for_Magics
 // needs rework!
 /////////////////////////////////////////////////
-uint64_t find_magic_number(int square, int relevant_bits, int bishop)
+uint64_t find_magic(int square, int relevant_bits, piece type)
 {
     uint64_t occupancies[4096];
     uint64_t attacks[4096];
     uint64_t used_attacks[4096];
+    uint64_t attack_mask;
     
-    uint64_t attack_mask = bishop ? mask_bishop_attacks_relative(square) : mask_rook_attacks_relative(square);
+    if(type == bishop){
+        attack_mask = mask_bishop_attacks_relative(square);
+    }
+    else if(type == rook){
+        attack_mask = mask_rook_attacks_relative(square);
+    }
     
     int occupancy_indicies = 1 << relevant_bits;
     
@@ -101,14 +74,18 @@ uint64_t find_magic_number(int square, int relevant_bits, int bishop)
     {
         occupancies[index] = set_occupancy(index, relevant_bits, attack_mask);
     
-        attacks[index] = bishop ? generate_bishop_attacks_on_fly(square, occupancies[index]) :
-                                    generate_rook_attacks_on_fly(square, occupancies[index]);
+        if(type == bishop){
+            attacks[index] = generate_bishop_attacks_on_fly(square, occupancies[index]);
+        }
+        else if(type == rook){
+            attacks[index] = generate_rook_attacks_on_fly(square, occupancies[index]);
+        }
     }
     
     // test magic numbers loop
     for (int random_count = 0; random_count < 100000000; random_count++)
     {
-        uint64_t magic_number = get_random_U64_number();
+        uint64_t magic_number = random_fewbits();
         
         // skip inappropriate magic numbers
         if (count_bits((attack_mask * magic_number) & 0xFF00000000000000) < 6) continue;

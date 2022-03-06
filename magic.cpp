@@ -1,16 +1,13 @@
 #include <string.h>
 
 #include "magic.h"
-#include "bishop.h"
-#include "rook.h"
 
 
+// random seed. 1804289383 is the first number generated with rand() function in "linux"
 unsigned int seed_state = 1804289383;
 
-/////////////////////////////////////////////////
-// generate 32-bit pseudo random number. 
-// possible candidates to replace xorshift : xoshiro256** - xorshift*
-/////////////////////////////////////////////////
+/// generate 32-bit pseudo random number with xorshift algorithm.
+/// @TODO possible candidates to replace xorshift : xoshiro256** - xorshift*
 int get_random_U32_number(){
     unsigned int number = seed_state;
     // XOR shift algorithm
@@ -23,9 +20,9 @@ int get_random_U32_number(){
     return number;
 }
 
-/////////////////////////////////////////////////
-// generate 64-bit pseudo random number. 
-/////////////////////////////////////////////////
+
+/// generate 64-bit pseudo random number by putting together first 16 bits of 
+/// four 32-bit random numbers.
 uint64_t get_random_U64_number(){
     // define 4 random numbers
     uint64_t number, n1, n2, n3, n4;
@@ -43,16 +40,15 @@ uint64_t get_random_U64_number(){
     return number;
 }
 
-// get random few bits
+/// get random number with few 1s by performing and between 3 random numbers.
 uint64_t random_fewbits() {
     return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
 }
 
-/////////////////////////////////////////////////
+
 // generate magics.(yoinked from stockfish source code :))
 // www.chessprogramming.org/Looking_for_Magics
-// needs rework!
-/////////////////////////////////////////////////
+// @TODO needs rework!
 uint64_t find_magic(int square, int relevant_bits, piece type)
 {
     uint64_t occupancies[4096];
@@ -61,24 +57,25 @@ uint64_t find_magic(int square, int relevant_bits, piece type)
     uint64_t attack_mask;
     
     if(type == bishop){
-        attack_mask = mask_bishop_attacks_relative(square);
+        attack_mask = mask_bishop_attacks_relevant(square);
     }
     else if(type == rook){
-        attack_mask = mask_rook_attacks_relative(square);
+        attack_mask = mask_rook_attacks_relevant(square);
     }
     
+    // 2 ^ relevant_bits all possible orientations
     int occupancy_indicies = 1 << relevant_bits;
     
     // loop over occupancy indicies
     for (int index = 0; index < occupancy_indicies; index++)
     {
-        occupancies[index] = set_occupancy(index, relevant_bits, attack_mask);
+        occupancies[index] = set_occupancy(index, attack_mask);
     
         if(type == bishop){
-            attacks[index] = generate_bishop_attacks_on_fly(square, occupancies[index]);
+            attacks[index] = mask_bishop_attacks_on_fly(square, occupancies[index]);
         }
         else if(type == rook){
-            attacks[index] = generate_rook_attacks_on_fly(square, occupancies[index]);
+            attacks[index] = mask_rook_attacks_on_fly(square, occupancies[index]);
         }
     }
     
@@ -87,7 +84,7 @@ uint64_t find_magic(int square, int relevant_bits, piece type)
     {
         uint64_t magic_number = random_fewbits();
         
-        // skip inappropriate magic numbers
+        // skip inappropriate magic numbers ( but how, why, who ?????????)
         if (count_bits((attack_mask * magic_number) & 0xFF00000000000000) < 6) continue;
         
         memset(used_attacks, 0ULL, sizeof(used_attacks));
@@ -112,6 +109,6 @@ uint64_t find_magic(int square, int relevant_bits, piece type)
     }
     
     // if magic number doesn't work
-    printf("  Magic number fails!\n");
+    printf("Magic number fails!\n");
     return 0ULL;
 }

@@ -3,6 +3,7 @@
 
 #include "cons.h" 
 #include "bitboard.h"
+#include "types.h"
 #include "bishop.h"
 #include "rook.h"
 

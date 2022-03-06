@@ -44,6 +44,7 @@ int get_bit(uint64_t bitboard, int pos){
 // remove value 1 and turn it to 0 with xor operator.
 /////////////////////////////////////////////////
 void pop_bit(uint64_t &bitboard, int pos){
+    // &= ~
     bitboard ^= (1ull << pos);
 }
 

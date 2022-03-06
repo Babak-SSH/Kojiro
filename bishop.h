@@ -3,6 +3,7 @@
 
 #include "bitboard.h"
 #include "magic.h"
+#include "types.h"
 
 
 extern uint64_t bishop_magics[64];

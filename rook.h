@@ -2,6 +2,7 @@
 #define ROOK_H
 
 #include "bitboard.h"
+#include "types.h"
 #include "magic.h"
 
 extern uint64_t rook_magics[64];

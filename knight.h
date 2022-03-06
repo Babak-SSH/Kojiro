@@ -3,6 +3,7 @@
 
 #include "cons.h"
 #include "bitboard.h"
+#include "types.h"
 
 // enum color {white, black};
 

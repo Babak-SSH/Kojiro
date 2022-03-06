@@ -191,7 +191,7 @@ void init_rook_attacks(){
                 // init occupancies, magic index & attacks
                 // magic index is used as hash for rook_attacks table
                 uint64_t occupancy = set_occupancy(count, mask);
-                int magic_index = (occupancy * rook_magics[square]) >> (64 - rook_bits_relative[square]);
+                int magic_index = (occupancy * rook_magics[square]) >> (64 - rook_relevant_bits[square]);
                 rook_attacks[square][magic_index] = mask_rook_attacks_on_fly(square, occupancy);                
         }
     }

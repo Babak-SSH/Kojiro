@@ -24,7 +24,7 @@ const uint64_t not_AB_file = 18229723555195321596ull;
 const uint64_t not_GH_file = 4557430888798830399ull;
 
 // number of bits available(relative) for each bishop in each position of board.
-const int bishop_bits_relative[64] = {6, 5, 5, 5, 5, 5, 5, 6,
+const int bishop_relevant_bits[64] = {6, 5, 5, 5, 5, 5, 5, 6,
                                       5, 5, 5, 5, 5, 5, 5, 5,
                                       5, 5, 7, 7, 7, 7, 5, 5,
                                       5, 5, 7, 9, 9, 7, 5, 5,
@@ -33,11 +33,11 @@ const int bishop_bits_relative[64] = {6, 5, 5, 5, 5, 5, 5, 6,
                                       5, 5, 5, 5, 5, 5, 5, 5,
                                       6, 5, 5, 5, 5, 5, 5, 6};
 // number of bits available(relative) for each rook in each position of board.
-const int rook_bits_relative[64] = {6, 5, 5, 5, 5, 5, 5, 6,
-                                    5, 5, 5, 5, 5, 5, 5, 5,
-                                    5, 5, 7, 7, 7, 7, 5, 5,
-                                    5, 5, 7, 9, 9, 7, 5, 5,
-                                    5, 5, 7, 9, 9, 7, 5, 5,
-                                    5, 5, 7, 7, 7, 7, 5, 5,
-                                    5, 5, 5, 5, 5, 5, 5, 5,
-                                    6, 5, 5, 5, 5, 5, 5, 6};
+const int rook_relevant_bits[64] = {12, 11, 11, 11, 11, 11, 11, 12,
+                                    11, 10, 10, 10, 10, 10, 10, 11,
+                                    11, 10, 10, 10, 10, 10, 10, 11,
+                                    11, 10, 10, 10, 10, 10, 10, 11,
+                                    11, 10, 10, 10, 10, 10, 10, 11,
+                                    11, 10, 10, 10, 10, 10, 10, 11,
+                                    11, 10, 10, 10, 10, 10, 10, 11,
+                                    12, 11, 11, 11, 11, 11, 11, 12};

@@ -23,6 +23,10 @@ int enpassant = no_sq;
 // castling rights
 int castle = 0;
 
+int rule50;
+
+int play_count;
+
 void print_board(){
     int sq;
     for (int rank = 0; rank < 8; rank++){
@@ -141,7 +145,7 @@ void parse_fen(const string& fen){
     enpassant = no_sq;
     castle = 0;
 
-    int square = 0, idx;
+    int square = 0, idx, file, rank;
     unsigned char token;
     std::istringstream iss (fen);
     // don't skip whitespaces
@@ -165,6 +169,23 @@ void parse_fen(const string& fen){
 
     //castling
     while ((iss >> token) && !isspace(token)){
-        
+        castle &= castlingRights(char_pieces[token]);
     }
+
+    iss >> token;
+    if (token != '-'){
+        iss >> token;
+        file =  token - 'a';
+        iss >> token;
+        rank = 8 - (token - '0');
+        enpassant = rank * 8 + file;
+    }
+    else {
+        enpassant == no_sq;
+    }
+
+    iss >> token;
+    iss >> rule50;
+    iss >> token;
+    iss >> play_count;
 }

@@ -27,6 +27,10 @@ extern int enpassant;
 // castling rights
 extern int castle;
 
+extern int rule50;
+
+extern int play_count;
+
 void print_board();
 
 void init_start();

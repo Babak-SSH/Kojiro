@@ -1,11 +1,12 @@
+#include <sstream>
+
 #include "position.h"
 
 
-// ASCII pieces
-char ascii_pieces[13] = "PNBRQKpnbrqk";
+using std::string;
 
-// unicode pieces
-char const *unicode_pieces[12] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟︎", "♞", "♝", "♜", "♛", "♚"};
+// ASCII pieces
+const string ascii_pieces("PNBRQKpnbrqk");
 
 // piece bitboards
 uint64_t bitboards[12];
@@ -14,13 +15,13 @@ uint64_t bitboards[12];
 uint64_t occupancies[3];
 
 // side to move
-int side = -1;
+int side = WHITE;
 
 // enpassant square
 int enpassant = no_sq; 
 
 // castling rights
-int castle;
+int castle = 0;
 
 void print_board(){
     int sq;
@@ -38,11 +39,7 @@ void print_board(){
                     piece = bb_piece;
             }
             
-            // #ifdef WIN64
-                printf(" %c", (piece == -1) ? '.' : ascii_pieces[piece]);
-            // #else
-            //     printf(" %s", (piece == -1) ? "." : unicode_pieces[piece]);
-            // #endif
+            printf(" %c", (piece == -1) ? '.' : ascii_pieces[piece]);
         }
         printf("\n");
     }
@@ -126,4 +123,38 @@ void init_start(){
     castle |= WQ;
     castle |= BK;
     castle |= BQ;
+}
+
+std::string get_fen(){
+
+}
+
+void parse_fen(const string& fen){
+    // reset board position (bitboards)
+    memset(bitboards, 0ULL, sizeof(bitboards));
+    
+    // reset occupancies (bitboards)
+    memset(occupancies, 0ULL, sizeof(occupancies));
+    
+    // reset game state variables
+    side = WHITE;
+    enpassant = no_sq;
+    castle = 0;
+
+    int square = 0, idx;
+    unsigned char token;
+    std::istringstream iss (fen);
+    // don't skip whitespaces
+    iss >> std::skipws;
+
+    while ((iss >> token) && !isspace(token)){
+        if (isdigit(token)){
+            square += token - '0'; // advance the given number of files
+        }
+        // consider '/' ?
+        else if ((idx = ascii_pieces.find(token)) != string::npos){
+            set_piece(Piece(idx), square);
+            square++;
+        }
+    }
 }

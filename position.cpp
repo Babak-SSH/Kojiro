@@ -57,10 +57,13 @@ void print_board(){
     printf("     Enpassant:   %s\n", (enpassant != no_sq) ? convert_to_square[enpassant] : "no");
     
     // print castling rights
-    printf("     Castling:  %c%c%c%c\n\n", (castle & WK) ? 'K' : '-',
+    printf("     Castling:  %c%c%c%c\n", (castle & WK) ? 'K' : '-',
                                            (castle & WQ) ? 'Q' : '-',
                                            (castle & BK) ? 'k' : '-',
                                            (castle & BQ) ? 'q' : '-');
+
+    // print turn count
+    printf("     turn: %d\n\n", play_count);
 }
 
 void init_start(){

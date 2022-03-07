@@ -149,7 +149,7 @@ void parse_fen(const string& fen){
     unsigned char token;
     std::istringstream iss (fen);
     // don't skip whitespaces
-    iss >> std::skipws;
+    iss >> std::noskipws;
 
     while ((iss >> token) && !isspace(token)){
         if (isdigit(token)){
@@ -169,12 +169,21 @@ void parse_fen(const string& fen){
 
     //castling
     while ((iss >> token) && !isspace(token)){
-        castle &= castlingRights(char_pieces[token]);
+        if (token == 'K')
+            castle |= castlingRights(WK);
+        else if (token == 'Q'){
+            castle |= castlingRights(WQ);
+        }
+        else if (token == 'k'){
+            castle |= castlingRights(BK);
+        }
+        else if (token == 'q'){
+            castle |= castlingRights(BQ);
+        }
     }
 
     iss >> token;
     if (token != '-'){
-        iss >> token;
         file =  token - 'a';
         iss >> token;
         rank = 8 - (token - '0');

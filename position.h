@@ -45,7 +45,7 @@ inline void set_piece(Piece p, int sq){
     set_bit(bitboards[p], sq);
     // getting the color of the piece whit shifting (0-7 w, 7-11 b)
     occupancies[sq >> 3] |= bitboards[p];
-    occupancies[2]  |= bitboards[p];
+    occupancies[2] |= bitboards[p];
 }
 
 #endif

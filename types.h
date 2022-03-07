@@ -19,6 +19,24 @@ enum PieceType {PAWN, KNIGHT, BISHOP,  ROOK, QUEEN, KING};
 enum Piece {W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
             B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING};
 
+// encode pieces
+enum { P, N, B, R, Q, K, p, n, b, r, q, k };
+
+// convert ASCII character pieces to encoded constants
+int char_pieces[] = {
+    ['P'] = P,
+    ['N'] = N,
+    ['B'] = B,
+    ['R'] = R,
+    ['Q'] = Q,
+    ['K'] = K,
+    ['p'] = p,
+    ['n'] = n,
+    ['b'] = b,
+    ['r'] = r,
+    ['q'] = q,
+    ['k'] = k
+};
 
 /* castling rights binary encoding
     bin  dec
@@ -32,6 +50,6 @@ enum Piece {W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
    1001       black king => queen side
               white king => king side
 */
-enum CastlingRight {WK=1, WQ=2, BK=4, BQ=8};
+enum castlingRights {K=1, Q=2, k=4, q=8};
 
 #endif

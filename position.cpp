@@ -126,7 +126,7 @@ void init_start(){
 }
 
 std::string get_fen(){
-
+    return "";
 }
 
 void parse_fen(const string& fen){
@@ -156,5 +156,15 @@ void parse_fen(const string& fen){
             set_piece(Piece(idx), square);
             square++;
         }
+    }
+    
+    // side
+    iss >> token;
+    side = (token == 'w' ? WHITE : BLACK);
+    iss >> token;
+
+    //castling
+    while ((iss >> token) && !isspace(token)){
+        
     }
 }

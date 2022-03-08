@@ -5,10 +5,21 @@
 #include "bitboard.h"
 #include "types.h"
 
-// enum color {white, black};
-// extern const uint64_t not_A_file;
-// extern const uint64_t not_H_file;
 
+extern uint64_t king_attacks[64];
+
+/**
+ * @brief masking position that can be attacked by the specified king.
+ * 
+ * @param pos 
+ * @return uint64_t 
+ */
 uint64_t mask_king_attacks(int pos);
+
+/**
+ * @brief initialize king attacks for all 64 squares.
+ * 
+ */
+void init_king_attacks();
 
 #endif

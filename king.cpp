@@ -8,10 +8,10 @@
 #include "king.h"
 
 
-/////////////////////////////////////////////////
-// masking position that can be attacked by the 
-// specified king.
-/////////////////////////////////////////////////
+uint64_t king_attacks[64];
+
+/// masking position that can be attacked by the 
+/// specified king in all 8 direction.
 uint64_t mask_king_attacks(int pos){
     uint64_t attacks = 0ull;
     uint64_t mask_bitboard = 0ull;
@@ -36,4 +36,12 @@ uint64_t mask_king_attacks(int pos){
     mask_bitboard |= (attacks << 7) & not_H_file;
 
     return mask_bitboard;
+}
+
+/// initialize king attacks for all 64 squares.
+void init_king_attacks(){
+    for (int sq = 0; sq < 64; sq++){
+        // white pawn
+        king_attacks[sq] = mask_king_attacks(sq);
+    }
 }

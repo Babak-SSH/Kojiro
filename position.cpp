@@ -171,7 +171,7 @@ void parse_fen(const string& fen){
     iss >> token;
 
     //castling
-    while ((iss >> token) && !isspace(token)){
+    while ((iss >> token) && !isspace(token) && token != '-'){
         if (token == 'K')
             castle |= castlingRights(WK);
         else if (token == 'Q'){

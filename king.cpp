@@ -41,7 +41,6 @@ uint64_t mask_king_attacks(int pos){
 /// initialize king attacks for all 64 squares.
 void init_king_attacks(){
     for (int sq = 0; sq < 64; sq++){
-        // white pawn
         king_attacks[sq] = mask_king_attacks(sq);
     }
 }

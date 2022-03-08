@@ -201,3 +201,20 @@ void parse_fen(const string& fen){
     iss >> token;
     iss >> play_count;
 }
+
+bool is_square_attacked(int square, int side){
+    // pawn
+    if (pawn_attacks[!side][square] & bitboards[P+(6*side)]) return 1;
+    // knight
+    if (knight_attacks[square] & bitboards[N+(6*side)]) return 1;
+    // bishop
+    if (get_bishop_attacks(square, occupancies[NO_COLOR]) & bitboards[B+(6*side)]) return 1;
+    // rook
+    if (get_rook_attacks(square, occupancies[NO_COLOR]) & bitboards[R+(6*side)]) return 1;
+    // queen
+    if (get_queen_attacks(square, occupancies[NO_COLOR]) & bitboards[Q+(6*side)]) return 1;
+    // king
+    if (king_attacks[square] & bitboards[K+(6*side)]) return 1;
+
+    return 0;
+}

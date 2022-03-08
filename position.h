@@ -7,6 +7,12 @@
 #include "cons.h"
 #include "bitboard.h"
 #include "types.h"
+#include "pawn.h"
+#include "knight.h"
+#include "bishop.h"
+#include "rook.h"
+#include "queen.h"
+#include "king.h"
 
 
 // ASCII pieces
@@ -40,6 +46,8 @@ std::string get_fen();
 void parse_fen(const std::string& fen);
 
 void set_piece(Piece p, int sq);
+
+bool is_square_attacked(int square, int side);
 
 inline void set_piece(Piece p, int sq){
     set_bit(bitboards[p], sq);

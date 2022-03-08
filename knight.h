@@ -5,6 +5,8 @@
 #include "bitboard.h"
 #include "types.h"
 
+extern uint64_t knight_attacks[64];
+
 /**
  * @brief masking squares that can be attacked by the specified knight.
  * 

@@ -202,6 +202,7 @@ void parse_fen(const string& fen){
     iss >> play_count;
 }
 
+/// @todo get_attacks function with piece parameter to get rid of army of ifs.
 bool is_square_attacked(int square, int side){
     // pawn
     if (pawn_attacks[!side][square] & bitboards[P+(6*side)]) return 1;

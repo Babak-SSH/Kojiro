@@ -39,7 +39,7 @@ enum castlingRights {WK=1, WQ=2, BK=4, BQ=8};
 struct moves{
     int moves[256];
 
-    int count;
+    int count = 0;
 };
 
 #endif

@@ -155,16 +155,51 @@ moves* generate_king_moves(moves* move_list, Color side){
     }
 }
 
-moves* generate_moves(PieceType piece, moves* move_list){
+moves* generate_moves(moves* move_list, Color side, PieceType pType){
+    int source_sq, target_sq;
+    uint64_t bb, attacks;
 
+    Piece piece = (side ? Piece(pType) : (Piece(pType+side*6)));
+    bb = bitboards[piece+(side*6)];
+
+    while (bb)
+    {
+        // init source square
+        source_sq = get_ls1b_index(bb);
+        
+        // init piece attacks in order to get set of target squares
+        attacks = knight_attacks[source_sq] & ~occupancies[side];
+        
+        // loop over target squares available from generated attacks
+        while (attacks)
+        {
+            // init target square
+            target_sq = get_ls1b_index(attacks);    
+            
+            // quite move
+            if (!get_bit(occupancies[side], target_sq))
+                add_move(move_list, encode_move(source_sq, target_sq, piece, 0, 0, 0, 0, 0));
+            
+            else
+                // capture move
+                add_move(move_list, encode_move(source_sq, target_sq, piece, 0, 1, 0, 0, 0));
+            
+            // pop ls1b in current attacks set
+            pop_bit(attacks, target_sq);
+        }
+        
+        
+        // pop ls1b of the current piece bitboard copy
+        pop_bit(bb, source_sq);
+    }
 }
 
 void generate_all(moves* move_list, Color side){
     move_list = generate_pawn_moves(move_list, side);
     move_list = generate_king_moves(move_list, side);
-    move_list = generate_moves(KNIGHT, move_list);
-    move_list = generate_moves(BISHOP, move_list);
-    move_list = generate_moves(ROOK, move_list);
-    move_list = generate_moves(QUEEN, move_list);
+    move_list = generate_moves(move_list, side, KNIGHT);
+    move_list = generate_moves(move_list, side, BISHOP);
+    move_list = generate_moves(move_list, side, ROOK);
+    move_list = generate_moves(move_list, side, QUEEN);
 }
 

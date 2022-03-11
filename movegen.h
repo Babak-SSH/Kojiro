@@ -5,13 +5,13 @@
 #include "position.h"
 
 
-moves* generate_pawn_moves(moves* move_list, Color side);
+void generate_pawn_moves(moves *move_list, Color side);
 
-moves* generate_king_moves(moves* move_list, Color side);
+void generate_king_moves(moves *move_list, Color side);
 
-moves* generate_moves(moves* move_list, Color side, PieceType pType);
+void generate_moves(moves *move_list, Color side, PieceType pType);
 
-void generate_all(moves* move_list, Color side);
+void generate_all(moves *move_list, Color side);
   
 /*
           binary move bits                               hexidecimal constants
@@ -27,17 +27,17 @@ void generate_all(moves* move_list, Color side);
 */
 /// @todo define structure or fluent interface
 static inline int encode_move(int source, int target, int piece, int promoted, int capture, int double_push, int enpassant, int castling){
-    (source) |          \
+    return ((source) |          \
     (target << 6) |     \
     (piece << 12) |     \
     (promoted << 16) |  \
     (capture << 20) |   \
     (double_push << 21) |    \
     (enpassant << 22) | \
-    (castling << 23);
+    (castling << 23));
 }
 
-static inline void add_move(moves* move_list, int move){
+static inline void add_move(moves *move_list, int move){
     move_list->moves[move_list->count] = move;
     
     move_list->count++;

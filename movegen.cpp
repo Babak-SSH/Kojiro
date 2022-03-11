@@ -1,27 +1,28 @@
 #include "movegen.h"
 
 
-moves* generate_pawn_moves(moves* move_list, Color side){
-    uint64_t bb, bb_attacks, promotion_rank, no_double_push, attacks;
+/// @todo bitboards instead of <> operaters in if statements and methods for numric operations.
+/// @todo shatter to small functions.
+void generate_pawn_moves(moves *move_list, Color side){
+    uint64_t bb, bb_attacks, promotion_rank, double_push, attacks;
     int source_sq, target_sq;
 
-    Piece piece = (side ? W_PAWN : B_PAWN);
+    Piece piece = (side ? B_PAWN : W_PAWN);
     bb = bitboards[P+(side*6)];
-    /// @todo using these kind of bitboards instead of <> operaters in if statements
-    promotion_rank = bb & (side ? RANK2 : RANK7);
-    no_double_push = bb & (side ? RANK6 : RANK3); 
+    promotion_rank = (side ? RANK2 : RANK7);
+    double_push = (side ? RANK7 : RANK2); 
 
     while (bb)
     {
         source_sq = get_ls1b_index(bb);
-        target_sq = (side ? source_sq - 8 : source_sq + 8);
+        target_sq = (side ? source_sq + 8 : source_sq - 8);
 
         // generate quite pawn moves
         if (!(target_sq < a8) && !get_bit(occupancies[NO_COLOR], target_sq))
         {
             // pawn promotion
-            if (source_sq >= a7 && source_sq <= h7)
-            {                            
+            if ((1ull << source_sq) & promotion_rank)
+            {
                 add_move(move_list, encode_move(source_sq, target_sq, piece, Q, 0, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece, R, 0, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece, B, 0, 0, 0, 0));
@@ -32,10 +33,12 @@ moves* generate_pawn_moves(moves* move_list, Color side){
             {
                 // one square ahead pawn move
                 add_move(move_list, encode_move(source_sq, target_sq, piece, 0, 0, 0, 0, 0));
-                
+
                 // two squares ahead pawn move
-                if ((source_sq >= a2 && source_sq <= h2) && !get_bit(occupancies[NO_COLOR], target_sq - 8))
-                    add_move(move_list, encode_move(source_sq, target_sq - 8, piece, 0, 0, 1, 0, 0));
+                if (((1ull << source_sq) & double_push) && !get_bit(occupancies[NO_COLOR], (side ? target_sq + 8 : target_sq - 8)))
+                {
+                    add_move(move_list, encode_move(source_sq, (side ? target_sq + 8 : target_sq - 8), piece, 0, 0, 1, 0, 0));
+                }
             }
         }
         
@@ -49,7 +52,7 @@ moves* generate_pawn_moves(moves* move_list, Color side){
             target_sq = get_ls1b_index(attacks);
             
             // pawn promotion
-            if (source_sq >= a7 && source_sq <= h7)
+            if ((1ull << source_sq) & promotion_rank)
             {
                 add_move(move_list, encode_move(source_sq, target_sq, piece, Q, 1, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece, R, 1, 0, 0, 0));
@@ -58,9 +61,10 @@ moves* generate_pawn_moves(moves* move_list, Color side){
             }
             
             else
+            {
                 // one square ahead pawn move
                 add_move(move_list, encode_move(source_sq, target_sq, piece, 0, 1, 0, 0, 0));
-            
+            }
             // pop ls1b of the pawn attacks
             pop_bit(attacks, target_sq);
         }
@@ -85,7 +89,8 @@ moves* generate_pawn_moves(moves* move_list, Color side){
     }
 }
 
-moves* generate_king_moves(moves* move_list, Color side){
+void generate_king_moves(moves *move_list, Color side){
+    printf("generating king moves\n");
     int source_sq, target_sq;
     uint64_t bb, attacks;
 
@@ -155,7 +160,9 @@ moves* generate_king_moves(moves* move_list, Color side){
     }
 }
 
-moves* generate_moves(moves* move_list, Color side, PieceType pType){
+void generate_moves(moves *move_list, Color side, PieceType pType){
+    printf("generating %c moves\n", ascii_pieces[side ? Piece(pType) : (Piece(pType+side*6))]);
+
     int source_sq, target_sq;
     uint64_t bb, attacks;
 
@@ -194,12 +201,12 @@ moves* generate_moves(moves* move_list, Color side, PieceType pType){
     }
 }
 
-void generate_all(moves* move_list, Color side){
-    move_list = generate_pawn_moves(move_list, side);
-    move_list = generate_king_moves(move_list, side);
-    move_list = generate_moves(move_list, side, KNIGHT);
-    move_list = generate_moves(move_list, side, BISHOP);
-    move_list = generate_moves(move_list, side, ROOK);
-    move_list = generate_moves(move_list, side, QUEEN);
+void generate_all(moves *move_list, Color side){
+    generate_pawn_moves(move_list, side);
+    // generate_king_moves(move_list, side);
+    // generate_moves(move_list, side, KNIGHT);
+    // generate_moves(move_list, side, BISHOP);
+    // generate_moves(move_list, side, ROOK);
+    // generate_moves(move_list, side, QUEEN);
 }
 

@@ -49,10 +49,11 @@ void set_piece(Piece p, int sq);
 
 bool is_square_attacked(int square, int side);
 
+/// @todo fix color(side) finding
 inline void set_piece(Piece p, int sq){
     set_bit(bitboards[p], sq);
-    // getting the color of the piece whit shifting (0-7 w, 7-11 b)
-    occupancies[sq >> 3] |= bitboards[p];
+    
+    occupancies[(p > 5)] |= bitboards[p];
     occupancies[2] |= bitboards[p];
 }
 

@@ -23,14 +23,14 @@ const uint64_t not_H_file = 9187201950435737471ull;
 const uint64_t not_AB_file = 18229723555195321596ull;
 const uint64_t not_GH_file = 4557430888798830399ull;
 
-extern const uint64_t RANK1 = 0xff;
-extern const uint64_t RANK2 = RANK1 >> (8*1);
-extern const uint64_t RANK3 = RANK1 >> (8*2);
-extern const uint64_t RANK4 = RANK1 >> (8*3);
-extern const uint64_t RANK5 = RANK1 >> (8*4);
-extern const uint64_t RANK6 = RANK1 >> (8*5);
-extern const uint64_t RANK7 = RANK1 >> (8*6);
-extern const uint64_t RANK8 = RANK1 >> (8*7);
+const uint64_t RANK1 = 0xff00000000000000;
+const uint64_t RANK2 = (RANK1 >> (8*1));
+const uint64_t RANK3 = (RANK1 >> (8*2));
+const uint64_t RANK4 = (RANK1 >> (8*3));
+const uint64_t RANK5 = (RANK1 >> (8*4));
+const uint64_t RANK6 = (RANK1 >> (8*5));
+const uint64_t RANK7 = (RANK1 >> (8*6));
+const uint64_t RANK8 = (RANK1 >> (8*7));
 
 // number of bits available(relative) for each bishop in each position of board.
 const int bishop_relevant_bits[64] = {6, 5, 5, 5, 5, 5, 5, 6,

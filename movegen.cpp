@@ -94,8 +94,8 @@ void generate_king_moves(moves *move_list, Color side){
     int source_sq, target_sq;
     uint64_t bb, attacks;
 
-    Piece piece = (side ? W_KING : B_KING);
-    int ksq = (side ? e1 : e8);
+    Piece piece = (side ? B_KING : W_KING);
+    int ksq = (side ? e8 : e1);
     bb = bitboards[K+(side*6)];
 
     while (bb)
@@ -166,8 +166,8 @@ void generate_moves(moves *move_list, Color side, PieceType pType){
     int source_sq, target_sq;
     uint64_t bb, attacks;
 
-    Piece piece = (side ? Piece(pType) : (Piece(pType+side*6)));
-    bb = bitboards[piece+(side*6)];
+    Piece piece = (side ? (Piece(pType+side*6)) : Piece(pType));
+    bb = bitboards[piece];
 
     while (bb)
     {
@@ -175,7 +175,14 @@ void generate_moves(moves *move_list, Color side, PieceType pType){
         source_sq = get_ls1b_index(bb);
         
         // init piece attacks in order to get set of target squares
-        attacks = knight_attacks[source_sq] & ~occupancies[side];
+        if (pType == KNIGHT)
+            attacks = knight_attacks[source_sq] & ~occupancies[side];
+        else if (pType == BISHOP)
+            attacks = get_bishop_attacks(source_sq, occupancies[NO_COLOR]) & ~occupancies[side];
+        else if (pType == ROOK)
+            attacks = get_rook_attacks(source_sq, occupancies[NO_COLOR]) & ~occupancies[side];
+        else if (pType == QUEEN)
+            attacks = get_queen_attacks(source_sq, occupancies[NO_COLOR]) & ~occupancies[side];
         
         // loop over target squares available from generated attacks
         while (attacks)
@@ -184,7 +191,7 @@ void generate_moves(moves *move_list, Color side, PieceType pType){
             target_sq = get_ls1b_index(attacks);    
             
             // quite move
-            if (!get_bit(occupancies[side], target_sq))
+            if (!get_bit(occupancies[!side], target_sq))
                 add_move(move_list, encode_move(source_sq, target_sq, piece, 0, 0, 0, 0, 0));
             
             else
@@ -203,10 +210,10 @@ void generate_moves(moves *move_list, Color side, PieceType pType){
 
 void generate_all(moves *move_list, Color side){
     generate_pawn_moves(move_list, side);
-    // generate_king_moves(move_list, side);
-    // generate_moves(move_list, side, KNIGHT);
-    // generate_moves(move_list, side, BISHOP);
-    // generate_moves(move_list, side, ROOK);
-    // generate_moves(move_list, side, QUEEN);
+    generate_king_moves(move_list, side);
+    generate_moves(move_list, side, KNIGHT);
+    generate_moves(move_list, side, BISHOP);
+    generate_moves(move_list, side, ROOK);
+    generate_moves(move_list, side, QUEEN);
 }
 

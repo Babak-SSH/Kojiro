@@ -15,6 +15,19 @@
 #include "king.h"
 
 
+struct StateInfo
+{
+    uint64_t bitboards[12];
+    uint64_t occupancies[3];
+
+    int castle;
+    int side;
+    int rule50;
+    int enpassant;
+
+    StateInfo* previous;
+};
+
 // ASCII pieces
 extern const std::string ascii_pieces;
 

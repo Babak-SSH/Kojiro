@@ -5,6 +5,18 @@
 #include "position.h"
 
 
+struct moveInfo
+{
+    int source;
+    int target;
+    int piece;
+    int promoted;
+    int capture;
+    int double_push;
+    int enpassant;
+    int castling;
+};
+
 void generate_pawn_moves(moves *move_list, Color side);
 
 void generate_king_moves(moves *move_list, Color side);

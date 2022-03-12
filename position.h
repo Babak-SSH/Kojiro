@@ -31,6 +31,9 @@ struct StateInfo
 // ASCII pieces
 extern const std::string ascii_pieces;
 
+// temp state info
+extern StateInfo* st;
+
 // piece bitboards
 extern uint64_t bitboards[12];
 
@@ -54,6 +57,8 @@ void print_board();
 
 void init_start();
 
+void init_state();
+
 std::string get_fen();
 
 void parse_fen(const std::string& fen);
@@ -62,12 +67,14 @@ void set_piece(Piece p, int sq);
 
 bool is_square_attacked(int square, int side);
 
-/// @todo fix color(side) finding
+/// @todo enhance color(side) finding
 inline void set_piece(Piece p, int sq){
     set_bit(bitboards[p], sq);
     
     occupancies[(p > 5)] |= bitboards[p];
     occupancies[2] |= bitboards[p];
 }
+
+void make_move(int move);
 
 #endif

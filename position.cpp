@@ -8,6 +8,8 @@ using std::string;
 // ASCII pieces
 const string ascii_pieces("PNBRQKpnbrqk");
 
+StateInfo* st;
+
 // piece bitboards
 uint64_t bitboards[12];
 
@@ -23,9 +25,9 @@ int enpassant = no_sq;
 // castling rights
 int castle = 0;
 
-int rule50;
+int rule50 = 0;
 
-int play_count;
+int play_count = 0;
 
 void print_board(){
     int sq;
@@ -132,6 +134,20 @@ void init_start(){
     castle |= BQ;
 }
 
+void init_state(){
+    st = new StateInfo();
+
+    memcpy(st->bitboards, bitboards, 96);
+    memcpy(st->occupancies, occupancies, 96);
+    
+    st->castle = castle;
+    st->enpassant = enpassant;
+    st->rule50 = rule50;
+    st->side = side;
+
+    st->previous = NULL;
+}
+
 std::string get_fen(){
     return "";
 }
@@ -218,4 +234,13 @@ bool is_square_attacked(int square, int side){
     if (king_attacks[square] & bitboards[K+(6*side)]) return 1;
 
     return 0;
+}
+
+void make_move(int move, int move_flag, StateInfo& newST){
+    // preserving the previous state
+    memcpy(&newST, st, offsetof(StateInfo, previous));
+
+    newST.previous = st;
+    // seprating these logics with move types
+    // if (move_flag == quite_moves)
 }

@@ -90,7 +90,6 @@ void generate_pawn_moves(moves *move_list, Color side){
 }
 
 void generate_king_moves(moves *move_list, Color side){
-    printf("generating king moves\n");
     int source_sq, target_sq;
     uint64_t bb, attacks;
 
@@ -161,8 +160,6 @@ void generate_king_moves(moves *move_list, Color side){
 }
 
 void generate_moves(moves *move_list, Color side, PieceType pType){
-    printf("generating %c moves\n", ascii_pieces[side ? Piece(pType) : (Piece(pType+side*6))]);
-
     int source_sq, target_sq;
     uint64_t bb, attacks;
 

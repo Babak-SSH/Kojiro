@@ -217,3 +217,43 @@ void generate_all(moves *move_list, Color side){
     generate_moves(move_list, side, QUEEN);
 }
 
+// printing moves:
+
+/// print move (for UCI purposes)
+void print_move(int move)
+{
+    moveInfo info = decode_move(move);
+
+    printf("%s%s%c\n", convert_to_square[info.source],
+                     convert_to_square[info.target],
+                     promoted_pieces[info.promoted]);
+}
+
+// print move list
+void print_move_list(moves *move_list)
+{
+    if (!move_list->count)
+    {
+        printf("\n     No move in the move list!\n");
+        return;
+    }
+    
+    printf("\n     move    piece     capture   double    enpass    castling\n\n");
+    
+    for (int move_count = 0; move_count < move_list->count; move_count++)
+    {
+        int move = move_list->moves[move_count];
+        moveInfo info = decode_move(move);
+
+        printf("      %s%s%c   %c         %d         %d         %d         %d\n", convert_to_square[info.source],
+                                                                                convert_to_square[info.target],
+                                                                                info.promoted ? promoted_pieces[info.promoted] : ' ',
+                                                                                ascii_pieces[info.piece],
+                                                                                info.capture ? 1 : 0,
+                                                                                info.double_push ? 1 : 0,
+                                                                                info.enpassant ? 1 : 0,
+                                                                                info.castling ? 1 : 0);
+    }
+    
+    printf("\n\n     Total number of moves: %d\n\n", move_list->count);
+}

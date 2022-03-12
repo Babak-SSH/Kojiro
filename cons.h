@@ -22,4 +22,5 @@ extern const uint64_t RANK8;
 extern const int bishop_relevant_bits[64];
 extern const int rook_relevant_bits[64];
 
+extern const int castling_rights[64];
 #endif

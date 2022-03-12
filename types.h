@@ -42,4 +42,17 @@ struct moves{
     int count = 0;
 };
 
+struct moveInfo
+{
+    int source;
+    int target;
+    int piece;
+    int promoted;
+    int capture;
+    int double_push;
+    int enpassant;
+    int castling;
+};
+
+
 #endif

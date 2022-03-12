@@ -247,31 +247,99 @@ void make_move(int move, int move_flag, StateInfo& newST){
 
     moveInfo m = decode_move(move);
 
-    pop_bit(bitboards[m.piece], m.source);
-    set_bit(bitboards[m.piece], m.target);
+    pop_bit(newST.bitboards[m.piece], m.source);
+    set_bit(newST.bitboards[m.piece], m.target);
 
     if (m.capture){
         for (int bb_piece = W_PAWN + (6*side); bb_piece <= 5 + (6*side); bb_piece++){
-            if (get_bit(bitboards[bb_piece], m.target)){
-                pop_bit(bitboards[bb_piece], m.target);
+            if (get_bit(newST.bitboards[bb_piece], m.target)){
+                pop_bit(newST.bitboards[bb_piece], m.target);
                 break;
             }
         }
     }
     
     if (m.promoted){
-
+        pop_bit(newST.bitboards[(side) ? p : P], m.target);
+        set_bit(newST.bitboards[m.promoted], m.target);
     }
 
     if (m.enpassant){
-
+        (side) ? pop_bit(newST.bitboards[p], m.target - 8) :
+                 pop_bit(newST.bitboards[P], m.target + 8);
     }
 
-    if (m.double_push){
+    newST.enpassant = no_sq;
 
+    if (m.double_push){
+        (side) ? (newST.enpassant = m.target - 8) :
+                 (newST.enpassant = m.target + 8);
     }
 
     if (m.castling){
+        // switch target square
+        switch (m.target)
+        {
+            // white castles king side
+            case (g1):
+                // move H rook
+                pop_bit(newST.bitboards[R], h1);
+                set_bit(newST.bitboards[R], f1);
+                break;
+            
+            // white castles queen side
+            case (c1):
+                // move A rook
+                pop_bit(newST.bitboards[R], a1);
+                set_bit(newST.bitboards[R], d1);
+                break;
+            
+            // black castles king side
+            case (g8):
+                // move H rook
+                pop_bit(newST.bitboards[r], h8);
+                set_bit(newST.bitboards[r], f8);
+                break;
+            
+            // black castles queen side
+            case (c8):
+                // move A rook
+                pop_bit(newST.bitboards[r], a8);
+                set_bit(newST.bitboards[r], d8);
+                break;
+        } 
+    }
+     // update castling rights
+    newST.castle &= castling_rights[m.source];
+    newST.castle &= castling_rights[m.target];
+    
+    // reset occupancies
+    memset(newST.occupancies, 0ULL, 24);
+    
+    // loop over white pieces bitboards
+    for (int bb_piece = P; bb_piece <= K; bb_piece++)
+        // update white occupancies
+        newST.occupancies[WHITE] |= newST.bitboards[bb_piece];
+
+    // loop over black pieces bitboards
+    for (int bb_piece = p; bb_piece <= k; bb_piece++)
+        // update black occupancies
+        newST.occupancies[BLACK] |= newST.bitboards[bb_piece];
+
+    // update both sides occupancies
+    newST.occupancies[NO_COLOR] |= newST.occupancies[WHITE];
+    newST.occupancies[NO_COLOR] |= newST.occupancies[BLACK];
+    
+    // change side
+    side ^= 1;
+    
+    // make sure that king has not been exposed into a check
+    if (is_square_attacked((side == WHITE) ? get_ls1b_index(bitboards[k]) : get_ls1b_index(bitboards[K]), side))
+    {
+        // take move back
+        // take_back();
         
+        // return illegal move
+        // return 0;
     }
 }

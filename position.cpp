@@ -236,6 +236,7 @@ bool is_square_attacked(int square, int side){
     return 0;
 }
 
+/// @todo check if assinging a variable is faster than getting it from structure.
 void make_move(int move, int move_flag, StateInfo& newST){
     // preserving the previous state
     memcpy(&newST, st, offsetof(StateInfo, previous));
@@ -243,4 +244,34 @@ void make_move(int move, int move_flag, StateInfo& newST){
     newST.previous = st;
     // seprating these logics with move types
     // if (move_flag == quite_moves)
+
+    moveInfo m = decode_move(move);
+
+    pop_bit(bitboards[m.piece], m.source);
+    set_bit(bitboards[m.piece], m.target);
+
+    if (m.capture){
+        for (int bb_piece = W_PAWN + (6*side); bb_piece <= 5 + (6*side); bb_piece++){
+            if (get_bit(bitboards[bb_piece], m.target)){
+                pop_bit(bitboards[bb_piece], m.target);
+                break;
+            }
+        }
+    }
+    
+    if (m.promoted){
+
+    }
+
+    if (m.enpassant){
+
+    }
+
+    if (m.double_push){
+
+    }
+
+    if (m.castling){
+        
+    }
 }

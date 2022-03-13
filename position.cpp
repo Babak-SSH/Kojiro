@@ -65,7 +65,7 @@ void print_board(){
                                            (st->castle & BQ) ? 'q' : '-');
 
     // print turn count
-    printf("     turn: %d\n\n", play_count);
+    printf("     turn: %d\n\n", st->play_count);
 }
 
 void init_start(){
@@ -144,6 +144,7 @@ void init_state(){
     st->enpassant = enpassant;
     st->rule50 = rule50;
     st->side = side;
+    st->play_count = play_count;
 
     st->previous = NULL;
 }
@@ -337,7 +338,8 @@ void make_move(int move, int move_flag, StateInfo& newST){
     newST.occupancies[NO_COLOR] |= newST.occupancies[BLACK];
     
     // change side
-    side ^= 1;
+    st->side ^= 1;
+    st->play_count++;
     
     // make sure that king has not been exposed into a check
     if (is_square_attacked((side == WHITE) ? get_ls1b_index(bitboards[k]) : get_ls1b_index(bitboards[K]), side))
@@ -348,4 +350,5 @@ void make_move(int move, int move_flag, StateInfo& newST){
         // return illegal move
         // return 0;
     }
+    
 }

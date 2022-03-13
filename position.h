@@ -25,6 +25,7 @@ struct StateInfo
     int side;
     int rule50;
     int enpassant;
+    int play_count;
 
     StateInfo* previous;
 };

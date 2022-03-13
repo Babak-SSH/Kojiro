@@ -130,8 +130,8 @@ void generate_king_moves(moves *move_list, Color side){
      // king side castling is available
     if (castle & (side ? WK : BK))
     {
-        int sq1 = (side ? f1 : f8);
-        int sq2 = (side ? g1 : g8);
+        int sq1 = (side ? f8 : f1);
+        int sq2 = (side ? g8 : g1);
 
         if (!get_bit(occupancies[NO_COLOR], sq1) && !get_bit(occupancies[NO_COLOR], sq2))
         {
@@ -145,16 +145,16 @@ void generate_king_moves(moves *move_list, Color side){
     // queen side castling is available
     if (castle & (side ? WQ : BQ))
     {
-        int sq1 = (side ? d1 : d8);
-        int sq2 = (side ? c1 : c8);
-        int sq3 = (side ? b1 : b8);
+        int sq1 = (side ? d8 : d1);
+        int sq2 = (side ? c8 : c1);
+        int sq3 = (side ? b8 : b1);
 
         // make sure square between king and queen's rook are empty
         if (!get_bit(occupancies[NO_COLOR], sq1) && !get_bit(occupancies[NO_COLOR], sq2) && !get_bit(occupancies[NO_COLOR], sq3))
         {
             // make sure king and the d1 squares are not under attacks
-            if (!is_square_attacked(e1, !side) && !is_square_attacked(d1, !side))
-                add_move(move_list, encode_move(e1, c1, piece, 0, 0, 0, 0, 1));
+            if (!is_square_attacked(ksq, !side) && !is_square_attacked(sq1, !side))
+                add_move(move_list, encode_move(ksq, sq2, piece, 0, 0, 0, 0, 1));
         }
     }
 }

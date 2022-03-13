@@ -41,7 +41,7 @@ void print_board(){
             // loop over all piece bitboards
             for (int bb_piece = W_PAWN; bb_piece <= B_KING; bb_piece++)
             {
-                if (get_bit(bitboards[bb_piece], sq))
+                if (get_bit(st->bitboards[bb_piece], sq))
                     piece = bb_piece;
             }
             
@@ -53,16 +53,16 @@ void print_board(){
 
       
     // print side to move
-    printf("     Side:     %s\n", !side ? "white" : "black");
+    printf("     Side:     %s\n", !st->side ? "white" : "black");
     
     // print enpassant square
-    printf("     Enpassant:   %s\n", (enpassant != no_sq) ? convert_to_square[enpassant] : "no");
+    printf("     Enpassant:   %s\n", (st->enpassant != no_sq) ? convert_to_square[st->enpassant] : "no");
     
     // print castling rights
-    printf("     Castling:  %c%c%c%c\n", (castle & WK) ? 'K' : '-',
-                                           (castle & WQ) ? 'Q' : '-',
-                                           (castle & BK) ? 'k' : '-',
-                                           (castle & BQ) ? 'q' : '-');
+    printf("     Castling:  %c%c%c%c\n", (st->castle & WK) ? 'K' : '-',
+                                           (st->castle & WQ) ? 'Q' : '-',
+                                           (st->castle & BK) ? 'k' : '-',
+                                           (st->castle & BQ) ? 'q' : '-');
 
     // print turn count
     printf("     turn: %d\n\n", play_count);
@@ -148,7 +148,11 @@ void init_state(){
     st->previous = NULL;
 }
 
-std::string get_fen(){
+void take_back(){
+    st = st->previous;
+}
+
+string get_fen(){
     return "";
 }
 
@@ -242,6 +246,8 @@ void make_move(int move, int move_flag, StateInfo& newST){
     memcpy(&newST, st, offsetof(StateInfo, previous));
 
     newST.previous = st;
+
+    st = &newST;
     // seprating these logics with move types
     // if (move_flag == quite_moves)
 
@@ -337,7 +343,7 @@ void make_move(int move, int move_flag, StateInfo& newST){
     if (is_square_attacked((side == WHITE) ? get_ls1b_index(bitboards[k]) : get_ls1b_index(bitboards[K]), side))
     {
         // take move back
-        // take_back();
+        take_back();
         
         // return illegal move
         // return 0;

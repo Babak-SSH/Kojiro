@@ -60,6 +60,8 @@ void init_start();
 
 void init_state();
 
+void take_back();
+
 std::string get_fen();
 
 void parse_fen(const std::string& fen);
@@ -76,6 +78,6 @@ inline void set_piece(Piece p, int sq){
     occupancies[2] |= bitboards[p];
 }
 
-void make_move(int move);
+void make_move(int move, int move_flag, StateInfo& newST);
 
 #endif

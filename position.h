@@ -79,6 +79,6 @@ inline void set_piece(Piece p, int sq){
     occupancies[2] |= bitboards[p];
 }
 
-void make_move(int move, int move_flag, StateInfo& newST);
+int make_move(int move, int move_flag, StateInfo& newST);
 
 #endif

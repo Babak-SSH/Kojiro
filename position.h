@@ -80,5 +80,10 @@ inline void set_piece(Piece p, int sq){
 }
 
 int make_move(int move, int move_flag, StateInfo& newST);
-
+extern long captures_count;
+extern long captures_flag;
+extern long enpassant_count;
+extern long enpassant_flag;
+extern long castles_count;
+extern long castles_flag;
 #endif

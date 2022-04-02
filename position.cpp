@@ -138,7 +138,7 @@ void init_state(){
     st = new StateInfo();
 
     memcpy(st->bitboards, bitboards, 96);
-    memcpy(st->occupancies, occupancies, 96);
+    memcpy(st->occupancies, occupancies, 24);
     
     st->castle = castle;
     st->enpassant = enpassant;
@@ -227,21 +227,26 @@ void parse_fen(const string& fen){
 /// @todo get_attacks function with piece parameter to get rid of army of ifs.
 bool is_square_attacked(int square, int side){
     // pawn
-    if (pawn_attacks[!side][square] & bitboards[P+(6*side)]) return 1;
+    if (pawn_attacks[!side][square] & st->bitboards[P+(6*side)]) return 1;
     // knight
-    if (knight_attacks[square] & bitboards[N+(6*side)]) return 1;
+    if (knight_attacks[square] & st->bitboards[N+(6*side)]) return 1;
     // bishop
-    if (get_bishop_attacks(square, occupancies[NO_COLOR]) & bitboards[B+(6*side)]) return 1;
+    if (get_bishop_attacks(square, st->occupancies[NO_COLOR]) & st->bitboards[B+(6*side)]) return 1;
     // rook
-    if (get_rook_attacks(square, occupancies[NO_COLOR]) & bitboards[R+(6*side)]) return 1;
+    if (get_rook_attacks(square, st->occupancies[NO_COLOR]) & st->bitboards[R+(6*side)]) return 1;
     // queen
-    if (get_queen_attacks(square, occupancies[NO_COLOR]) & bitboards[Q+(6*side)]) return 1;
+    if (get_queen_attacks(square, st->occupancies[NO_COLOR]) & st->bitboards[Q+(6*side)]) return 1;
     // king
-    if (king_attacks[square] & bitboards[K+(6*side)]) return 1;
+    if (king_attacks[square] & st->bitboards[K+(6*side)]) return 1;
 
     return 0;
 }
-
+long captures_count = 0;
+long captures_flag = 0;
+long enpassant_count = 0;
+long enpassant_flag = 0;
+long castles_count = 0;
+long castles_flag = 0;
 /// @todo check if assinging a variable is faster than getting it from structure.
 int make_move(int move, int move_flag, StateInfo& newST){
     moveInfo m = decode_move(move);
@@ -263,6 +268,7 @@ int make_move(int move, int move_flag, StateInfo& newST){
         if (m.capture){
             for (int bb_piece = W_PAWN + (6*!newST.side); bb_piece <= 5 + (6*!newST.side); bb_piece++){
                 if (get_bit(newST.bitboards[bb_piece], m.target)){
+                    captures_flag = 1;
                     pop_bit(newST.bitboards[bb_piece], m.target);
                     break;
                 }
@@ -275,14 +281,15 @@ int make_move(int move, int move_flag, StateInfo& newST){
         }
 
         if (m.enpassant){
-            (side) ? pop_bit(newST.bitboards[p], m.target - 8) :
-                    pop_bit(newST.bitboards[P], m.target + 8);
+            (newST.side) ? pop_bit(newST.bitboards[P], m.target - 8) :
+                    pop_bit(newST.bitboards[p], m.target + 8);
+            enpassant_flag = 1;
         }
 
         newST.enpassant = no_sq;
 
         if (m.double_push){
-            (side) ? (newST.enpassant = m.target - 8) :
+            (newST.side) ? (newST.enpassant = m.target - 8) :
                     (newST.enpassant = m.target + 8);
         }
 
@@ -318,6 +325,7 @@ int make_move(int move, int move_flag, StateInfo& newST){
                     set_bit(newST.bitboards[r], d8);
                     break;
             } 
+            castles_flag = 1;
         }
         // update castling rights
         newST.castle &= castling_rights[m.source];
@@ -345,21 +353,42 @@ int make_move(int move, int move_flag, StateInfo& newST){
         st->play_count++;
         
         // make sure that king has not been exposed into a check
-        if (is_square_attacked((st->side == WHITE) ? get_ls1b_index(bitboards[k]) : get_ls1b_index(bitboards[K]), st->side)){
+        if (is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[k]) : get_ls1b_index(st->bitboards[K]), st->side)){
             // take move back
             take_back();
-            printf("checked can't move\n");
+            // printf("checked can't move\n");
+            
+            captures_flag=0;
+            enpassant_flag = 0;
+            castles_flag = 0;
+
             // return illegal move
             return 0;
         }
         else{
+            if (captures_flag && move_flag==1)
+                captures_count++;
+            if (enpassant_flag && move_flag==1)
+                enpassant_count++;
+            if (castles_flag && move_flag==1)
+                castles_count++;
+            // if (castles_count > 128013 && castles_flag==1){
+            // print_board();
+            // getchar();
+
+            // }
+            captures_flag=0;
+            enpassant_flag = 0;
+            castles_flag = 0;
             return 1;
         }
     }
     else{
-        printf("wrong side\n");
+        captures_flag=0;
+            enpassant_flag = 0;
+            castles_flag = 0;
+        // printf("wrong side\n");
         // not this sides turn
         return 0;
     }
-    
 }

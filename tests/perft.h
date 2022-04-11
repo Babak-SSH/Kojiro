@@ -16,12 +16,31 @@
 #include "../src/queen.h"
 #include "../src/movegen.h"
 
+/**
+ * @brief Get the time in ms
+ * 
+ * @return int 
+ */
 int get_time_ms();
 
+/**
+ * @brief initilize all bitboards in both color
+ * 
+ */
 void init_all();
 
+/**
+ * @brief main recursive perft driver 
+ * 
+ * @param depth 
+ */
 static inline void perft_driver(int depth);
 
+/**
+ * @brief perft test calling perft driver
+ * 
+ * @param depth 
+ */
 void perft_test(int depth);
 
 #endif

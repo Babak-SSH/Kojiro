@@ -30,6 +30,8 @@ void init_all(){
 
 }
 
+/// loop over each generated moves for current colors turn
+/// by calling itself recursivly.
 static inline void perft_driver(int depth)
 {
     // reccursion escape condition
@@ -53,21 +55,14 @@ static inline void perft_driver(int depth)
 
         if (!make_move(move, depth, nST))
             continue;
-        // if (nodes > 382){
-            // print_board();
-            // getchar();
-        // }
         perft_driver(depth - 1);
 
         take_back();
-        // if (nodes > 382){
-            // print_board();
-            // getchar();
-        // }
     }
 }
 
-// perft test
+/// generates all moves and nodes and uses perft_driver.
+/// calculates the time spend for the depth given in ms.
 void perft_test(int depth)
 {
     captures_count = 0;

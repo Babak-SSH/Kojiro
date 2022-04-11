@@ -1,5 +1,8 @@
 .vscode
 
+*
+!*/
+!*.*
 *.exe
 *.sh
 *.out

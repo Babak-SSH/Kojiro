@@ -8,8 +8,7 @@
 
 long nodes = 0;
 
-int get_time_ms()
-{
+int get_time_ms(){
     struct timeval time_value;
     gettimeofday(&time_value, NULL);
     return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
@@ -32,8 +31,7 @@ void init_all(){
 
 /// loop over each generated moves for current colors turn
 /// by calling itself recursivly.
-static inline void perft_driver(int depth)
-{
+static inline void perft_driver(int depth){
     // reccursion escape condition
     if (depth == 0)
     {
@@ -63,8 +61,7 @@ static inline void perft_driver(int depth)
 
 /// generates all moves and nodes and uses perft_driver.
 /// calculates the time spend for the depth given in ms.
-void perft_test(int depth)
-{
+void perft_test(int depth){
     captures_count = 0;
     enpassant_count = 0;
     castles_count = 0;
@@ -99,63 +96,29 @@ void perft_test(int depth)
         // take back
         take_back();
         moveInfo info = decode_move(move);
-
-    // printf("     move: %s%s%c  nodes: %ld\n", convert_to_square[info.source],
-    //                  convert_to_square[info.target],
-    //                  promoted_pieces[info.promoted],
-    //                  old_nodes);
     }
     
     // print results
-    printf("\n    Depth: %d\n", depth);
-    printf("    Nodes: %ld\n", nodes);
+    printf("\n     Depth: %d\n", depth);
+    printf("     Nodes: %ld\n", nodes);
     printf("     Time: %ld\n\n", get_time_ms() - start);
-    printf("captures: %d\nenpassant: %d\ncastles: %d\n", captures_count, enpassant_count, castles_count);
+    printf("     captures: %d\n     enpassant: %d\n     castles: %d\n", captures_count, enpassant_count, castles_count);
 }
 
-int main(){
+
+/// use format example: sperft 6 "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+int main(int argc, char** argv){
+	// set all moves and attacks of leaper and slider pieces
     init_all();
     
-    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    parse_fen(argv[2]);
     init_state();
     print_board();
 
     int start = get_time_ms();
 
-    // perft_driver(3);
-
-    perft_test(1);
-    perft_test(2);
-    perft_test(3);
-    perft_test(4);
-    perft_test(5);
-    perft_test(6);
-    // perft_test(10);
-
-    // moves move_list[1];
-    // generate_all(move_list, WHITE);
-    // generate_all(move_list, BLACK);
-    // print_move_list(move_list);
-
-    // for(int i = 0; i < move_list->count; i++){
-    //     StateInfo nST;
-    //     int move = move_list->moves[i];
-
-    //     if (make_move(move, i, nST)){
-    //         print_board();
-    //         getchar();
-
-    //         take_back();
-    //         print_board();
-    //         getchar();
-    //     }
-    //     else{
-    //         printf("%d\n", i);
-    //     }
-    // }
-    // printf("excution time: %d ms\n", get_time_ms() - start);
-    // printf("nodes: %ld\n", nodes);
-    // printf("captures: %d\nenpassant: %d\ncastles: %d\n", captures_count, enpassant_count, castles_count);
+    perft_test(atoi(argv[1]));
+	
     /// @todo optimize speed?
     // delete st;
 

@@ -258,8 +258,6 @@ int make_move(int move, int move_flag, StateInfo& newST){
         newST.previous = st;
 
         st = &newST;
-        // seprating these logics with move types
-        // if (move_flag == quite_moves)
 
 
         pop_bit(newST.bitboards[m.piece], m.source);
@@ -372,11 +370,7 @@ int make_move(int move, int move_flag, StateInfo& newST){
                 enpassant_count++;
             if (castles_flag && move_flag==1)
                 castles_count++;
-            // if (castles_count > 128013 && castles_flag==1){
-            // print_board();
-            // getchar();
 
-            // }
             captures_flag=0;
             enpassant_flag = 0;
             castles_flag = 0;
@@ -385,9 +379,9 @@ int make_move(int move, int move_flag, StateInfo& newST){
     }
     else{
         captures_flag=0;
-            enpassant_flag = 0;
-            castles_flag = 0;
-        // printf("wrong side\n");
+		enpassant_flag = 0;
+		castles_flag = 0;
+		
         // not this sides turn
         return 0;
     }

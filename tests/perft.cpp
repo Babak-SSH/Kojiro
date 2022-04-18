@@ -106,21 +106,29 @@ void perft_test(int depth){
 }
 
 
-/// use format example: sperft 6 "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+/// use format example: perft 6 "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 int main(int argc, char** argv){
 	// set all moves and attacks of leaper and slider pieces
-    init_all();
-    
-    parse_fen(argv[2]);
-    init_state();
-    print_board();
+	if(argc == 2 && strcmp(argv[1], "--help")==0){
+		printf("perft depth fen\ndefault:perft 5 rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\n");
+	}
+	else if(argc == 3){
+		init_all();
+		
+		parse_fen(argv[2]);
+		init_state();
+		print_board();
 
-    int start = get_time_ms();
+		int start = get_time_ms();
 
-    perft_test(atoi(argv[1]));
-	
-    /// @todo optimize speed?
-    // delete st;
+		perft_test(atoi(argv[1]));
+		
+		/// @todo optimize speed?
+		// delete st;
+	}
+	else{
+		printf("invalid input try: ./perft --help\n");
+	}
 
     return 0;    
 }

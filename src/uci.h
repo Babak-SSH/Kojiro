@@ -28,5 +28,7 @@ inline std::ostream& operator<<(std::ostream& os, SyncCout sc) {
 
 namespace UCI{
 	void loop(int argc, char* argv[]);
+	void go();
+	void position();
 }
 #endif

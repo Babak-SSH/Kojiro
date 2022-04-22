@@ -1,6 +1,14 @@
 #include "uci.h"
 
 
+void UCI::go(){
+
+}
+
+void UCI::position(){
+
+}
+
 void UCI::loop(int argc, char* argv[]){
 	std::string token, cmd;
 

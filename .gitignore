@@ -1,9 +1,7 @@
-.vscode
-
-*
-!*/
-!*.*
 *.exe
 *.sh
 *.out
 *.o
+src/*.o
+
+.vscode

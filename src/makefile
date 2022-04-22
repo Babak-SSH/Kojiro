@@ -1,8 +1,8 @@
 CXX = g++
-CXXFLAGS_MAIN = -Ofast
+CXXFLAGS_MAIN = -Ofast -std=c++20
 CXXFLAGS_DEBUG = -Ofast -g
 
-OBJECTS = ./kojiro.o ./bishop.o ./cons.o ./king.o ./movegen.o ./position.o ./magic.o ./rook.o ./bitboard.o ./knight.o ./pawn.o ./queen.o
+OBJECTS = ./kojiro.o ./bishop.o ./cons.o ./king.o ./movegen.o ./position.o ./magic.o ./rook.o ./bitboard.o ./knight.o ./pawn.o ./queen.o ./uci.o
 
 main: $(OBJECTS)
 	$(CXX) $(CXXFLAGS_MAIN) -o $@ $^
@@ -10,7 +10,7 @@ main: $(OBJECTS)
 debug: $(OBJECTS)
 	$(CXX) $(CXXFLAGS_DEBUG) -o $@ $^
 
-$(OBJECTS): ./bishop.h ./cons.h ./king.h ./movegen.h ./position.h ./magic.h ./rook.h ./bitboard.h ./knight.h ./pawn.h ./queen.h
+$(OBJECTS): ./bishop.h ./cons.h ./king.h ./movegen.h ./position.h ./magic.h ./rook.h ./bitboard.h ./knight.h ./pawn.h ./queen.h ./uci.h
 
 perft:
 	g++ -Ofast ../tests/perft.cpp ./bishop.cpp ./cons.cpp ./king.cpp ./movegen.cpp ./position.cpp ./magic.cpp ./rook.cpp ./bitboard.cpp ./knight.cpp ./pawn.cpp ./queen.cpp -o perft

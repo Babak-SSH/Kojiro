@@ -3,6 +3,7 @@
 *.out
 *.o
 src/*.o
+
 *.txt
 
 .gdb_history

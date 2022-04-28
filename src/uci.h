@@ -6,6 +6,10 @@
 #include <mutex>
 #include <sstream>
 
+#include "position.h"
+#include "movegen.h"
+
+
 enum SyncCout { IO_LOCK, IO_UNLOCK };
 #define sync_cout std::cout << IO_LOCK
 #define sync_endl std::endl << IO_UNLOCK
@@ -28,7 +32,9 @@ inline std::ostream& operator<<(std::ostream& os, SyncCout sc) {
 
 namespace UCI{
 	void loop(int argc, char* argv[]);
-	void go();
-	void position();
+	void go(std::istringstream& iss);
+	void position(std::istringstream& iss);
+	void move();
+	int parse_move(std::string m);
 }
 #endif

@@ -11,9 +11,8 @@ void UCI::go(std::istringstream& iss){
 		if(token == "depth")
 			iss >> depth;
 	}
-	//search move
-	//search_position(depth);
-	//sync_cout << "bestmove d2d4" << sync_endl;
+	//search best move
+	Search::search(depth);
 }
 
 void UCI::position(std::istringstream& iss){
@@ -24,6 +23,7 @@ void UCI::position(std::istringstream& iss){
 
 	if(token == "startpos"){
 		parse_fen(START_FEN);
+		init_state();
 		iss >> token;
 	}
 	else if(token == "fen"){
@@ -32,6 +32,7 @@ void UCI::position(std::istringstream& iss){
 			fen += token + " ";
 		}
 		parse_fen(fen);
+		init_state();
 	}
 	if(token == "moves"){
 		while (iss >> token){
@@ -47,18 +48,13 @@ void UCI::position(std::istringstream& iss){
 	print_board();
 }
 
-void UCI::move(){
-
-}
-
 int UCI::parse_move(std::string mov){
 	int source_sq, target_sq;
 	char promoted_piece;
 	moves move_list[1];
 	moveInfo info;
 
-	generate_all(move_list, BLACK);
-	generate_all(move_list, WHITE);
+	generate_all(move_list, Color(st->side));
 
 	source_sq = (mov[0] - 'a') + (8 - (mov[1] - '0')) * 8;
 	target_sq = (mov[2] - 'a') + (8 - (mov[3] - '0')) * 8;

@@ -5,7 +5,7 @@ int Eval::evaluation(){
 	int sq;
 	uint64_t bitboard;
 
-	for(int bb_piece=W_PAWN;bb_piece < B_KING;bb_piece++){
+	for(int bb_piece=W_PAWN;bb_piece <= B_KING;bb_piece++){
 		bitboard = st->bitboards[bb_piece];
 
 		while (bitboard)

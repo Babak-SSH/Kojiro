@@ -19,6 +19,7 @@
 #include "queen.h"
 #include "movegen.h"
 #include "uci.h"
+#include "eval.h"
 
 
 void init_all(){
@@ -42,6 +43,7 @@ int main(int argc, char* argv[]){
     parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     init_state();
     print_board();
+
 	
     /// @todo optimize speed?
     // delete st;

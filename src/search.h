@@ -9,6 +9,15 @@
 namespace Search
 {
 	/**
+	 * @brief quiescence search for horizon effect.
+	 * 
+	 * @param alpha 
+	 * @param beta 
+	 * @return int 
+	 */
+	static int quiescence(int alpha, int beta);
+
+	/**
 	 * @brief negamax alpha beta search (recursive)
 	 * 
 	 * @param alpha 

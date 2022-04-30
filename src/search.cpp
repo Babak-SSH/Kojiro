@@ -4,6 +4,62 @@ long nodes = 0;
 int ply = 0; // half moves
 int best_move;
 
+/// quiescence search is used to avoid the horizon effect. because evaluating in a certain depth 
+/// is dangerous, we need to have not certain but acceptable view on the rest of that position
+/// Thus we use this search algorithm to check for captures and avoid any bad moves in deeper depths
+/// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
+static int Search::quiescence(int alpha, int beta){
+	int standpat = Eval::evaluation();
+
+	 /// fail-hard beta cutoff
+	 /// @todo check fail-soft beta cutoff
+    if (standpat >= beta){
+        // node(move) fails high
+        return beta;
+    }
+        
+    /// found a better move
+    if (standpat > alpha){
+        // principle variation node(move)
+        alpha = standpat;
+    }
+
+	moves move_list[1];
+
+    generate_all(move_list, Color(st->side));
+
+    for (int move_count = 0; move_count < move_list->count; move_count++){
+
+		StateInfo nst;
+		if(!make_move(move_list->moves[move_count], 2, nst)){
+			continue;
+		}
+
+
+		int score = -Search::quiescence(-beta, -alpha);
+
+		take_back();
+
+		 /// fail-hard beta cutoff
+		 /// @todo check fail-soft beta cutoff
+        if (score >= beta)
+        {
+            // node(move) fails high
+            return beta;
+        }
+        
+        /// found a better move
+        if (score > alpha)
+        {
+            // principle variation node(move)
+            alpha = score;
+        }
+	}	
+
+
+	return alpha;
+}
+
 /// negamax search algorithm is a variant form of minimax search for zero-sum(e.g chess) two-player games.
 /// it relies on the fact that max(a, b) = -min(-a, -b) to simplify the implementation of minimax algorithm.
 /// whites score evaluation for black is negation of that value in that state therefor the player on move looks 
@@ -11,7 +67,7 @@ int best_move;
 /// by definition have been valued by the opponent.
 static int Search::negamax(int alpha, int beta, int depth){
 	if(depth == 0)
-		return Eval::evaluation();
+		return Search::quiescence(alpha, beta);
 	
 	moves move_list[1];
 	int legal_moves = 0;

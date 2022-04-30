@@ -193,7 +193,7 @@ void parse_fen(const string& fen){
     iss >> token;
 
     //castling
-    while ((iss >> token) && !isspace(token) && token != '-'){
+    while ((iss >> token) && !isspace(token)){
         if (token == 'K')
             castle |= castlingRights(WK);
         else if (token == 'Q'){
@@ -205,6 +205,9 @@ void parse_fen(const string& fen){
         else if (token == 'q'){
             castle |= castlingRights(BQ);
         }
+		else if (token == '-'){
+			castle = 0;
+		}
     }
 
     iss >> token;
@@ -224,7 +227,7 @@ void parse_fen(const string& fen){
     iss >> play_count;
 }
 
-/// @todo get_attacks function with piece parameter to get rid of army of ifs.
+/// @todo get_attacks function with piece parameter to get rid of army of ifs.(maybe template)
 bool is_square_attacked(int square, int side){
     // pawn
     if (pawn_attacks[!side][square] & st->bitboards[P+(6*side)]) return 1;

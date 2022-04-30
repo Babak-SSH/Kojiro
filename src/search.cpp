@@ -14,38 +14,42 @@ static int Search::negamax(int alpha, int beta, int depth){
 		return Eval::evaluation();
 	
 	moves move_list[1];
+	int legal_moves = 0;
+    int best_sofar;
+    int old_alpha = alpha;
+    int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(bitboards[K]) : 
+                                                        get_ls1b_index(bitboards[k]),
+                                                        st->side ^ 1);
 
 	nodes++;
-
-    int best_sofar;
-    
-    int old_alpha = alpha;
 
     generate_all(move_list, Color(st->side));
 
     for (int move_count = 0; move_count < move_list->count; move_count++){
+
 		StateInfo nst;
-		if(make_move(move_list->moves[move_count], 1, nst)){
-			ply++;
-		}
-		else{
+		if(!make_move(move_list->moves[move_count], 1, nst)){
 			continue;
 		}
+
+		ply++;
+		legal_moves++;
+
 		int score = -negamax(-beta, -alpha, depth-1);
 
 		ply--;
 
 		take_back();
 
-		 // fail-hard beta cutoff
-		 // TODO: check fail-soft beta cutoff
+		 /// fail-hard beta cutoff
+		 /// @todo check fail-soft beta cutoff
         if (score >= beta)
         {
             // node(move) fails high
             return beta;
         }
         
-        // found a better move
+        /// found a better move
         if (score > alpha)
         {
             // principle variation node(move)
@@ -57,6 +61,21 @@ static int Search::negamax(int alpha, int beta, int depth){
                 best_sofar = move_list->moves[move_count];
         }
 	}	
+
+	/// we don't have any legal moves to make in the current postion
+    if (legal_moves == 0)
+    {
+        // king is in check
+        if (in_check)
+            // return mating score (assuming closest distance to mating position)
+            return -49000 + ply;
+        
+        // king is not in check
+        else
+            // return stalemate score
+            return 0;
+    }
+
 	// found better move
     if (old_alpha != alpha)
         best_move = best_sofar;
@@ -68,7 +87,9 @@ static int Search::negamax(int alpha, int beta, int depth){
 void Search::search(int depth){
 	moveInfo info;
 	Search::negamax(-50000, 50000, depth);
+	if(best_move){
 	info = decode_move(best_move);
 	sync_cout << "bestmove " 
 			  << convert_to_square[info.source] << convert_to_square[info.target] << sync_endl;
+	}
 }

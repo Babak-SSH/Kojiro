@@ -2,9 +2,13 @@
 
 long nodes = 0;
 int ply = 0; // half moves
-// best move
 int best_move;
 
+/// negamax search algorithm is a variant form of minimax search for zero-sum(e.g chess) two-player games.
+/// it relies on the fact that max(a, b) = -min(-a, -b) to simplify the implementation of minimax algorithm.
+/// whites score evaluation for black is negation of that value in that state therefor the player on move looks 
+/// for a move that maximizes the negation of the value resulting from the move: this successor position must 
+/// by definition have been valued by the opponent.
 static int Search::negamax(int alpha, int beta, int depth){
 	if(depth == 0)
 		return Eval::evaluation();
@@ -13,16 +17,12 @@ static int Search::negamax(int alpha, int beta, int depth){
 
 	nodes++;
 
-	// best move so far
     int best_sofar;
     
-    // old value of alpha
     int old_alpha = alpha;
 
-    // generate moves
     generate_all(move_list, Color(st->side));
 
-    // loop over moves within a movelist
     for (int move_count = 0; move_count < move_list->count; move_count++){
 		StateInfo nst;
 		if(make_move(move_list->moves[move_count], 1, nst)){
@@ -38,16 +38,17 @@ static int Search::negamax(int alpha, int beta, int depth){
 		take_back();
 
 		 // fail-hard beta cutoff
+		 // TODO: check fail-soft beta cutoff
         if (score >= beta)
         {
-            // node (move) fails high
+            // node(move) fails high
             return beta;
         }
         
         // found a better move
         if (score > alpha)
         {
-            // PV node (move)
+            // principle variation node(move)
             alpha = score;
             
             // if root move
@@ -58,10 +59,9 @@ static int Search::negamax(int alpha, int beta, int depth){
 	}	
 	// found better move
     if (old_alpha != alpha)
-        // init best move
         best_move = best_sofar;
     
-    // node (move) fails low
+    // node(move) fails low
     return alpha;
 }
 

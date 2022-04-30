@@ -254,6 +254,9 @@ long castles_flag = 0;
 int make_move(int move, int move_flag, StateInfo& newST){
     moveInfo m = decode_move(move);
 
+	if(move_flag == 2 && !m.capture)
+		return 0;
+
     if (get_bit(st->occupancies[st->side], m.source)){
         // preserving the previous state
         memcpy(&newST, st, offsetof(StateInfo, previous));

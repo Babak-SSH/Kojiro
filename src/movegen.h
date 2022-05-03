@@ -7,13 +7,21 @@
 
 struct moveInfo
 {
+	/// source square
     int source;
+	/// target square
     int target;
+	/// piece type
     int piece;
+	/// is_promoted
     int promoted;
+	/// is_move_capture
     int capture;
+	/// is_double_push
     int double_push;
+	/// is_enpassant
     int enpassant;
+	/// is_castling
     int castling;
 };
 
@@ -41,6 +49,10 @@ int encode_move(int source, int target, int piece, int promoted, int capture, in
 
 moveInfo decode_move(int move);
 
+/// @todo check if making these are good practice or not.
+inline int get_move_capture(int move){
+	return (move & 0x100000);
+}
 void print_move(int move);
 
 void print_move_list(moves *move_list);

@@ -253,8 +253,6 @@ moveInfo decode_move(int move){
     return info;
 }
 
-// printing moves:
-
 /// print move (for UCI purposes)
 void print_move(int move)
 {
@@ -262,7 +260,7 @@ void print_move(int move)
 
     printf("%s%s%c\n", convert_to_square[info.source],
                      convert_to_square[info.target],
-                     promoted_pieces[info.promoted]);
+                    (info.promoted) ? promoted_pieces[info.promoted] : ' ');
 }
 
 // print move list

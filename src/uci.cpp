@@ -58,31 +58,35 @@ int UCI::parse_move(std::string mov){
 
 	source_sq = (mov[0] - 'a') + (8 - (mov[1] - '0')) * 8;
 	target_sq = (mov[2] - 'a') + (8 - (mov[3] - '0')) * 8;
-
+if(mov[4] == 'q')
+	sync_cout << "yea it gets it" << sync_endl;
 	for(int move_count = 0; move_count < move_list->count; move_count++){
 		int move = move_list->moves[move_count];
 		info = decode_move(move);
 
 		if(info.source == source_sq && info.target == target_sq){
 			if(info.promoted){
-				promoted_piece = promoted_pieces[info.promoted];
+				//promoted_piece = promoted_pieces[info.promoted];
+				//sync_cout << promoted_piece << sync_endl;
 				// promoted to queen
-                if ((promoted_piece == Q || promoted_piece == q) && mov[4] == 'q')
-                    // return legal move
+                if ((info.promoted == Q || info.promoted == q) && mov[4] == 'q'){
+					sync_cout << "i get it" << sync_endl;
                     return move;
+				}
+                    // return legal move
                 
                 // promoted to rook
-                else if ((promoted_piece == R || promoted_piece == r) && mov[4] == 'r')
+                else if ((info.promoted == R || info.promoted == r) && mov[4] == 'r')
                     // return legal move
                     return move;
                 
                 // promoted to bishop
-                else if ((promoted_piece == B || promoted_piece == b) && mov[4] == 'b')
+                else if ((info.promoted == B || info.promoted == b) && mov[4] == 'b')
                     // return legal move
                     return move;
                 
                 // promoted to knight
-                else if ((promoted_piece == N || promoted_piece == n) && mov[4] == 'n')
+                else if ((info.promoted == N || info.promoted == n) && mov[4] == 'n')
                     // return legal move
                     return move;
                 

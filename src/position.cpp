@@ -280,8 +280,8 @@ int make_move(int move, int move_flag, StateInfo& newST){
         }
         
         if (m.promoted){
-            pop_bit(newST.bitboards[(side) ? p : P], m.target);
-            set_bit(newST.bitboards[m.promoted], m.target);
+            pop_bit(newST.bitboards[(newST.side) ? p : P], m.target);
+            set_bit(newST.bitboards[(newST.side) ? m.promoted + 6: m.promoted], m.target);
         }
 
         if (m.enpassant){

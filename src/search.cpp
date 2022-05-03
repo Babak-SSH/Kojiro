@@ -7,10 +7,18 @@ long nodes = 0;
 long nodes2 = 0;
 int ply = 0; // half moves
 int best_move;
-long d = 0;
-int max_ply = 0;
 
-/// scoring moves.
+// killer moves [id][ply]
+int killer_moves[2][64];
+
+// history moves [piece][square]
+int history_moves[12][64];
+
+
+/// scoring moves that will have a special or big effect like captures, so the 
+/// alphabet(negamax) or quisence search look at them earlier. also killer moves
+/// and history moves with higher score can make a beta cutoff earlier in search 
+/// and avoid searching many unnecessery nodes,(about 90% node optimization)
 static int Search::score_move(int move){
 	moveInfo info;
 	int target_piece = 0;
@@ -24,7 +32,20 @@ static int Search::score_move(int move){
 				break;
 			}
 		}
-		return mvv_lva[info.piece%6][target_piece%6];
+		return mvv_lva[info.piece%6][target_piece%6] + 10000;
+	}
+	else{
+		// score 1st killer move
+        if (killer_moves[0][ply] == move)
+            return 9000;
+        
+        // score 2nd killer move
+        else if (killer_moves[1][ply] == move)
+            return 8000;
+        
+        // score history move
+        else
+            return history_moves[info.piece][info.target];
 	}
 	return 0;
 }
@@ -107,7 +128,6 @@ static int Search::quiescence(int alpha, int beta){
         }
 	}	
 
-
 	return alpha;
 }
 
@@ -124,6 +144,8 @@ static int Search::negamax(int alpha, int beta, int depth){
 	int legal_moves = 0;
     int best_sofar;
     int old_alpha = alpha;
+	moveInfo mInfo;
+
     int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(bitboards[K]) : 
                                                         get_ls1b_index(bitboards[k]),
                                                         st->side ^ 1);
@@ -153,10 +175,14 @@ static int Search::negamax(int alpha, int beta, int depth){
 
 		take_back();
 
-		 /// fail-hard beta cutoff
+		 // fail-hard beta cutoff
 		 /// @todo check fail-soft beta cutoff
         if (score >= beta)
         {
+			// store killer moves
+            killer_moves[1][ply] = killer_moves[0][ply];
+            killer_moves[0][ply] = move_list->moves[move_count];
+
             // node(move) fails high
             return beta;
         }
@@ -164,6 +190,11 @@ static int Search::negamax(int alpha, int beta, int depth){
         /// found a better move
         if (score > alpha)
         {
+			mInfo = decode_move(move_list->moves[move_count]);
+
+			/// store history moves @todo check if not needed remove history moves
+            history_moves[mInfo.piece][mInfo.target] += depth;
+
             // principle variation node(move)
             alpha = score;
             

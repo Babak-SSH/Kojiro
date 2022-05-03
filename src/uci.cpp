@@ -58,19 +58,15 @@ int UCI::parse_move(std::string mov){
 
 	source_sq = (mov[0] - 'a') + (8 - (mov[1] - '0')) * 8;
 	target_sq = (mov[2] - 'a') + (8 - (mov[3] - '0')) * 8;
-if(mov[4] == 'q')
-	sync_cout << "yea it gets it" << sync_endl;
+
 	for(int move_count = 0; move_count < move_list->count; move_count++){
 		int move = move_list->moves[move_count];
 		info = decode_move(move);
 
 		if(info.source == source_sq && info.target == target_sq){
 			if(info.promoted){
-				//promoted_piece = promoted_pieces[info.promoted];
-				//sync_cout << promoted_piece << sync_endl;
 				// promoted to queen
                 if ((info.promoted == Q || info.promoted == q) && mov[4] == 'q'){
-					sync_cout << "i get it" << sync_endl;
                     return move;
 				}
                     // return legal move

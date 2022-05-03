@@ -3,8 +3,8 @@
 #include "search.h"
 
 
-long nodes = 0;
-long nodes2 = 0;
+long alphabeta_nodes = 0;
+long quiescence_nodes = 0;
 int ply = 0; // half moves
 int best_move;
 
@@ -79,7 +79,7 @@ static void Search::sort_moves(moves *move_list){
 /// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
 static int Search::quiescence(int alpha, int beta){
 	int standpat = Eval::evaluation();
-	nodes2++;
+	quiescence_nodes++;
 	 /// fail-hard beta cutoff
 	 /// @todo check fail-soft beta cutoff
     if (standpat >= beta){
@@ -150,7 +150,7 @@ static int Search::negamax(int alpha, int beta, int depth){
                                                         get_ls1b_index(bitboards[k]),
                                                         st->side ^ 1);
 
-	nodes++;
+	alphabeta_nodes++;
 
     generate_all(move_list, Color(st->side));
 
@@ -228,6 +228,9 @@ static int Search::negamax(int alpha, int beta, int depth){
 }
 
 void Search::search(int depth){
+	// clear(reset) helper datas(globals)
+	Search::clear();
+
 	int score;
 	moveInfo info;
 
@@ -238,8 +241,19 @@ void Search::search(int depth){
 
 	/// @todo this part except bestmove should be logged.
 	sync_cout << "cp: " << Eval::evaluation() << "  score nega: " << score << sync_endl;
-	sync_cout << "negamax nodes: " << nodes << "\nquiescence nodes:" << nodes2 << "\ntotal nodes:" << nodes2+nodes << sync_endl;
+	sync_cout << "alhpabeta(negamax) nodes: " << alphabeta_nodes << "\nquiescence nodes:" << quiescence_nodes << "\ntotal nodes:" << alphabeta_nodes + quiescence_nodes << sync_endl;
 	sync_cout << "bestmove " 
 			  << convert_to_square[info.source] << convert_to_square[info.target] << sync_endl;
 	}
+}
+
+void Search::clear(){
+	alphabeta_nodes = 0;
+	quiescence_nodes = 0;
+
+ 	// clear helper datas for search
+    memset(killer_moves, 0, sizeof(killer_moves));
+    memset(history_moves, 0, sizeof(history_moves));
+    // memset(pv_table, 0, sizeof(pv_table));
+    // memset(pv_length, 0, sizeof(pv_length));	
 }

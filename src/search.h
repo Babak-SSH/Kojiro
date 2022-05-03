@@ -80,5 +80,7 @@ namespace Search
 	 * @param depth 
 	 */
 	void search(int depth);
+
+	void clear();
 } // namespace Search
 #endif

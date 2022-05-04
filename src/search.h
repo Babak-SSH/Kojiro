@@ -32,6 +32,13 @@ static const int mvv_lva[6][6] ={
 namespace Search
 {
 	/**
+	 * @brief check pv(principle variation) scoring.
+	 * 
+	 * @param move_list 
+	 */
+	static inline void enable_pv_scoring(moves *move_list);
+
+	/**
 	 * @brief score moves depending on their type (capture, quite, killer,...)
 	 * 
 	 * @param move 

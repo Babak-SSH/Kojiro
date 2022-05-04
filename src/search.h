@@ -80,7 +80,11 @@ namespace Search
 	 * @param depth 
 	 */
 	void search(int depth);
-
+	
+	/**
+	 * @brief clear&reset helper datas(e.g node counts)
+	 * 
+	 */
 	void clear();
 } // namespace Search
 #endif

@@ -2,6 +2,7 @@
 
 #include "search.h"
 
+#define max_ply 64
 
 long alphabeta_nodes = 0;
 long quiescence_nodes = 0;
@@ -9,11 +10,14 @@ int ply = 0; // half moves
 int best_move;
 
 // killer moves [id][ply]
-int killer_moves[2][64];
+int killer_moves[2][max_ply];
 
 // history moves [piece][square]
 int history_moves[12][64];
 
+int pv_length[max_ply];
+
+int pv_table[max_ply][max_ply];
 
 /// scoring moves that will have a special or big effect like captures, so the 
 /// alphabet(negamax) or quisence search look at them earlier. also killer moves
@@ -79,7 +83,11 @@ static void Search::sort_moves(moves *move_list){
 /// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
 static int Search::quiescence(int alpha, int beta){
 	int standpat = Eval::evaluation();
+
 	quiescence_nodes++;
+	// if((alphabeta_nodes + quiescence_nodes) % 10 == 0)
+	// 	sync_cout << alphabeta_nodes + quiescence_nodes << sync_endl;
+
 	 /// fail-hard beta cutoff
 	 /// @todo check fail-soft beta cutoff
     if (standpat >= beta){
@@ -137,9 +145,14 @@ static int Search::quiescence(int alpha, int beta){
 /// for a move that maximizes the negation of the value resulting from the move: this successor position must 
 /// by definition have been valued by the opponent.
 static int Search::negamax(int alpha, int beta, int depth){
+	pv_length[ply] = ply;
+
 	if(depth == 0)
 		return Search::quiescence(alpha, beta);
 	
+	if(ply > max_ply-1)
+		return Eval::evaluation();
+
 	moves move_list[1];
 	int legal_moves = 0;
     int best_sofar;
@@ -149,6 +162,11 @@ static int Search::negamax(int alpha, int beta, int depth){
     int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(bitboards[K]) : 
                                                         get_ls1b_index(bitboards[k]),
                                                         st->side ^ 1);
+
+	/// @todo find better solution, increasing depth blindly increases nodes extermly.
+	// increase search depth if king is in danger.
+	// if(in_check)
+	// 	depth++;
 
 	alphabeta_nodes++;
 
@@ -179,9 +197,11 @@ static int Search::negamax(int alpha, int beta, int depth){
 		 /// @todo check fail-soft beta cutoff
         if (score >= beta)
         {
-			// store killer moves
-            killer_moves[1][ply] = killer_moves[0][ply];
-            killer_moves[0][ply] = move_list->moves[move_count];
+			if(!mInfo.capture){
+				// store killer moves
+            	killer_moves[1][ply] = killer_moves[0][ply];
+            	killer_moves[0][ply] = move_list->moves[move_count];
+			}
 
             // node(move) fails high
             return beta;
@@ -192,12 +212,22 @@ static int Search::negamax(int alpha, int beta, int depth){
         {
 			mInfo = decode_move(move_list->moves[move_count]);
 
-			/// store history moves @todo check if not needed remove history moves
-            history_moves[mInfo.piece][mInfo.target] += depth;
+			if(!mInfo.capture){
+				/// store history moves @todo check if not needed remove history moves
+	            history_moves[mInfo.piece][mInfo.target] += depth;
+			}
 
             // principle variation node(move)
             alpha = score;
+
+            pv_table[ply][ply] = move_list->moves[move_count];
             
+            for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++)
+                // copy move from deeper ply into a current ply's line
+                pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
+            
+            pv_length[ply] = pv_length[ply + 1];                        
+
             // if root move
             if (ply == 0)
                 // associate best move with the best score
@@ -231,19 +261,29 @@ void Search::search(int depth){
 	// clear(reset) helper datas(globals)
 	Search::clear();
 
-	int score;
+	int score = 0;
 	moveInfo info;
 
-	score = Search::negamax(-50000, 50000, depth);
+	for (int current_depth = 1; current_depth <= depth; current_depth++){
+		alphabeta_nodes = 0;
+		quiescence_nodes = 0;
 
-	if(best_move){
-	info = decode_move(best_move);
+		score = Search::negamax(-50000, 50000, current_depth);
 
-	/// @todo this part except bestmove should be logged.
-	sync_cout << "cp: " << Eval::evaluation() << "  score nega: " << score << sync_endl;
-	sync_cout << "alhpabeta(negamax) nodes: " << alphabeta_nodes << "\nquiescence nodes:" << quiescence_nodes << "\ntotal nodes:" << alphabeta_nodes + quiescence_nodes << sync_endl;
-	sync_cout << "bestmove " 
-			  << convert_to_square[info.source] << convert_to_square[info.target] << sync_endl;
+		info = decode_move(best_move);
+
+		/// @todo this part except bestmove should be logged.
+		sync_cout << "cp: " << Eval::evaluation() << "  score nega: " << score << sync_endl;
+		sync_cout << "alhpabeta(negamax) nodes: " << alphabeta_nodes << "\nquiescence nodes:" << quiescence_nodes << "\ntotal nodes:" << alphabeta_nodes + quiescence_nodes << sync_endl;
+		sync_cout << "bestmove " 
+				  << convert_to_square[info.source] << convert_to_square[info.target] << sync_endl;
+		sync_cout << "length" << pv_length[0] << sync_endl;
+
+		for (int count = 0; count < pv_length[0]; count++){
+    	    // print PV moves
+    	    print_move(pv_table[0][count]);
+    	}
+        printf("\n");
 	}
 }
 
@@ -254,6 +294,6 @@ void Search::clear(){
  	// clear helper datas for search
     memset(killer_moves, 0, sizeof(killer_moves));
     memset(history_moves, 0, sizeof(history_moves));
-    // memset(pv_table, 0, sizeof(pv_table));
-    // memset(pv_length, 0, sizeof(pv_length));	
+    memset(pv_table, 0, sizeof(pv_table));
+    memset(pv_length, 0, sizeof(pv_length));	
 }

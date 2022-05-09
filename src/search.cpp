@@ -17,6 +17,10 @@ int pv_length[max_ply];
 int pv_table[max_ply][max_ply];
 bool score_pv, follow_pv;
 
+
+const int full_depth_moves = 4;
+const int reduction_limit = 3;
+
 // enable PV move scoring
 static void Search::enable_pv_scoring(moves *move_list){
     // disable following PV
@@ -38,7 +42,7 @@ static void Search::enable_pv_scoring(moves *move_list){
 /// scoring moves that will have a special or big effect like captures, so the 
 /// alphabet(negamax) or quisence search look at them earlier. also killer moves
 /// and history moves with higher score can make a beta cutoff earlier in search 
-/// and avoid searching many unnecessery nodes,(about 90% node optimization)
+/// and avoid searching many unnecessery nodes,(about 90% node optimization in my case)
 static int Search::score_move(int move){
 	moveInfo info;
 	int target_piece = 0;
@@ -50,15 +54,11 @@ static int Search::score_move(int move){
         if (pv_table[0][ply] == move){
             score_pv = 0;
             
-            printf("current PV move: ");
-            print_move(move);
-            printf(" ply: %d\n", ply);
-            
             // give PV move the highest score to search it first
             return 20000;
         }
     }
-	//score capture moves
+	// score capture moves
 	if(info.capture){
 		for(int bb_piece = B_PAWN-(st->side*6); bb_piece <= B_KING-(st->side*6); bb_piece++){
 			if(get_bit(st->bitboards[bb_piece], info.target)){
@@ -115,17 +115,15 @@ static int Search::quiescence(int alpha, int beta){
 	int standpat = Eval::evaluation();
 
 	quiescence_nodes++;
-	// if((alphabeta_nodes + quiescence_nodes) % 10 == 0)
-	// 	sync_cout << alphabeta_nodes + quiescence_nodes << sync_endl;
 
-	 /// fail-hard beta cutoff
+	 // fail-hard beta cutoff
 	 /// @todo check fail-soft beta cutoff
     if (standpat >= beta){
         // node(move) fails high
         return beta;
     }
         
-    /// found a better move
+    // found a better move
     if (standpat > alpha){
         // principle variation node(move)
         alpha = standpat;
@@ -150,7 +148,7 @@ static int Search::quiescence(int alpha, int beta){
 		ply--;
 		take_back();
 
-		 /// fail-hard beta cutoff
+		 // fail-hard beta cutoff
 		 /// @todo check fail-soft beta cutoff
         if (score >= beta)
         {
@@ -158,7 +156,7 @@ static int Search::quiescence(int alpha, int beta){
             return beta;
         }
         
-        /// found a better move
+        // found a better move
         if (score > alpha)
         {
             // principle variation node(move)
@@ -177,71 +175,114 @@ static int Search::quiescence(int alpha, int beta){
 static int Search::negamax(int alpha, int beta, int depth){
 	pv_length[ply] = ply;
 
+	// for a better evaluation and removing horizon effect we use quiescence 
+	// search to evalute further and in more depth.
 	if(depth == 0)
 		return Search::quiescence(alpha, beta);
 	
+	// if depth is more than usual we can return the static evaluation
+	// to avoid extra calculations of quiescence search.
 	if(ply > max_ply-1)
 		return Eval::evaluation();
 
 	moves move_list[1];
 	int legal_moves = 0;
-    int old_alpha = alpha;
 	moveInfo mInfo;
 	int score = 0;
 	bool found_pv = false;
+	int temp_enp;
 
-    int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(bitboards[K]) : 
-                                                        get_ls1b_index(bitboards[k]),
+    int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
+                                                        get_ls1b_index(st->bitboards[k]),
                                                         st->side ^ 1);
 
-	/// @todo find better solution, increasing depth blindly increases nodes extermly.
+	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
 	// increase search depth if king is in danger.
-	// if(in_check)
-	// 	depth++;
+	if(in_check)
+		depth++;
 
 	alphabeta_nodes++;
+
+	/// Null-Move Forward Pruning: we give the opponent a free move and if that returns a score higher than beta,
+	/// then we don't need to look at our moves or even generate them because our position is so good even with 
+	/// giving a free move we can exceed beta so we can cutoff this position.
+	if(depth >= 3 && !in_check && ply){
+		st->side ^= 1;
+		temp_enp = st->enpassant;
+		st->enpassant = no_sq;
+
+		int score = -negamax(-beta, -beta + 1, depth-3);
+
+		st->side ^= 1;
+
+		st->enpassant = temp_enp;
+
+		if (score >= beta)
+			return beta;
+	}
 
     generate_all(move_list, Color(st->side));
 
 	if (follow_pv)
-        // enable PV move scoring
+        // enable PV move scoring if we are in a principle variation route 
         Search::enable_pv_scoring(move_list);
 
 	Search::sort_moves(move_list);
 
-    for (int move_count = 0; move_count < move_list->count; move_count++){
+	int moves_searched = 0;
 
+    for (int move_count = 0; move_count < move_list->count; move_count++){
 		StateInfo nst;
 
 		ply++;
 
 		if(!make_move(move_list->moves[move_count], 1, nst)){
+			// illegal move
 			ply--;
 			continue;
 		}
 
 		legal_moves++;
 
-		if (found_pv){
-			/* if we have found a pv node, it means that with a high chance we won't find
-				any other pv node, therefor we use a narrow window for alphabeta: (alpha, alpha+1)
-				in this case we will have more cutoffs because of the beta value, however if there
-				was a node which has a value higher than our alpha and it is smaller than the main 
-				beta then we should search in a normal window and find this new pv node and thus
-				the new pv path, in this case we have done extra search and wasted time :)(but it is less likely to happen)
-				*/
-            score = -negamax(-alpha - 1, -alpha , depth - 1);
-            
-            if ((score > alpha) && (score < beta)) // Check for failure.
-                score = -negamax(-beta, -alpha, depth - 1);
-        }
-		else{
+		score = 0;
+
+		if(moves_searched == 0){
 			score = -negamax(-beta, -alpha, depth-1);
+		}
+		else{
+			/// LMR(late move reduction); if the move ordring is good then we will encounter a cutoff in first node
+			/// thus we will search the few first moves in full depth and other moves in reduced depth and if one of
+			/// them look interesting or returns a score greater than alpha that move will be re-searched in full depth.
+			if(moves_searched >= full_depth_moves &&
+               depth >= reduction_limit &&
+               in_check == 0 && 
+               get_move_capture(move_list->moves[move_count]) == 0 &&
+               get_move_promoted(move_list->moves[move_count]) == 0){
+        		score = -negamax(-alpha - 1, -alpha, depth - 2);
+			}
+            else{
+				score = alpha + 1;
+			}
+			/* if we have found a pv node, it means that with a high chance we won't find
+		 		any other pv node, therefor we use a narrow window for alphabeta: (alpha, alpha+1)
+		 		in this case we will have more cutoffs because of the beta value, however if there
+		 		was a node which has a value higher than our alpha and it is smaller than the main 
+		 		beta then we should search in a normal window and find this new pv node and thus
+		 		the new pv path, in this case we have done extra search and wasted time :)(but it is less likely to happen)
+		 	*/
+			if(score > alpha){
+                score = -negamax(-alpha - 1, -alpha, depth-1);
+            
+                if((score > alpha) && (score < beta))
+                    score = -negamax(-beta, -alpha, depth-1);
+            }
 		}
 
 		ply--;
 
 		take_back();
+
+		moves_searched++;
 
 		 // fail-hard beta cutoff
 		 /// @todo check fail-soft beta cutoff
@@ -257,7 +298,7 @@ static int Search::negamax(int alpha, int beta, int depth){
             return beta;
         }
         
-        /// found a better move
+        // found a better move
         if (score > alpha)
         {
 			mInfo = decode_move(move_list->moves[move_count]);
@@ -271,8 +312,8 @@ static int Search::negamax(int alpha, int beta, int depth){
             alpha = score;
 
 			found_pv = true;
-
             pv_table[ply][ply] = move_list->moves[move_count];
+
             
             for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++)
                 // copy move from deeper ply into a current ply's line
@@ -282,7 +323,7 @@ static int Search::negamax(int alpha, int beta, int depth){
         }
 	}	
 
-	/// we don't have any legal moves to make in the current postion
+	// we don't have any legal moves to make in the current postion
     if (legal_moves == 0)
     {
         // king is in check
@@ -307,6 +348,9 @@ void Search::search(int depth){
 	int score = 0;
 	moveInfo info;
 
+    int alpha = -50000;
+    int beta = 50000;
+ 
 	for (int current_depth = 1; current_depth <= depth; current_depth++){
 		alphabeta_nodes = 0;
 		quiescence_nodes = 0;
@@ -314,20 +358,30 @@ void Search::search(int depth){
 		// enable pv following
 		follow_pv = true;
 
-		score = Search::negamax(-50000, 50000, current_depth);
+		score = Search::negamax(alpha, beta, current_depth);
 
 		info = decode_move(pv_table[0][0]);
 
 		/// @todo this part except bestmove should be logged.
-		sync_cout << "cp: " << Eval::evaluation() << "  score nega: " << score << sync_endl;
-		sync_cout << "alhpabeta(negamax) nodes: " << alphabeta_nodes << "\nquiescence nodes:" << quiescence_nodes << "\ntotal nodes:" << alphabeta_nodes + quiescence_nodes << sync_endl;
-		sync_cout << "length" << pv_length[0] << sync_endl;
+		sync_cout << "info score cp " << score << " depth " << current_depth << " nodes " << alphabeta_nodes + quiescence_nodes << " pv ";
 
 		for (int count = 0; count < pv_length[0]; count++){
     	    // print PV moves
     	    print_move(pv_table[0][count]);
     	}
         printf("\n");
+		// sync_cout << "cp: " << Eval::evaluation() << "  score nega: " << score << sync_endl;
+		// sync_cout << "alhpabeta(negamax) nodes: " << alphabeta_nodes << "\nquiescence nodes:" << quiescence_nodes << "\ntotal nodes:" << alphabeta_nodes + quiescence_nodes << sync_endl;
+		// sync_cout << "length" << pv_length[0] << sync_endl;
+
+		if((score <= alpha) || (score >= beta)){
+            alpha = -50000;    
+            beta = 50000;      
+        }
+		else{
+        	alpha = score - 50;
+        	beta = score + 50;
+		}
 	}
 
 	sync_cout << "bestmove " 

@@ -53,6 +53,11 @@ moveInfo decode_move(int move);
 inline int get_move_capture(int move){
 	return (move & 0x100000);
 }
+
+inline int get_move_promoted(int move){
+	return ((move & 0xf0000) >> 16);
+}
+
 void print_move(int move);
 
 void print_move_list(moves *move_list);

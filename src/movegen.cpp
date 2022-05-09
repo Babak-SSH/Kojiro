@@ -258,7 +258,7 @@ void print_move(int move)
 {
     moveInfo info = decode_move(move);
 
-    printf("%s%s%c\n", convert_to_square[info.source],
+    printf("%s%s%c ", convert_to_square[info.source],
                      convert_to_square[info.target],
                     (info.promoted) ? promoted_pieces[info.promoted] : ' ');
 }

@@ -1,4 +1,8 @@
-#include "uci.h"
+#ifndef LOGGER_H
+#define LOGGER_H
+
+// #include "uci.h"
+
 
 class MyDebugger
 {
@@ -45,3 +49,7 @@ inline std::string MyDebugger::getCurrentDateTime( std::string s ){
         strftime(buf, sizeof(buf), "%Y-%m-%d", &tstruct);
     return std::string(buf);
 };
+
+extern MyDebugger logger;
+
+#endif

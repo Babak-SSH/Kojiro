@@ -9,7 +9,6 @@ ThreadPool Threads;
 /// Thread constructor launches the thread and waits until it goes to sleep
 /// in idle_loop(). Note that 'searching' and 'exit' should be already set.
 Thread::Thread(size_t n) : idx(n), stdThread(&Thread::idle_loop, this){
-	printf("creating thread?\n");
 	wait_until_search_finished();
 }
 
@@ -17,21 +16,18 @@ Thread::Thread(size_t n) : idx(n), stdThread(&Thread::idle_loop, this){
 /// for its termination. Thread should be already waiting.
 Thread::~Thread() {
   assert(!searching);
-	printf("destroying thread?\n");
+
   exit = true;
   start_searching();
   stdThread.join();
 }
 
-
 /// Thread::clear() reset histories, usually before a new game
 void Thread::clear() {
-	printf("clear thread\n");
 }
 
 /// Thread::start_searching() wakes up the thread that will start the search
 void Thread::start_searching() {
-	printf("thread start searching...\n");
   std::lock_guard<std::mutex> lk(mutex);
   searching = true;
   cv.notify_one(); // Wake up the thread in idle_loop()
@@ -40,7 +36,6 @@ void Thread::start_searching() {
 /// Thread::wait_for_search_finished() blocks on the condition variable
 /// until the thread has finished searching.
 void Thread::wait_until_search_finished() {
-	printf("wait until search is finished...\n");
   	std::unique_lock<std::mutex> lk(mutex);
   	cv.wait(lk, [&]{ return !searching; });
 }
@@ -56,7 +51,6 @@ void Thread::idle_loop() {
   // NUMA machinery is not needed.
 //   if (Options["Threads"] > 8)
 //       WinProcGroup::bindThisThread(idx);
-	printf("start idle loop...\n");
   while (true)
   {
       std::unique_lock<std::mutex> lk(mutex);
@@ -65,7 +59,6 @@ void Thread::idle_loop() {
       cv.wait(lk, [&]{ return searching; });
 
       if (exit){
-		  printf("exit idle loop\n");
           return;
 	  }
 
@@ -78,7 +71,6 @@ void Thread::idle_loop() {
 /// ThreadPool::set() creates/destroys threads to match the requested number.
 /// Created and launched threads will immediately go to sleep in idle_loop.
 /// Upon resizing, threads are recreated to allow for binding if necessary.
-
 void ThreadPool::set(size_t requested) {
 
   if (size() > 0)   // destroy any existing thread(s)
@@ -91,15 +83,11 @@ void ThreadPool::set(size_t requested) {
 
   if (requested > 0)   // create new thread(s)
   {
-	  printf("create threads\n");
       push_back(new MainThread(0));
 
       while (size() < requested)
           push_back(new Thread(size()));
       clear();
-
-      // Reallocate the hash with the new threadpool size
-    //   TT.resize(size_t(Options["Hash"]));
 
       // Init thread number dependent search params.
     //   Search::init();
@@ -108,59 +96,37 @@ void ThreadPool::set(size_t requested) {
 
 
 /// ThreadPool::clear() sets threadPool data to initial values
-
 void ThreadPool::clear() {
-	printf("clear threadpool data...\n");
   for (Thread* th : *this)
       th->clear();
-
-//   main()->callsCnt = 0;
-//   main()->bestPreviousScore = VALUE_INFINITE;
-//   main()->bestPreviousAverageScore = VALUE_INFINITE;
-//   main()->previousTimeReduction = 1.0;
 }
 
-void ThreadPool::start_thinking(bool ponderMode){
-	printf("start thinking...\n");
+void ThreadPool::start_thinking(bool ponderMode, int depth){
 	main()->wait_until_search_finished();
 
 	main()->stop_on_ponder_hit = stop = false;
 	increase_depth = true;
 	main()->ponder = ponderMode;
 
+	for(Thread* th : *this){
+		th->depth = depth;
+	}
+
 	main()->start_searching();
 }
 
 /// Start non-main threads
-
 void ThreadPool::start_searching() {
-	printf("threadpool start searching\n");
     for (Thread* th : *this)
         if (th != front())
             th->start_searching();
 }
 
 /// Wait for non-main threads
-
 void ThreadPool::wait_until_search_finished() const {
-	printf("threadpool wait until search is finished\n");
     for (Thread* th : *this)
         if (th != front())
             th->wait_until_search_finished();
 }
 
-void Thread::search(){
-	printf("searching....\n");
-}
-
-void MainThread::search(){
-	printf("MainThread searching....\n");
-	if(Threads.stop)
-		return;
-	sleep(4);
-	Threads.start_searching();
-
-	Thread::search();
-
-}
 }

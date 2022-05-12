@@ -31,6 +31,7 @@ namespace Kojiro{
 			size_t id() const {return idx;}
 
 			std::atomic<uint64_t> nodes;
+			int depth;
 	};
 	
 	struct MainThread : public Thread{
@@ -44,7 +45,7 @@ namespace Kojiro{
 	};
 
 	struct ThreadPool : public std::vector<Thread*>{
-		void start_thinking(bool);
+		void start_thinking(bool, int);
 		void clear();
 		void set(size_t);
 

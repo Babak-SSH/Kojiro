@@ -21,7 +21,9 @@
 #include "uci.h"
 #include "eval.h"
 #include "search.h"
+#include "thread.h"
 
+using namespace Kojiro;
 
 void init_all(){
     // sliders
@@ -54,9 +56,12 @@ int main(int argc, char* argv[]){
     	init_state();
     	print_board();
 
+		Threads.set(size_t(1));
+
 		UCI::loop(argc, argv);
 	}
 	
+	Threads.set(0);
     /// @todo optimize speed?
     // delete st;
 

@@ -1,5 +1,7 @@
 #include "movegen.h"
 
+#include <sstream>
+
 
 /// @todo bitboards instead of <> operaters in if statements and methods for numric operations.
 /// @todo shatter to small functions.
@@ -253,14 +255,18 @@ moveInfo decode_move(int move){
     return info;
 }
 
-/// print move (for UCI purposes)
-void print_move(int move)
+// get move (for UCI purposes)
+std::string get_move_string(int move)
 {
     moveInfo info = decode_move(move);
+	std::string move_string = "";
+	std::stringstream ss;
 
-    printf("%s%s%c ", convert_to_square[info.source],
-                     convert_to_square[info.target],
-                    (info.promoted) ? promoted_pieces[info.promoted] : ' ');
+	ss << convert_to_square[info.source] << convert_to_square[info.target] << ((info.promoted) ? promoted_pieces[info.promoted] : ' ');
+
+	move_string = ss.str();
+
+	return move_string;
 }
 
 // print move list

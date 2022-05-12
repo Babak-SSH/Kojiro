@@ -58,7 +58,7 @@ inline int get_move_promoted(int move){
 	return ((move & 0xf0000) >> 16);
 }
 
-void print_move(int move);
+std::string get_move_string(int move);
 
 void print_move_list(moves *move_list);
 

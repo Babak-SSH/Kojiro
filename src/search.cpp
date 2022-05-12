@@ -1,8 +1,11 @@
 #include <bits/stdc++.h>
 
 #include "search.h"
+#include "thread.h"
 
 #define max_ply 64
+
+using namespace Kojiro;
 
 long alphabeta_nodes = 0;
 long quiescence_nodes = 0;
@@ -39,8 +42,7 @@ static void Search::enable_pv_scoring(moves *move_list){
     }
 }
 
-/// scoring moves that will have a special or big effect like captures, so the 
-/// alphabet(negamax) or quisence search look at them earlier. also killer moves
+/// scoring moves that will have a special or big effect like captures, so the /// alphabet(negamax) or quisence search look at them earlier. also killer moves
 /// and history moves with higher score can make a beta cutoff earlier in search 
 /// and avoid searching many unnecessery nodes,(about 90% node optimization in my case)
 static int Search::score_move(int move){
@@ -112,6 +114,9 @@ static void Search::sort_moves(moves *move_list){
 /// Thus we use this search algorithm to check for captures and avoid any bad moves in deeper depths
 /// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
 static int Search::quiescence(int alpha, int beta){
+	if(Threads.stop)
+		return 0;
+
 	int standpat = Eval::evaluation();
 
 	quiescence_nodes++;
@@ -173,6 +178,9 @@ static int Search::quiescence(int alpha, int beta){
 /// for a move that maximizes the negation of the value resulting from the move: this successor position must 
 /// by definition have been valued by the opponent.
 static int Search::negamax(int alpha, int beta, int depth){
+	if(Threads.stop)
+		return 0;
+
 	pv_length[ply] = ply;
 
 	// for a better evaluation and removing horizon effect we use quiescence 
@@ -195,7 +203,6 @@ static int Search::negamax(int alpha, int beta, int depth){
     int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
                                                         get_ls1b_index(st->bitboards[k]),
                                                         st->side ^ 1);
-
 	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
 	// increase search depth if king is in danger.
 	if(in_check)
@@ -341,11 +348,21 @@ static int Search::negamax(int alpha, int beta, int depth){
     return alpha;
 }
 
-void Search::search(int depth){
+void MainThread::search(){
+	printf("MainThread searching....\n");
+	Threads.start_searching();
+
+	Thread::search();
+
+}
+
+void Thread::search(){
 	// clear(reset) helper datas(globals)
 	Search::clear();
 
 	int score = 0;
+	std::string pvr = "";
+	std::stringstream ss;
 	moveInfo info;
 
     int alpha = -50000;
@@ -360,16 +377,23 @@ void Search::search(int depth){
 
 		score = Search::negamax(alpha, beta, current_depth);
 
+		if(Threads.stop)
+			break;
+
 		info = decode_move(pv_table[0][0]);
 
-		/// @todo this part except bestmove should be logged.
-		sync_cout << "info score cp " << score << " depth " << current_depth << " nodes " << alphabeta_nodes + quiescence_nodes << " pv ";
 
 		for (int count = 0; count < pv_length[0]; count++){
     	    // print PV moves
-    	    print_move(pv_table[0][count]);
+			ss << get_move_string(pv_table[0][count]); 
+			pvr = ss.str();
     	}
-        printf("\n");
+		/// @todo this part except bestmove should be logged.
+		sync_cout << "info score cp " << score << " depth " 
+				  << current_depth << " nodes " << alphabeta_nodes + quiescence_nodes 
+				  << " pv " << pvr << sync_endl;
+
+        // printf("\n");
 		// sync_cout << "cp: " << Eval::evaluation() << "  score nega: " << score << sync_endl;
 		// sync_cout << "alhpabeta(negamax) nodes: " << alphabeta_nodes << "\nquiescence nodes:" << quiescence_nodes << "\ntotal nodes:" << alphabeta_nodes + quiescence_nodes << sync_endl;
 		// sync_cout << "length" << pv_length[0] << sync_endl;

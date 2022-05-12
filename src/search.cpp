@@ -2,6 +2,7 @@
 
 #include "search.h"
 #include "thread.h"
+#include "logger.h"
 
 #define max_ply 64
 
@@ -349,7 +350,6 @@ static int Search::negamax(int alpha, int beta, int depth){
 }
 
 void MainThread::search(){
-	printf("MainThread searching....\n");
 	Threads.start_searching();
 
 	Thread::search();
@@ -369,6 +369,7 @@ void Thread::search(){
     int beta = 50000;
  
 	for (int current_depth = 1; current_depth <= depth; current_depth++){
+		pvr = "";
 		alphabeta_nodes = 0;
 		quiescence_nodes = 0;
 
@@ -388,15 +389,10 @@ void Thread::search(){
 			ss << get_move_string(pv_table[0][count]); 
 			pvr = ss.str();
     	}
-		/// @todo this part except bestmove should be logged.
+		
 		sync_cout << "info score cp " << score << " depth " 
 				  << current_depth << " nodes " << alphabeta_nodes + quiescence_nodes 
 				  << " pv " << pvr << sync_endl;
-
-        // printf("\n");
-		// sync_cout << "cp: " << Eval::evaluation() << "  score nega: " << score << sync_endl;
-		// sync_cout << "alhpabeta(negamax) nodes: " << alphabeta_nodes << "\nquiescence nodes:" << quiescence_nodes << "\ntotal nodes:" << alphabeta_nodes + quiescence_nodes << sync_endl;
-		// sync_cout << "length" << pv_length[0] << sync_endl;
 
 		if((score <= alpha) || (score >= beta)){
             alpha = -50000;    

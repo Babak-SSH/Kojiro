@@ -22,6 +22,7 @@
 #include "eval.h"
 #include "search.h"
 #include "thread.h"
+#include "logger.h"
 
 using namespace Kojiro;
 
@@ -44,6 +45,8 @@ int main(int argc, char* argv[]){
     init_all();
 
 	int debug = 0;
+
+	logger.setDebug(true);
 
 	if(debug){
 	    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");

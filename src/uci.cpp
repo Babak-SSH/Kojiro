@@ -1,5 +1,7 @@
 #include "uci.h"
+#include "thread.h"
 
+using namespace Kojiro;
 
 const std::string START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
 
@@ -12,7 +14,7 @@ void UCI::go(std::istringstream& iss){
 			iss >> depth;
 	}
 	//search best move
-	Search::search(depth);
+	Threads.start_thinking(false, depth);
 }
 
 void UCI::position(std::istringstream& iss){
@@ -110,13 +112,17 @@ void UCI::loop(int argc, char* argv[]){
 		if(argc == 1 && !getline(std::cin, cmd)){
 			cmd = "quit";
 		}
+
 		
 		std::istringstream iss(cmd);
 
       	token.clear(); // Avoid a stale if getline() returns empty or blank line
       	iss >> std::skipws >> token;
 
-		if(token == "uci"){
+		if(token == "quit" || token == "stop")
+			Threads.stop = true;
+
+		else if(token == "uci"){
 			sync_cout << "id name kojiro\n"
 			  << "id author babak sefidgar\n"
 			  << "uciok"

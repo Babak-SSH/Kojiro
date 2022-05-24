@@ -1,23 +1,36 @@
 #include "uci.h"
 #include "thread.h"
 
+
 using namespace Kojiro;
 
 const std::string START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
 
 void UCI::go(std::istringstream& iss){
+
+	Search::GameInfo info;
 	int depth = 6;
 	std::string token;
 
 	while(iss >> token){
-		if(token == "depth")
+		if (token == "depth")
 			iss >> depth;
+		else if (token == "wtime")
+			iss >> info.time[WHITE];
+		else if (token == "btime")
+			iss >> info.time[BLACK];
+		else if (token == "winc")
+			iss >> info.inc[WHITE];
+		else if (token == "binc")
+			iss >> info.inc[BLACK];
 	}
+
 	//search best move
 	Threads.start_thinking(false, depth);
 }
 
 void UCI::position(std::istringstream& iss){
+
 	std::string token, fen;
 	int move;
 
@@ -51,6 +64,7 @@ void UCI::position(std::istringstream& iss){
 }
 
 int UCI::parse_move(std::string mov){
+
 	int source_sq, target_sq;
 	char promoted_piece;
 	moves move_list[1];
@@ -99,6 +113,7 @@ int UCI::parse_move(std::string mov){
 }
 
 void UCI::loop(int argc, char* argv[]){
+
 	std::string token, cmd;
 
 	std::istringstream iss (cmd);

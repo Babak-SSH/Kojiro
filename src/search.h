@@ -4,6 +4,7 @@
 #include "position.h"
 #include "uci.h"
 #include "eval.h"
+#include "timeman.h"
 
 // most valuable victim & less valuable attacker
 
@@ -31,6 +32,23 @@ static const int mvv_lva[6][6] ={
 
 namespace Search
 {
+	/**
+	 * @brief GameInfo stores data sent by GUI about time and analysis.
+	 * 
+	 */
+	struct GameInfo
+	{
+		GameInfo() {
+			time[WHITE] = time[BLACK] = inc[WHITE] = inc[BLACK] = TimePoint(0);
+		}
+
+		bool use_time() const {
+			return time[WHITE] || time[BLACK];
+		}
+
+		TimePoint time[2], inc[2];
+	};
+	
 	/**
 	 * @brief check pv(principle variation) scoring.
 	 * 
@@ -93,5 +111,7 @@ namespace Search
 	 * 
 	 */
 	void clear();
+
+	extern GameInfo Info;
 } // namespace Search
 #endif

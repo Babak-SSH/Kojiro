@@ -39,14 +39,14 @@ namespace Search
 	struct GameInfo
 	{
 		GameInfo() {
-			time[WHITE] = time[BLACK] = inc[WHITE] = inc[BLACK] = TimePoint(0);
+			time[WHITE] = time[BLACK] = inc[WHITE] = inc[BLACK] = startTime = TimePoint(0);
 		}
 
 		bool use_time() const {
 			return time[WHITE] || time[BLACK];
 		}
 
-		TimePoint time[2], inc[2];
+		TimePoint time[2], inc[2], startTime;
 	};
 	
 	/**

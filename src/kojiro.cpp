@@ -24,6 +24,7 @@
 #include "thread.h"
 #include "logger.h"
 
+
 using namespace Kojiro;
 
 void init_all(){

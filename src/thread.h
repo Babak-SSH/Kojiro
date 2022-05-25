@@ -1,6 +1,8 @@
 #ifndef THREAD_H_INCLUDED
 #define THREAD_H_INCLUDED
 
+#include "search.h"
+
 #include <atomic>
 #include <mutex>
 #include <thread>
@@ -45,7 +47,7 @@ namespace Kojiro{
 	};
 
 	struct ThreadPool : public std::vector<Thread*>{
-		void start_thinking(bool, int);
+		void start_thinking(const Search::GameInfo&, bool, int);
 		void clear();
 		void set(size_t);
 

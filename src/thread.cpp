@@ -1,5 +1,7 @@
-#include <cassert>
 #include "thread.h"
+#include "search.h"
+
+#include <cassert>
 
 
 namespace Kojiro{
@@ -101,12 +103,13 @@ void ThreadPool::clear() {
       th->clear();
 }
 
-void ThreadPool::start_thinking(bool ponderMode, int depth){
+void ThreadPool::start_thinking(const Search::GameInfo& info, bool ponderMode, int depth){
 	main()->wait_until_search_finished();
 
 	main()->stop_on_ponder_hit = stop = false;
 	increase_depth = true;
 	main()->ponder = ponderMode;
+	Search::Info = info;
 
 	for(Thread* th : *this){
 		th->depth = depth;

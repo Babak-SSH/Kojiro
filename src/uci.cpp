@@ -12,6 +12,8 @@ void UCI::go(std::istringstream& iss){
 	int depth = 6;
 	std::string token;
 
+	info.startTime = now();
+
 	while(iss >> token){
 		if (token == "depth")
 			iss >> depth;
@@ -26,7 +28,7 @@ void UCI::go(std::istringstream& iss){
 	}
 
 	//search best move
-	Threads.start_thinking(false, depth);
+	Threads.start_thinking(info, false, depth);
 }
 
 void UCI::position(std::istringstream& iss){

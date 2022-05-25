@@ -3,10 +3,16 @@
 #include "search.h"
 #include "thread.h"
 #include "logger.h"
+#include "timeman.h"
+#include "misc.h"
 
 #define max_ply 64
 
-using namespace Kojiro;
+namespace Kojiro {
+
+namespace Search{
+	GameInfo Info;
+}
 
 long alphabeta_nodes = 0;
 long quiescence_nodes = 0;
@@ -179,7 +185,7 @@ static int Search::quiescence(int alpha, int beta){
 /// for a move that maximizes the negation of the value resulting from the move: this successor position must 
 /// by definition have been valued by the opponent.
 static int Search::negamax(int alpha, int beta, int depth){
-	if(Threads.stop)
+	if(Threads.stop || Time.getElapsed() > Info.time[st->side])
 		return 0;
 
 	pv_length[ply] = ply;
@@ -350,6 +356,9 @@ static int Search::negamax(int alpha, int beta, int depth){
 }
 
 void MainThread::search(){
+	
+	Time.init(Search::Info, Color(st->side), ply);
+
 	Threads.start_searching();
 
 	Thread::search();
@@ -363,12 +372,13 @@ void Thread::search(){
 	int score = 0;
 	std::string pvr = "";
 	std::stringstream ss;
-	moveInfo info;
+	moveInfo minfo;
 
     int alpha = -50000;
     int beta = 50000;
  
 	for (int current_depth = 1; current_depth <= depth; current_depth++){
+		sync_cout << "optimum:" << Time.getOptimum() << sync_endl;
 		pvr = "";
 		alphabeta_nodes = 0;
 		quiescence_nodes = 0;
@@ -381,7 +391,7 @@ void Thread::search(){
 		if(Threads.stop)
 			break;
 
-		info = decode_move(pv_table[0][0]);
+		minfo = decode_move(pv_table[0][0]);
 
 
 		for (int count = 0; count < pv_length[0]; count++){
@@ -394,18 +404,34 @@ void Thread::search(){
 				  << current_depth << " nodes " << alphabeta_nodes + quiescence_nodes 
 				  << " pv " << pvr << sync_endl;
 
-		if((score <= alpha) || (score >= beta)){
+		if ((score <= alpha) || (score >= beta)){
             alpha = -50000;    
             beta = 50000;      
         }
-		else{
+		else {
         	alpha = score - 50;
         	beta = score + 50;
+		}
+		sync_cout << "elapsed:" << Time.getElapsed() << sync_endl;
+		if (Time.getElapsed() > Time.getOptimum()) {
+			Threads.stop = true;
+		}
+		else if(Time.getElapsed() < Time.getOptimum() * 0.8) {
+			depth++;
 		}
 	}
 
 	sync_cout << "bestmove " 
-			  << convert_to_square[info.source] << convert_to_square[info.target] << sync_endl;
+			  << convert_to_square[minfo.source] << convert_to_square[minfo.target] << sync_endl;
+}
+
+void MainThread::check_time(){
+	/// @todo log information each 1000 ms 
+
+	TimePoint elapsed = Time.getElapsed();
+
+	if (Search::Info.use_time() && elapsed > Time.getMaximum())
+		Threads.stop = true;
 }
 
 void Search::clear(){
@@ -421,3 +447,4 @@ void Search::clear(){
     memset(pv_table, 0, sizeof(pv_table));
     memset(pv_length, 0, sizeof(pv_length));	
 }
+} // namespace Koiro

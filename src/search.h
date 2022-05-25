@@ -4,10 +4,10 @@
 #include "position.h"
 #include "uci.h"
 #include "eval.h"
-#include "timeman.h"
+#include "misc.h"
 
-// most valuable victim & less valuable attacker
 
+/// most valuable victim & less valuable attacker
 /*
                           
     (Victims) Pawn Knight Bishop   Rook  Queen   King
@@ -29,6 +29,8 @@ static const int mvv_lva[6][6] ={
 	101, 201, 301, 401, 501, 601,
 	100, 200, 300, 400, 500, 600
 };
+
+namespace Kojiro {
 
 namespace Search
 {
@@ -114,4 +116,6 @@ namespace Search
 
 	extern GameInfo Info;
 } // namespace Search
+
+} // namespace Kojiro
 #endif

@@ -366,22 +366,22 @@ void MainThread::search(){
 }
 
 void Thread::search(){
-	// clear(reset) helper datas(globals)
+	// clear(reset) helper data(globals)
 	Search::clear();
 
 	int score = 0;
-	std::string pvr = "";
-	std::stringstream ss;
+	std::stringstream pvr;
 	moveInfo minfo;
 
     int alpha = -50000;
     int beta = 50000;
  
 	for (int current_depth = 1; current_depth <= depth; current_depth++){
-		sync_cout << "optimum:" << Time.getOptimum() << sync_endl;
-		pvr = "";
 		alphabeta_nodes = 0;
 		quiescence_nodes = 0;
+
+		pvr.clear();
+		pvr.str("");
 
 		// enable pv following
 		follow_pv = true;
@@ -396,13 +396,12 @@ void Thread::search(){
 
 		for (int count = 0; count < pv_length[0]; count++){
     	    // print PV moves
-			ss << get_move_string(pv_table[0][count]); 
-			pvr = ss.str();
+			pvr << get_move_string(pv_table[0][count]); 
     	}
 		
 		sync_cout << "info score cp " << score << " depth " 
 				  << current_depth << " nodes " << alphabeta_nodes + quiescence_nodes 
-				  << " pv " << pvr << sync_endl;
+				  << " pv " << pvr.str() << sync_endl;
 
 		if ((score <= alpha) || (score >= beta)){
             alpha = -50000;    
@@ -412,7 +411,7 @@ void Thread::search(){
         	alpha = score - 50;
         	beta = score + 50;
 		}
-		sync_cout << "elapsed:" << Time.getElapsed() << sync_endl;
+
 		if (Time.getElapsed() > Time.getOptimum()) {
 			Threads.stop = true;
 		}

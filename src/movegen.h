@@ -5,6 +5,8 @@
 #include "position.h"
 
 
+namespace Kojiro {
+
 struct moveInfo
 {
 	/// source square
@@ -67,5 +69,7 @@ static inline void add_move(moves *move_list, int move){
     
     move_list->count++;
 }
+
+} // namespace Kojiro
 
 #endif

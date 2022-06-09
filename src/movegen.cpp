@@ -3,6 +3,8 @@
 #include <sstream>
 
 
+namespace Kojiro {
+
 /// @todo bitboards instead of <> operaters in if statements and methods for numric operations.
 /// @todo shatter to small functions.
 void generate_pawn_moves(moves *move_list, Color side){
@@ -297,3 +299,5 @@ void print_move_list(moves *move_list)
     
     printf("\n\n     Total number of moves: %d\n\n", move_list->count);
 }
+
+} // namespace Kojiro

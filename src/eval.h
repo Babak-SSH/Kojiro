@@ -5,6 +5,8 @@
 #include "position.h"
 
 
+namespace Kojiro {
+
 // @TODO may remove const in future enhancements.
 const int material_score[12] = {
     100,      // white pawn score
@@ -110,5 +112,6 @@ namespace Eval
 	}
 } // namespace Eval
 
+} // namespace Kojiro
 
 #endif

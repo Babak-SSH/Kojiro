@@ -1,5 +1,8 @@
 #include "eval.h"
 
+
+namespace Kojiro {
+
 int Eval::evaluation(){
 	int score = 0;
 	int sq;
@@ -37,3 +40,5 @@ int Eval::evaluation(){
 	}
 	return (st->side) ? -score : score;
 }
+
+} // namespace Kojiro

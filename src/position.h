@@ -14,10 +14,12 @@
 #include "queen.h"
 #include "king.h"
 #include "movegen.h"
+#include "magic.h"
 
 
-struct StateInfo
-{
+namespace Kojiro {
+
+struct StateInfo {
     uint64_t bitboards[12];
     uint64_t occupancies[3];
 
@@ -26,6 +28,7 @@ struct StateInfo
     int rule50;
     int enpassant;
     int play_count;
+	u_int64_t key; // position hash key 
 
     StateInfo* previous;
 };
@@ -55,20 +58,60 @@ extern int rule50;
 
 extern int play_count;
 
+/**
+ * @brief return an ASCII representation of the position.
+ * 
+ */
 void print_board();
 
+/**
+ * @brief Initialize hash keys.
+ * 
+ */
+void init();
+
+/**
+ * @brief Basic set bit instructions to build board.
+ * 
+ */
 void init_start();
 
+/**
+ * @brief Initialize state variables.
+ * 
+ */
 void init_state();
 
+/**
+ * @brief take state back.
+ * 
+ */
 void take_back();
 
+/**
+ * @brief Get the fen string
+ * 
+ * @return std::string 
+ */
 std::string get_fen();
 
+/**
+ * @brief parse fen and assign to the variables.
+ * 
+ * @param fen 
+ */
 void parse_fen(const std::string& fen);
 
-void set_piece(Piece p, int sq);
+//void set_piece(Piece p, int sq);
 
+/**
+ * @brief  check if square is under attack.
+ * 
+ * @param square 
+ * @param side 
+ * @return true 
+ * @return false 
+ */
 bool is_square_attacked(int square, int side);
 
 /// @todo enhance color(side) finding
@@ -79,11 +122,23 @@ inline void set_piece(Piece p, int sq){
     occupancies[2] |= bitboards[p];
 }
 
+/**
+ * @brief do the move on that state.
+ * 
+ * @param move 
+ * @param move_flag 
+ * @param newST 
+ * @return int 
+ */
 int make_move(int move, int move_flag, StateInfo& newST);
+
 extern long captures_count;
 extern long captures_flag;
 extern long enpassant_count;
 extern long enpassant_flag;
 extern long castles_count;
 extern long castles_flag;
+
+} // namespace Kojiro
+
 #endif

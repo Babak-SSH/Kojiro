@@ -5,6 +5,7 @@
 
 using std::string;
 
+namespace Kojiro {
 // ASCII pieces
 const string ascii_pieces("PNBRQKpnbrqk");
 
@@ -392,3 +393,5 @@ int make_move(int move, int move_flag, StateInfo& newST){
         return 0;
     }
 }
+
+} // namespace Kojiro

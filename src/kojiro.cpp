@@ -40,6 +40,7 @@ void init_all(){
 
     // init_start();
 
+	init_hash();
 }
 
 int main(int argc, char* argv[]){

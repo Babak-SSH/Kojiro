@@ -7,6 +7,9 @@
 #include "bishop.h"
 #include "rook.h"
 
+
+extern unsigned int seed_state;
+
 /**
  * @brief Get random unsigned 32 bit number
  * 

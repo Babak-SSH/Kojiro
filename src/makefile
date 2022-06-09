@@ -20,3 +20,11 @@ clean:
 	rm ./debug
 	rm ./main
 	rm ./perft
+
+# Help Target
+help:
+	@echo "The following are some of the valid targets for this Makefile:"
+	@echo "... main (the default if no target is provided)"
+	@echo "... debug"
+	@echo "...perft"
+	@echo "... clean"

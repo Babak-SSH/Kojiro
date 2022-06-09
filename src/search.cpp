@@ -1,5 +1,8 @@
 #include <bits/stdc++.h>
 
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
+
 #include "search.h"
 #include "thread.h"
 #include "logger.h"
@@ -185,7 +188,7 @@ static int Search::quiescence(int alpha, int beta){
 /// for a move that maximizes the negation of the value resulting from the move: this successor position must 
 /// by definition have been valued by the opponent.
 static int Search::negamax(int alpha, int beta, int depth){
-	if(Threads.stop || Time.getElapsed() > Info.time[st->side])
+	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[st->side]))
 		return 0;
 
 	pv_length[ply] = ply;
@@ -411,12 +414,14 @@ void Thread::search(){
         	alpha = score - 50;
         	beta = score + 50;
 		}
-
-		if (Time.getElapsed() > Time.getOptimum()) {
-			Threads.stop = true;
-		}
-		else if(Time.getElapsed() < Time.getOptimum() * 0.8) {
-			depth++;
+		
+		if (Search::Info.use_time()) {
+			if (Time.getElapsed() > Time.getOptimum()) {
+				Threads.stop = true;
+			}
+			else if(Time.getElapsed() < Time.getOptimum() * 0.8) {
+				depth++;
+			}
 		}
 	}
 

@@ -402,9 +402,8 @@ void Thread::search(){
 			pvr << get_move_string(pv_table[0][count]); 
     	}
 		
-		sync_cout << "info score cp " << score << " depth " 
-				  << current_depth << " nodes " << alphabeta_nodes + quiescence_nodes 
-				  << " pv " << pvr.str() << sync_endl;
+		sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} pv {:<100}", 
+						score, current_depth, alphabeta_nodes+quiescence_nodes, pvr.str()) << sync_endl;
 
 		if ((score <= alpha) || (score >= beta)){
             alpha = -50000;    

@@ -6,6 +6,14 @@
 using std::string;
 
 namespace Kojiro {
+
+namespace Zobrist {
+	uint64_t psq[12][64];
+	uint64_t enpassant[64];
+	uint64_t castling[16];
+	uint64_t side;
+}
+
 // ASCII pieces
 const string ascii_pieces("PNBRQKpnbrqk");
 
@@ -67,6 +75,71 @@ void print_board(){
 
     // print turn count
     printf("     turn: %d\n\n", st->play_count);
+	printf("\nhash: %llx\n", generate_hash_key());
+}
+
+// generate "almost" unique position ID aka hash key from scratch
+uint64_t generate_hash_key()
+{
+    // final hash key
+    uint64_t final_key = 0ULL;
+    
+    // temp piece bitboard copy
+    uint64_t bitboard;
+    
+    // loop over piece bitboards
+    for (int piece = P; piece <= k; piece++)
+    {
+        // init piece bitboard copy
+        bitboard = st->bitboards[piece];
+        
+        // loop over the pieces within a bitboard
+        while (bitboard)
+        {
+            // init square occupied by the piece
+            int square = get_ls1b_index(bitboard);
+            
+            // hash piece
+            final_key ^= Zobrist::psq[piece][square];
+            
+            // pop LS1B
+            pop_bit(bitboard, square);
+        }
+    }
+    
+    // if enpassant square is on board
+    if (enpassant != no_sq)
+        // hash enpassant
+        final_key ^= Zobrist::enpassant[enpassant];
+    
+    // hash castling rights
+    final_key ^= Zobrist::castling[castle];
+    
+    // hash the side only if black is to move
+    if (side == BLACK) final_key ^= Zobrist::side;
+    
+    // return generated hash key
+    return final_key;
+}
+
+void init_hash() {
+	// random seed. 1804289383 is the first number generated with rand() function in "linux"
+	unsigned int seed_state = 1804289383;
+	for(int bb_piece=W_PAWN;bb_piece <= B_KING;bb_piece++) {
+		for(int sq=0; sq < 64; sq++){
+			Zobrist::psq[bb_piece][sq] = get_random_U64_number();
+		}
+	}
+
+	for(int sq=0; sq < 64; sq++) {
+		Zobrist::enpassant[sq] = get_random_U64_number();
+	}
+
+	for(int i=0; i < 16; i++) {
+		Zobrist::castling[i] = get_random_U64_number();
+	}
+
+	Zobrist::side = get_random_U64_number();
 }
 
 void init_start(){
@@ -265,7 +338,6 @@ int make_move(int move, int move_flag, StateInfo& newST){
         newST.previous = st;
 
         st = &newST;
-
 
         pop_bit(newST.bitboards[m.piece], m.source);
         set_bit(newST.bitboards[m.piece], m.target);

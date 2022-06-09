@@ -19,13 +19,6 @@
 
 namespace Kojiro {
 
-namespace Zobrist {
-	uint64_t psq[12][64];
-	uint64_t enpassant[64];
-	uint64_t castling[16];
-	uint64_t side;
-}
-
 struct StateInfo {
     uint64_t bitboards[12];
     uint64_t occupancies[3];
@@ -70,12 +63,12 @@ extern int play_count;
  * 
  */
 void print_board();
-
+uint64_t generate_hash_key();
 /**
  * @brief Initialize hash keys.
  * 
  */
-void init();
+void init_hash();
 
 /**
  * @brief Basic set bit instructions to build board.

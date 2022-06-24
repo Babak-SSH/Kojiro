@@ -107,6 +107,8 @@ namespace Search
 	 * @param depth 
 	 */
 	void search(int depth);
+
+	// void get_pv();
 	
 	/**
 	 * @brief clear&reset helper datas(e.g node counts)

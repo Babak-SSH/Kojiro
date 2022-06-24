@@ -4,10 +4,12 @@
 #include "fmt/format.h"
 
 #include "search.h"
+#include "position.h"
 #include "thread.h"
 #include "logger.h"
 #include "timeman.h"
 #include "misc.h"
+#include "tt.h"
 
 #define max_ply 64
 
@@ -30,7 +32,6 @@ int pv_length[max_ply];
 int pv_table[max_ply][max_ply];
 bool score_pv, follow_pv;
 
-
 const int full_depth_moves = 4;
 const int reduction_limit = 3;
 
@@ -43,16 +44,17 @@ static void Search::enable_pv_scoring(moves *move_list){
     for (int count = 0; count < move_list->count; count++){
         // make sure we hit PV move
         if (pv_table[0][ply] == move_list->moves[count]){
-            // enable move scoring
+            // enable move scoring and following pv
             score_pv = true;
-            
-            // enable following PV
             follow_pv = true;
+
+			break;
         }
     }
 }
 
-/// scoring moves that will have a special or big effect like captures, so the /// alphabet(negamax) or quisence search look at them earlier. also killer moves
+/// scoring moves that will have a special or big effect like captures, so the 
+/// alphabet(negamax) or quisence search look at them earlier. also killer moves
 /// and history moves with higher score can make a beta cutoff earlier in search 
 /// and avoid searching many unnecessery nodes,(about 90% node optimization in my case)
 static int Search::score_move(int move){
@@ -187,9 +189,23 @@ static int Search::quiescence(int alpha, int beta){
 /// whites score evaluation for black is negation of that value in that state therefor the player on move looks 
 /// for a move that maximizes the negation of the value resulting from the move: this successor position must 
 /// by definition have been valued by the opponent.
-static int Search::negamax(int alpha, int beta, int depth){
+static int Search::negamax(int alpha, int beta, int depth) {
+	moves move_list[1];
+	int legal_moves = 0;
+	moveInfo mInfo;
+	int score = 0;
+	bool found_pv = false;
+	int temp_enp;
+	
 	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[st->side]))
 		return 0;
+
+	int hash_flag = hashfALPHA;
+	int pv_node = (beta - alpha) > 1;
+	// probe hash entry
+	if(ply && (score = probe_hash(alpha, beta, depth)) != no_hash_entry && pv_node==0) {
+	 	return score;
+	}
 
 	pv_length[ply] = ply;
 
@@ -202,13 +218,6 @@ static int Search::negamax(int alpha, int beta, int depth){
 	// to avoid extra calculations of quiescence search.
 	if(ply > max_ply-1)
 		return Eval::evaluation();
-
-	moves move_list[1];
-	int legal_moves = 0;
-	moveInfo mInfo;
-	int score = 0;
-	bool found_pv = false;
-	int temp_enp;
 
     int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
                                                         get_ls1b_index(st->bitboards[k]),
@@ -225,12 +234,17 @@ static int Search::negamax(int alpha, int beta, int depth){
 	/// giving a free move we can exceed beta so we can cutoff this position.
 	if(depth >= 3 && !in_check && ply){
 		st->side ^= 1;
+		
+		// handling enpassant in null move
 		temp_enp = st->enpassant;
+		if(temp_enp != no_sq)
+			st->key ^= Zobrist::enpassant[temp_enp];
 		st->enpassant = no_sq;
 
 		int score = -negamax(-beta, -beta + 1, depth-3);
 
 		st->side ^= 1;
+		st->key ^= Zobrist::side;
 
 		st->enpassant = temp_enp;
 
@@ -263,10 +277,10 @@ static int Search::negamax(int alpha, int beta, int depth){
 
 		score = 0;
 
-		if(moves_searched == 0){
+		if(moves_searched == 0) {
 			score = -negamax(-beta, -alpha, depth-1);
 		}
-		else{
+		else {
 			/// LMR(late move reduction); if the move ordring is good then we will encounter a cutoff in first node
 			/// thus we will search the few first moves in full depth and other moves in reduced depth and if one of
 			/// them look interesting or returns a score greater than alpha that move will be re-searched in full depth.
@@ -277,7 +291,7 @@ static int Search::negamax(int alpha, int beta, int depth){
                get_move_promoted(move_list->moves[move_count]) == 0){
         		score = -negamax(-alpha - 1, -alpha, depth - 2);
 			}
-            else{
+			else {
 				score = alpha + 1;
 			}
 			/* if we have found a pv node, it means that with a high chance we won't find
@@ -287,7 +301,7 @@ static int Search::negamax(int alpha, int beta, int depth){
 		 		beta then we should search in a normal window and find this new pv node and thus
 		 		the new pv path, in this case we have done extra search and wasted time :)(but it is less likely to happen)
 		 	*/
-			if(score > alpha){
+			if(score > alpha) {
                 score = -negamax(-alpha - 1, -alpha, depth-1);
             
                 if((score > alpha) && (score < beta))
@@ -305,6 +319,8 @@ static int Search::negamax(int alpha, int beta, int depth){
 		 /// @todo check fail-soft beta cutoff
         if (score >= beta)
         {
+			write_hash(beta, depth, hashfBETA, move_list->moves[move_count]);
+
 			if(!mInfo.capture){
 				// store killer moves
             	killer_moves[1][ply] = killer_moves[0][ply];
@@ -318,6 +334,8 @@ static int Search::negamax(int alpha, int beta, int depth){
         // found a better move
         if (score > alpha)
         {
+			hash_flag = hashfEXACT;
+
 			mInfo = decode_move(move_list->moves[move_count]);
 
 			if(!mInfo.capture){
@@ -341,18 +359,16 @@ static int Search::negamax(int alpha, int beta, int depth){
 	}	
 
 	// we don't have any legal moves to make in the current postion
-    if (legal_moves == 0)
-    {
-        // king is in check
+    if (legal_moves == 0) {
         if (in_check)
             // return mating score (assuming closest distance to mating position)
             return -49000 + ply;
-        
-        // king is not in check
         else
             // return stalemate score
             return 0;
     }
+
+	write_hash(alpha, depth, hash_flag, pv_table[ply][ply]);
 
     // node(move) fails low
     return alpha;
@@ -397,15 +413,15 @@ void Thread::search(){
 		minfo = decode_move(pv_table[0][0]);
 
 
-		for (int count = 0; count < pv_length[0]; count++){
+		for(int count = 0; count < pv_length[0]; count++) {
     	    // print PV moves
 			pvr << get_move_string(pv_table[0][count]); 
     	}
 		
-		sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} pv {:<100}", 
+		sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} pv {:<50}", 
 						score, current_depth, alphabeta_nodes+quiescence_nodes, pvr.str()) << sync_endl;
-
-		if ((score <= alpha) || (score >= beta)){
+		
+		if ((score <= alpha) || (score >= beta)) {
             alpha = -50000;    
             beta = 50000;      
         }
@@ -427,6 +443,21 @@ void Thread::search(){
 	sync_cout << "bestmove " 
 			  << convert_to_square[minfo.source] << convert_to_square[minfo.target] << sync_endl;
 }
+
+/// @todo can we get pvr by tracing the hash table back?????
+// void Search::get_pv() {
+// 	TTEntry *hash_entry = &tt[st->key % hash_size];
+// 	// getchar();
+// 	int joke = hash_entry->move;
+// 	StateInfo nst;
+
+// 	if(joke!=0) {
+// 		joke_pvr << get_move_string(joke);
+// 		make_move(joke, 1, nst);
+// 		Search::get_pv();
+// 		take_back();
+// 	}
+// }
 
 void MainThread::check_time(){
 	/// @todo log information each 1000 ms 
@@ -450,4 +481,5 @@ void Search::clear(){
     memset(pv_table, 0, sizeof(pv_table));
     memset(pv_length, 0, sizeof(pv_length));	
 }
-} // namespace Koiro
+
+} // namespace Kojiro

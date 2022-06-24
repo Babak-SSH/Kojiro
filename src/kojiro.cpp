@@ -21,6 +21,7 @@
 #include "uci.h"
 #include "eval.h"
 #include "search.h"
+#include "tt.h"
 #include "thread.h"
 #include "logger.h"
 
@@ -41,6 +42,8 @@ void init_all(){
     // init_start();
 
 	init_hash();
+	// tt->reset();
+	clear_tt();
 }
 
 int main(int argc, char* argv[]){

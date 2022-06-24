@@ -11,6 +11,7 @@ void TTEntry::reset() {
 	depth = 0;
 	flag = 0;
 	score = 0;
+	move = 0;
 }
 
 /// read transposition table entries data and find the proper score or return no_hash_entry
@@ -41,13 +42,14 @@ int probe_hash(int alpha, int beta, int depth) {
 }
 
 /// write to transposition table entries
-void write_hash(int score, int depth, int hash_flag) {
+void write_hash(int score, int depth, int hash_flag, int move) {
     TTEntry *hash_entry = &tt[st->key % hash_size];
   
     hash_entry->key = st->key;
     hash_entry->score = score;
     hash_entry->flag = hash_flag;
     hash_entry->depth = depth;
+	hash_entry->move = move;
 }
 
 /// reset all items in our transposition table

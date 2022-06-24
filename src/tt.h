@@ -13,12 +13,13 @@
 
 namespace Kojiro {
 
-typedef struct TTEntry
+struct TTEntry
 {
 	uint64_t key;
 	int depth;
 	int flag;
 	int score;
+	int move;
 	void reset();
 };
 
@@ -39,7 +40,7 @@ int probe_hash(int alpha, int beta, int depth);
  * @param depth 
  * @param hash_flag 
  */
-void write_hash(int score, int depth, int hash_flag);
+void write_hash(int score, int depth, int hash_flag, int move);
 
 /**
  * @brief Reset all entries in transposition table.

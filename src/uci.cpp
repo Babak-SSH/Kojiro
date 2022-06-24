@@ -1,5 +1,6 @@
 #include "uci.h"
 #include "thread.h"
+#include "tt.h"
 
 
 using namespace Kojiro;
@@ -87,21 +88,17 @@ int UCI::parse_move(std::string mov){
                 if ((info.promoted == Q || info.promoted == q) && mov[4] == 'q'){
                     return move;
 				}
-                    // return legal move
                 
                 // promoted to rook
                 else if ((info.promoted == R || info.promoted == r) && mov[4] == 'r')
-                    // return legal move
                     return move;
                 
                 // promoted to bishop
                 else if ((info.promoted == B || info.promoted == b) && mov[4] == 'b')
-                    // return legal move
                     return move;
                 
                 // promoted to knight
                 else if ((info.promoted == N || info.promoted == n) && mov[4] == 'n')
-                    // return legal move
                     return move;
                 
                 // continue the loop on possible wrong promotions (e.g. "e7e8f")
@@ -153,9 +150,11 @@ void UCI::loop(int argc, char* argv[]){
 		}
 		else if(token == "position"){
 			position(iss);
+			clear_tt();
 		}
 		else if(token == "ucinewgame"){
 			parse_fen(START_FEN);
+			clear_tt();
 			init_state();
 			print_board();	
 		}	

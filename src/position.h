@@ -19,6 +19,13 @@
 
 namespace Kojiro {
 
+namespace Zobrist {
+	extern uint64_t psq[12][64];
+	extern uint64_t enpassant[64];
+	extern uint64_t castling[16];
+	extern uint64_t side;
+}
+
 struct StateInfo {
     uint64_t bitboards[12];
     uint64_t occupancies[3];

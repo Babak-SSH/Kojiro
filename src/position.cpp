@@ -282,7 +282,7 @@ void parse_fen(const string& fen){
         else if (token == 'q'){
             castle |= castlingRights(BQ);
         }
-		else if (token == '-'){
+        else if (token == '-'){
 			castle = 0;
 		}
     }
@@ -295,7 +295,7 @@ void parse_fen(const string& fen){
         enpassant = rank * 8 + file;
     }
     else {
-        enpassant == no_sq;
+        enpassant = no_sq;
     }
 
     iss >> token;

@@ -7,20 +7,22 @@
 
 namespace Kojiro {
 
-// @TODO may remove const in future enhancements.
+/// @todo may remove const in future enhancements.
+/// @todo testing Simplified Evaluation Function -> https://www.chessprogramming.org/Simplified_Evaluation_Function next try https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
+
 const int material_score[12] = {
     100,      // white pawn score
-    300,      // white knight scrore
-    350,      // white bishop score
+    320,      // white knight scrore
+    330,      // white bishop score
     500,      // white rook score
-   1000,      // white queen score
-  10000,      // white king score
+    900,      // white queen score
+  20000,      // white king score
    -100,      // black pawn score
-   -300,      // black knight scrore
-   -350,      // black bishop score
+   -320,      // black knight scrore
+   -330,      // black bishop score
    -500,      // black rook score
-  -1000,      // black queen score
- -10000,      // black king score
+   -900,      // black queen score
+ -20000,      // black king score
 };
 
 // pawn positional score
@@ -28,11 +30,11 @@ const int pawn_score[64] =
 {
     90,  90,  90,  90,  90,  90,  90,  90,
     30,  30,  30,  40,  40,  30,  30,  30,
-    20,  20,  20,  30,  30,  30,  20,  20,
-    10,  10,  10,  20,  20,  10,  10,  10,
-     5,   5,  10,  20,  20,   5,   5,   5,
-     0,   0,   0,   5,   5,   0,   0,   0,
-     0,   0,   0, -10, -10,   0,   0,   0,
+    10,  10,  20,  30,  30,  20,  10,  10,
+     5,   5,  10,  25,  25,  10,   5,   5,
+     0,   0,   0,  20,  20,   0,   0,   0,
+     5,  -5, -10,   0,   0, -10,  -5,   5,
+     5,  10,  10, -20, -20,  10,  10,   5,
      0,   0,   0,   0,   0,   0,   0,   0
 };
 
@@ -40,26 +42,26 @@ const int pawn_score[64] =
 const int knight_score[64] = 
 {
     -5,   0,   0,   0,   0,   0,   0,  -5,
-    -5,   0,   0,  10,  10,   0,   0,  -5,
-    -5,   5,  20,  20,  20,  20,   5,  -5,
-    -5,  10,  20,  30,  30,  20,  10,  -5,
-    -5,  10,  20,  30,  30,  20,  10,  -5,
-    -5,   5,  20,  10,  10,  20,   5,  -5,
-    -5,   0,   0,   0,   0,   0,   0,  -5,
+    -5,  -5,   0,  10,  10,   0,  -5,  -5,
+    -5,   5,  10,  15,  15,  10,   5,  -5,
+    -5,  10,  15,  20,  20,  15,  10,  -5,
+    -5,  10,  15,  20,  20,  15,  10,  -5,
+    -5,   5,  10,  15,  15,  10,   5,  -5,
+    -5,  -5,   0,   5,   5,   0,  -5,  -5,
     -5, -10,   0,   0,   0,   0, -10,  -5
 };
 
 // bishop positional score
 const int bishop_score[64] = 
 {
+   -20,   0,   0,   0,   0,   0,   0, -20,
      0,   0,   0,   0,   0,   0,   0,   0,
-     0,   0,   0,   0,   0,   0,   0,   0,
-     0,   0,   0,  10,  10,   0,   0,   0,
-     0,   0,  10,  20,  20,  10,   0,   0,
+     0,   0,   5,  10,  10,   5,   0,   0,
+     0,   5,  10,  20,  20,  10,   5,   0,
      0,   0,  10,  20,  20,  10,   0,   0,
      0,  10,   0,   0,   0,   0,  10,   0,
      0,  30,   0,   0,   0,   0,  30,   0,
-     0,   0, -10,   0,   0, -10,   0,   0
+   -20,   0, -10,   0,   0, -10,   0, -20
 
 };
 
@@ -67,13 +69,13 @@ const int bishop_score[64] =
 const int rook_score[64] =
 {
     50,  50,  50,  50,  50,  50,  50,  50,
-    50,  50,  50,  50,  50,  50,  50,  50,
-     0,   0,  10,  20,  20,  10,   0,   0,
-     0,   0,  10,  20,  20,  10,   0,   0,
-     0,   0,  10,  20,  20,  10,   0,   0,
-     0,   0,  10,  20,  20,  10,   0,   0,
-     0,   0,  10,  20,  20,  10,   0,   0,
-     0,   0,   0,  20,  20,   0,   0,   0
+    25,  50,  50,  50,  50,  50,  50,  25,
+    -5,   0,  10,  20,  20,  10,   0,  -5,
+    -5,   0,  10,  20,  20,  10,   0,  -5,
+    -5,   0,  10,  20,  20,  10,   0,  -5,
+    -5,   0,  10,  20,  20,  10,   0,  -5,
+    -5,   0,  10,  20,  20,  10,   0,  -5,
+    -5,   0,   0,  20,  20,   0,   0,   0
 
 };
 

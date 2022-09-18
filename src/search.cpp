@@ -456,13 +456,17 @@ void Thread::search(){
     	}
 
 		if (score > -mate_value && score < -mate_score)
-            printf("\ncheck1");
-        
+   			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+							-(score + mate_value) / 2 - 1, current_depth, alphabeta_nodes+quiescence_nodes,
+							Time.getElapsed(), pvr.str()) << sync_endl;
         else if (score > mate_score && score < mate_value)
-            printf("\ncheck2");
-
-		sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} pv {:<50}", 
-						score, current_depth, alphabeta_nodes+quiescence_nodes, pvr.str()) << sync_endl;
+			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+							(mate_value - score) / 2 + 1, current_depth, alphabeta_nodes+quiescence_nodes,
+							Time.getElapsed(), pvr.str()) << sync_endl;
+		else
+			sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+							score, current_depth, alphabeta_nodes+quiescence_nodes,
+							Time.getElapsed(), pvr.str()) << sync_endl;
 
 		// outside the window so we need to check again from scratch. 	
 		if ((score <= alpha) || (score >= beta)) {

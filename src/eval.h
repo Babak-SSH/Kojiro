@@ -10,19 +10,22 @@ namespace Kojiro {
 /// @todo may remove const in future enhancements.
 /// @todo testing Simplified Evaluation Function -> https://www.chessprogramming.org/Simplified_Evaluation_Function next try https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
 
+const int mate_value = 49000;
+const int mate_score = 48000; // it's not infinity :)
+
 const int material_score[12] = {
     100,      // white pawn score
     320,      // white knight scrore
     330,      // white bishop score
     500,      // white rook score
-    900,      // white queen score
-  20000,      // white king score
+   1000,      // white queen score
+  10000,      // white king score
    -100,      // black pawn score
    -320,      // black knight scrore
    -330,      // black bishop score
    -500,      // black rook score
-   -900,      // black queen score
- -20000,      // black king score
+  -1000,      // black queen score
+ -10000,      // black king score
 };
 
 // pawn positional score

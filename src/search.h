@@ -116,7 +116,12 @@ namespace Search
 	 */
 	void clear();
 
+	int is_repetition();
+
 	extern GameInfo Info;
+	extern uint64_t repetition_table[150];
+	extern int repetition_index;
+
 } // namespace Search
 
 } // namespace Kojiro

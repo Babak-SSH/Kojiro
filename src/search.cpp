@@ -17,6 +17,8 @@ namespace Kojiro {
 
 namespace Search{
 	GameInfo Info;
+	uint64_t repetition_table[150];
+	int repetition_index;
 }
 
 long alphabeta_nodes = 0;
@@ -24,12 +26,11 @@ long quiescence_nodes = 0;
 int ply = 0; // half moves
 
 int killer_moves[2][max_ply]; // killer moves [id][ply]
-
 int history_moves[12][64]; // history moves [piece][square]
 
 int pv_length[max_ply];
-
 int pv_table[max_ply][max_ply];
+
 bool score_pv, follow_pv;
 
 const int full_depth_moves = 4;
@@ -66,14 +67,15 @@ static int Search::score_move(int move){
 	// score pv moves
     if (score_pv){
         if (pv_table[0][ply] == move){
-            score_pv = 0;
+    		score_pv = 0;
             
             // give PV move the highest score to search it first
             return 20000;
         }
     }
+
 	// score capture moves
-	if(info.capture){
+	if (info.capture){
 		for(int bb_piece = B_PAWN-(st->side*6); bb_piece <= B_KING-(st->side*6); bb_piece++){
 			if(get_bit(st->bitboards[bb_piece], info.target)){
 				target_piece = bb_piece;
@@ -154,30 +156,37 @@ static int Search::quiescence(int alpha, int beta){
 
     for (int move_count = 0; move_count < move_list->count; move_count++){
 		ply++;
+		Search::repetition_index++;
+		Search::repetition_table[Search::repetition_index] = st->key;
+
 		StateInfo nst;
+
 		if(!make_move(move_list->moves[move_count], 2, nst)){
 			ply--;
+			Search::repetition_index--;
 			continue;
 		}
 
 		int score = -Search::quiescence(-beta, -alpha);
 
 		ply--;
+
+		Search::repetition_index--;
+
 		take_back();
 
-		 // fail-hard beta cutoff
-		 /// @todo check fail-soft beta cutoff
-        if (score >= beta)
-        {
-            // node(move) fails high
-            return beta;
-        }
-        
-        // found a better move
+		// found a better move
         if (score > alpha)
         {
-            // principle variation node(move)
+            // PV node (position)
             alpha = score;
+            
+            // fail-hard beta cutoff
+            if (score >= beta)
+            {
+                // node (position) fails high
+                return beta;
+            }
         }
 	}	
 
@@ -201,6 +210,10 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		return 0;
 
 	int hash_flag = hashfALPHA;
+
+	if (ply && Search::is_repetition())
+		return 0;
+
 	int pv_node = (beta - alpha) > 1;
 	// probe hash entry
 	if(ply && (score = probe_hash(alpha, beta, depth)) != no_hash_entry && pv_node==0) {
@@ -221,7 +234,8 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
     int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
                                                         get_ls1b_index(st->bitboards[k]),
-                                                        st->side ^ 1);
+                                                        (st->side) ^ 1);
+
 	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
 	// increase search depth if king is in danger.
 	if(in_check)
@@ -233,20 +247,36 @@ static int Search::negamax(int alpha, int beta, int depth) {
 	/// then we don't need to look at our moves or even generate them because our position is so good even with 
 	/// giving a free move we can exceed beta so we can cutoff this position.
 	if(depth >= 3 && !in_check && ply){
-		st->side ^= 1;
+		ply++;
+
+		Search::repetition_index++;
+        Search::repetition_table[Search::repetition_index] = st->key;
 		
 		// handling enpassant in null move
 		temp_enp = st->enpassant;
 		if(temp_enp != no_sq)
 			st->key ^= Zobrist::enpassant[temp_enp];
+
 		st->enpassant = no_sq;
 
-		int score = -negamax(-beta, -beta + 1, depth-3);
+		st->side ^= 1;
+
+		st->key ^= Zobrist::side;
+
+		score = -negamax(-beta, -beta + 1, depth-3);
+
+		ply--;
+
+		Search::repetition_index--;
 
 		st->side ^= 1;
 		st->key ^= Zobrist::side;
 
 		st->enpassant = temp_enp;
+
+		// handling enpassant in null move
+		if(temp_enp != no_sq)
+			st->key ^= Zobrist::enpassant[temp_enp];
 
 		if (score >= beta)
 			return beta;
@@ -254,8 +284,8 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
     generate_all(move_list, Color(st->side));
 
+    // enable PV move scoring if we are in a principle variation route 
 	if (follow_pv)
-        // enable PV move scoring if we are in a principle variation route 
         Search::enable_pv_scoring(move_list);
 
 	Search::sort_moves(move_list);
@@ -267,24 +297,28 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 		ply++;
 
+		Search::repetition_index++;
+        Search::repetition_table[Search::repetition_index] = st->key;
+
+		// if illegal move, continue
 		if(!make_move(move_list->moves[move_count], 1, nst)){
-			// illegal move
 			ply--;
+
+			Search::repetition_index--;
+
 			continue;
 		}
 
 		legal_moves++;
 
-		score = 0;
-
-		if(moves_searched == 0) {
+		if (moves_searched == 0) {
 			score = -negamax(-beta, -alpha, depth-1);
 		}
 		else {
 			/// LMR(late move reduction); if the move ordring is good then we will encounter a cutoff in first node
 			/// thus we will search the few first moves in full depth and other moves in reduced depth and if one of
 			/// them look interesting or returns a score greater than alpha that move will be re-searched in full depth.
-			if(moves_searched >= full_depth_moves &&
+			if (moves_searched >= full_depth_moves &&
                depth >= reduction_limit &&
                in_check == 0 && 
                get_move_capture(move_list->moves[move_count]) == 0 &&
@@ -301,7 +335,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		 		beta then we should search in a normal window and find this new pv node and thus
 		 		the new pv path, in this case we have done extra search and wasted time :)(but it is less likely to happen)
 		 	*/
-			if(score > alpha) {
+			if (score > alpha) {
                 score = -negamax(-alpha - 1, -alpha, depth-1);
             
                 if((score > alpha) && (score < beta))
@@ -311,26 +345,12 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 		ply--;
 
+		Search::repetition_index--;
+
 		take_back();
 
 		moves_searched++;
 
-		 // fail-hard beta cutoff
-		 /// @todo check fail-soft beta cutoff
-        if (score >= beta)
-        {
-			write_hash(beta, depth, hashfBETA, move_list->moves[move_count]);
-
-			if(!mInfo.capture){
-				// store killer moves
-            	killer_moves[1][ply] = killer_moves[0][ply];
-            	killer_moves[0][ply] = move_list->moves[move_count];
-			}
-
-            // node(move) fails high
-            return beta;
-        }
-        
         // found a better move
         if (score > alpha)
         {
@@ -348,24 +368,41 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 			found_pv = true;
             pv_table[ply][ply] = move_list->moves[move_count];
-
             
             for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++)
                 // copy move from deeper ply into a current ply's line
                 pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
             
             pv_length[ply] = pv_length[ply + 1];                        
+
+		 // fail-hard beta cutoff
+		 /// @todo check fail-soft beta cutoff
+        if (score >= beta)
+        {
+			write_hash(beta, depth, hashfBETA, move_list->moves[move_count]);
+
+			if(!mInfo.capture){
+				// store killer moves
+            	killer_moves[1][ply] = killer_moves[0][ply];
+            	killer_moves[0][ply] = move_list->moves[move_count];
+			}
+
+            // node(move) fails high
+            return beta;
+        }
         }
 	}	
 
-	// we don't have any legal moves to make in the current postion
+	// no legal moves to make in the current postion so stalemate or checkmate.
     if (legal_moves == 0) {
-        if (in_check)
-            // return mating score (assuming closest distance to mating position)
-            return -49000 + ply;
-        else
-            // return stalemate score
+        // return mating score (assuming closest distance to mating position)
+		if (in_check){
+            return -mate_value + ply;
+		}
+		// return stalemate score
+        else{
             return 0;
+		}
     }
 
 	write_hash(alpha, depth, hash_flag, pv_table[ply][ply]);
@@ -417,10 +454,17 @@ void Thread::search(){
     	    // print PV moves
 			pvr << get_move_string(pv_table[0][count]); 
     	}
-		
+
+		if (score > -mate_value && score < -mate_score)
+            printf("\ncheck1");
+        
+        else if (score > mate_score && score < mate_value)
+            printf("\ncheck2");
+
 		sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} pv {:<50}", 
 						score, current_depth, alphabeta_nodes+quiescence_nodes, pvr.str()) << sync_endl;
-		
+
+		// outside the window so we need to check again from scratch. 	
 		if ((score <= alpha) || (score >= beta)) {
             alpha = -50000;    
             beta = 50000;      
@@ -482,4 +526,17 @@ void Search::clear(){
     memset(pv_length, 0, sizeof(pv_length));	
 }
 
+int Search::is_repetition()
+{
+    // loop over repetition indicies range
+    for (int index = 0; index < Search::repetition_index; index++){
+        // if we found the hash key same with a current
+        if (Search::repetition_table[index] == st->key){
+            // we found a repetition
+            return 1;
+		}
+	}
+    // if no repetition found
+    return 0;
+}
 } // namespace Kojiro

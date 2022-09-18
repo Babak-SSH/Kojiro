@@ -76,7 +76,10 @@ void print_board(){
                                            (st->castle & BQ) ? 'q' : '-');
 
     // print turn count
-	fmt::print("   turn: {}\n\n", st->play_count);
+	fmt::print("   turn: {}\n", st->play_count);
+
+    // print hash key of the position
+    fmt::print("   hash key: {:x}\n\n", st->key);
 }
 
 // generate "almost" unique position ID aka hash key from scratch

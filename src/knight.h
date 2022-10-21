@@ -5,6 +5,9 @@
 #include "bitboard.h"
 #include "types.h"
 
+
+namespace Kojiro {
+
 extern uint64_t knight_attacks[64];
 
 /**
@@ -21,4 +24,5 @@ uint64_t mask_knight_attacks(int square);
  */
 void init_knight_attacks();
 
+} // namespace Kojiro
 #endif

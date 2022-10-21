@@ -8,6 +8,8 @@
 #include "king.h"
 
 
+namespace Kojiro {
+
 uint64_t king_attacks[64];
 
 /// masking position that can be attacked by the 
@@ -44,3 +46,5 @@ void init_king_attacks(){
         king_attacks[sq] = mask_king_attacks(sq);
     }
 }
+
+} // namespace Kojiro

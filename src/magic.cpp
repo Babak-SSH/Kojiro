@@ -3,6 +3,8 @@
 #include "magic.h"
 
 
+namespace Kojiro {
+
 // random seed. 1804289383 is the first number generated with rand() function in "linux"
 unsigned int seed_state = 1804289383;
 
@@ -112,3 +114,5 @@ uint64_t find_magic(int square, int relevant_bits, PieceType type)
     printf("Magic number fails!\n");
     return 0ULL;
 }
+
+} // namespace Kojiro

@@ -5,6 +5,9 @@
 #include "bitboard.h"
 #include "types.h"
 
+
+namespace Kojiro {
+
 extern uint64_t pawn_attacks[2][64];
 
 /**
@@ -22,4 +25,5 @@ uint64_t mask_pawn_attacks(int square, int side);
  */
 void init_pawn_attacks();
 
+} // namespace Kojiro
 #endif

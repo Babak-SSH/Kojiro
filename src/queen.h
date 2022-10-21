@@ -6,6 +6,8 @@
 #include "types.h"
 
 
+namespace Kojiro {
+
 /**
  * @brief Get the specified queenattacks with the given occupancy.
  * 
@@ -15,4 +17,5 @@
  */
 uint64_t get_queen_attacks(int square, uint64_t occupancy);
 
+} // namespace Kojiro
 #endif

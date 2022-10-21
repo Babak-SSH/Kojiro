@@ -5,6 +5,9 @@
 #include "types.h"
 #include "magic.h"
 
+
+namespace Kojiro {
+
 extern uint64_t rook_magics[64];
 extern uint64_t rook_masks[64];
 extern uint64_t rook_attacks[64][4096];
@@ -41,4 +44,5 @@ void init_rook_attacks();
  */
 uint64_t get_rook_attacks(int square, uint64_t occupancy);
 
+} // namespace Kojiro
 #endif

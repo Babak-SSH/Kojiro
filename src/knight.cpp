@@ -8,6 +8,8 @@
 #include "knight.h"
 
 
+namespace Kojiro {
+
 uint64_t knight_attacks[64];
 
 /// masking squares that can be attacked by the 
@@ -40,3 +42,5 @@ void init_knight_attacks(){
         knight_attacks[sq] = mask_knight_attacks(sq);
     }
 }
+
+} // namespace Kojiro

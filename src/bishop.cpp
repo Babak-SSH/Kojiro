@@ -8,6 +8,8 @@
 #include "bishop.h"
 
 
+namespace Kojiro {
+
 // bishop magic numbers
 uint64_t bishop_magics[64] = {
     0x40040844404084ULL,
@@ -207,3 +209,5 @@ uint64_t get_bishop_attacks(int square, uint64_t occupancy) {
 	
 	return bishop_attacks[square][occupancy];
 }
+
+} // namespace Kojiro

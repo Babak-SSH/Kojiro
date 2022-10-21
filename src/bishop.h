@@ -6,6 +6,8 @@
 #include "types.h"
 
 
+namespace Kojiro {
+
 extern uint64_t bishop_magics[64];
 extern uint64_t bishop_masks[64];
 extern uint64_t bishop_attacks[64][4096];
@@ -42,4 +44,5 @@ void init_bishop_attacks();
  */
 uint64_t get_bishop_attacks(int square, uint64_t occupancy);
 
+} // namespace Kojiro
 #endif

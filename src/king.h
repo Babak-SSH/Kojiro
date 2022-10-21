@@ -6,6 +6,8 @@
 #include "types.h"
 
 
+namespace Kojiro {
+
 extern uint64_t king_attacks[64];
 
 /**
@@ -21,5 +23,5 @@ uint64_t mask_king_attacks(int pos);
  * 
  */
 void init_king_attacks();
-
+} // namespace Kojiro
 #endif

@@ -8,6 +8,8 @@
 #include "rook.h"
 
 
+namespace Kojiro {
+
 extern unsigned int seed_state;
 
 /**
@@ -41,4 +43,5 @@ uint64_t random_fewbits();
  */
 uint64_t find_magic(int square, int relevant_bits, PieceType type);
 
+} // namespace Kojiro
 #endif

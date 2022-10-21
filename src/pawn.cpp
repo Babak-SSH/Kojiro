@@ -8,6 +8,8 @@
 #include "pawn.h"
 
 
+namespace Kojiro {
+
 uint64_t pawn_attacks[2][64];
 
 /// masking position that can be attacked by the 
@@ -42,3 +44,5 @@ void init_pawn_attacks(){
         pawn_attacks[BLACK][sq] = mask_pawn_attacks(sq, BLACK);
     }
 }
+
+} // namespace Kojiro

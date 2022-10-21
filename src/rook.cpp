@@ -7,6 +7,8 @@
 #include "rook.h"
 
 
+namespace Kojiro {
+
 // rook magic numbers
 uint64_t rook_magics[64] = {
     0x8a80104000800020ULL,
@@ -209,3 +211,5 @@ uint64_t get_rook_attacks(int square, uint64_t occupancy) {
 	
 	return rook_attacks[square][occupancy];
 }
+
+} // namespace Kojiro

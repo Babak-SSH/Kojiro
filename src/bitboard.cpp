@@ -8,6 +8,8 @@
 #include "bitboard.h"
 
 
+namespace Kojiro {
+    
 /////////////////////////////////////////////////
 // iterates through every file and rank and 
 // prints a simple represntaion of the board.
@@ -106,3 +108,17 @@ uint64_t set_occupancy(int index, uint64_t attack_mask){
 
     return occupancy;
 }
+
+uint64_t set_rank(int rank) {
+    uint64_t mask = RANK1;
+
+    return mask >> (8*(rank-1));
+}
+
+uint64_t set_file(int file) {
+    uint64_t mask = A_file;
+
+    return mask << (file-1);
+}
+
+} // namespace Kojiro

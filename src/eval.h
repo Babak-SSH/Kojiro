@@ -95,6 +95,19 @@ const int king_score[64] =
      0,   0,   5,   0, -15,   0,  10,   0
 };
 
+const int double_pawn_penalty = -10;
+
+const int isolated_pawn_penalty = -10;
+
+const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 }; 
+
+const int semi_open_file_score = 8;
+
+const int open_file_score = 15;
+
+const int king_shield_bonus = 5;
+
+
 //mirror positional score tables for opposite side
 const int mirror_score[128] =
 {
@@ -108,9 +121,11 @@ const int mirror_score[128] =
 	a8, b8, c8, d8, e8, f8, g8, h8
 };
 
-namespace Eval
-{
-	int evaluation();
+namespace Eval {
+
+    void init_eval_masks();
+
+    int evaluation();
 
 	static inline int mirror_square(int sq){
 		return mirror_score[sq];

@@ -5,6 +5,7 @@
 
 extern const char *convert_to_square[64];
 
+extern const uint64_t A_file;
 extern const uint64_t not_A_file;
 extern const uint64_t not_H_file;
 extern const uint64_t not_AB_file;

@@ -18,6 +18,7 @@ const char *convert_to_square[64] = {"a8","b8","c8","d8","e8","f8","g8","h8",
                                      "a1","b1","c1","d1","e1","f1","g1","h1"};
 
 // numbers are bitboards in ull format
+const uint64_t A_file = 72340172838076673ull;
 const uint64_t not_A_file = 18374403900871474942ull;
 const uint64_t not_H_file = 9187201950435737471ull;
 const uint64_t not_AB_file = 18229723555195321596ull;

@@ -15,6 +15,7 @@
 #include "king.h"
 #include "movegen.h"
 #include "magic.h"
+#include "search.h"
 
 
 namespace Kojiro {
@@ -123,10 +124,10 @@ bool is_square_attacked(int square, int side);
 
 /// @todo enhance color(side) finding
 inline void set_piece(Piece p, int sq){
-    set_bit(bitboards[p], sq);
+    set_bit(st->bitboards[p], sq);
     
-    occupancies[(p > 5)] |= bitboards[p];
-    occupancies[2] |= bitboards[p];
+    st->occupancies[(p > 5)] |= st->bitboards[p];
+    st->occupancies[2] |= st->bitboards[p];
 }
 
 /**

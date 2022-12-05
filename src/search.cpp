@@ -17,9 +17,11 @@ namespace Kojiro {
 
 namespace Search{
 	GameInfo Info;
-	uint64_t repetition_table[150];
+	uint64_t repetition_table[1000];
 	int repetition_index;
 }
+
+Thread* thisThread;
 
 long alphabeta_nodes = 0;
 long quiescence_nodes = 0;
@@ -128,6 +130,9 @@ static void Search::sort_moves(moves *move_list){
 /// Thus we use this search algorithm to check for captures and avoid any bad moves in deeper depths
 /// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
 static int Search::quiescence(int alpha, int beta){
+	if (thisThread == Threads.main())
+		static_cast<MainThread*>(thisThread)->check_time();
+
 	if(Threads.stop)
 		return 0;
 
@@ -205,14 +210,18 @@ static int Search::negamax(int alpha, int beta, int depth) {
 	int score = 0;
 	bool found_pv = false;
 	int temp_enp;
-	
+
+	if (thisThread == Threads.main())
+		static_cast<MainThread*>(thisThread)->check_time();
+
 	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[st->side]))
 		return 0;
 
 	int hash_flag = hashfALPHA;
 
-	if (ply && Search::is_repetition())
+	if (ply && Search::is_repetition()) {
 		return 0;
+	}
 
 	int pv_node = (beta - alpha) > 1;
 	// probe hash entry
@@ -238,8 +247,9 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
 	// increase search depth if king is in danger.
-	if(in_check)
+	if(in_check){
 		depth++;
+	}
 
 	alphabeta_nodes++;
 
@@ -337,7 +347,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		 	*/
 			if (score > alpha) {
                 score = -negamax(-alpha - 1, -alpha, depth-1);
-            
+
                 if((score > alpha) && (score < beta))
                     score = -negamax(-beta, -alpha, depth-1);
             }
@@ -413,17 +423,19 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 void MainThread::search(){
 	
-	Time.init(Search::Info, Color(st->side), ply);
+	Time.init(Search::Info, Color(st->side), st->play_count);
 
 	Threads.start_searching();
 
 	Thread::search();
-
 }
 
 void Thread::search(){
 	// clear(reset) helper data(globals)
 	Search::clear();
+
+	if (this == Threads.main())
+		thisThread = this;
 
 	int score = 0;
 	std::stringstream pvr;
@@ -474,6 +486,7 @@ void Thread::search(){
             beta = 50000;      
         }
 		else {
+			/// @todo why 50???????????????????????????????????
         	alpha = score - 50;
         	beta = score + 50;
 		}
@@ -509,11 +522,11 @@ void Thread::search(){
 
 void MainThread::check_time(){
 	/// @todo log information each 1000 ms 
-
 	TimePoint elapsed = Time.getElapsed();
 
-	if (Search::Info.use_time() && elapsed > Time.getMaximum())
+	if (Search::Info.use_time() && (elapsed > Time.getMaximum() || Time.getElapsed() > Time.getOptimum())){
 		Threads.stop = true;
+	}
 }
 
 void Search::clear(){

@@ -29,11 +29,11 @@ void Eval::init_eval_masks() {
 
             pawn_passed_masks[WHITE][square] |= (set_file(file-1) | set_file(file) | set_file(file+1));
             for (int i = 0; i < (8 - rank); i++)
-                pawn_passed_masks[WHITE][square] &= ~rank_masks[(7 - i) * 8 + file];
+                pawn_passed_masks[WHITE][square] &= ~rank_masks[i * 8 + file];
 
             pawn_passed_masks[BLACK][square] |= (set_file(file-1) | set_file(file) | set_file(file+1));
             for (int i = 0; i < rank + 1; i++)
-                pawn_passed_masks[BLACK][square] &= ~rank_masks[i * 8 + file];  
+                pawn_passed_masks[BLACK][square] &= ~rank_masks[(7 - i) * 8 + file];  
         }
     }
 }
@@ -59,17 +59,17 @@ int Eval::evaluation(){
                 case P: 
                     score += pawn_score[sq]; 
 
-                    // check double pawn
-                    double_pawns = count_bits(bitboards[P] & file_masks[sq]);
+                    /// check double pawn @todo check double pawn in endgames separately and score difference between double pawns that have protection
+                    double_pawns = count_bits(st->bitboards[P] & file_masks[sq]);
                     if (double_pawns > 1)
                         score += double_pawns * double_pawn_penalty;
 
                     // check isolated pawn 
-                    if ((bitboards[P] & isolated_masks[sq]) == 0)
+                    if ((st->bitboards[P] & isolated_masks[sq]) == 0)
                         score += isolated_pawn_penalty;
 
                     // check passed pawns 
-                    if ((pawn_passed_masks[WHITE][sq] & bitboards[p]) == 0)
+                    if ((pawn_passed_masks[WHITE][sq] & st->bitboards[p]) == 0)
                         score += passed_pawn_bonus[(63-sq)/8];
 
                     break;
@@ -91,17 +91,18 @@ int Eval::evaluation(){
                     score += rook_score[sq];
 
                     // open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[sq]) == 0)
+                    if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
                         score += open_file_score;
                     // semi open file
-                    else if (((bitboards[P] & file_masks[sq]) == 0) && ((bitboards[p] & file_masks[sq]) != 0))
-                        score += semi_open_file_score;
+                    /// @todo needs more parameters
+                    // else if (((st->bitboards[P] & file_masks[sq]) == 0) && ((st->bitboards[p] & file_masks[sq]) != 0))
+                        // score += semi_open_file_score;
                     
                     break;
 
                 case Q:
                     // mobility
-                    score += count_bits(get_queen_attacks(sq, occupancies[NO_COLOR]));
+                    // score += count_bits(get_queen_attacks(sq, occupancies[NO_COLOR]));
 
                     break;
 
@@ -110,11 +111,11 @@ int Eval::evaluation(){
 
                     // pawn shield and pawn storm
                     // open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[sq]) == 0)
-                        score -= open_file_score;
+                    // if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
+                        // score -= open_file_score;
                     // semi open file
-                    else if (((bitboards[P] & file_masks[sq]) == 0) && ((bitboards[p] & file_masks[sq]) != 0))
-                        score -= semi_open_file_score;
+                    // else if (((st->bitboards[P] & file_masks[sq]) == 0) && ((st->bitboards[p] & file_masks[sq]) != 0))
+                        // score -= semi_open_file_score;
 
                     // king safety bonus
                     score += count_bits(king_attacks[sq] & occupancies[WHITE]) * king_shield_bonus;
@@ -126,16 +127,16 @@ int Eval::evaluation(){
                     score -= pawn_score[Eval::mirror_square(sq)]; 
                     
                     // check double pawn
-                    double_pawns = count_bits(bitboards[p] & file_masks[sq]);
+                    double_pawns = count_bits(st->bitboards[p] & file_masks[sq]);
                     if (double_pawns > 1)
                         score -= double_pawns * double_pawn_penalty;
 
                     // check isolated pawn 
-                    if ((bitboards[p] & isolated_masks[sq]) == 0)
+                    if ((st->bitboards[p] & isolated_masks[sq]) == 0)
                         score -= isolated_pawn_penalty;
 
                     // check passed pawns 
-                    if ((pawn_passed_masks[BLACK][sq] & bitboards[P]) == 0)
+                    if ((pawn_passed_masks[BLACK][sq] & st->bitboards[P]) == 0)
                         score -= passed_pawn_bonus[(63-Eval::mirror_square(sq))/8];
 
                     break;
@@ -149,6 +150,7 @@ int Eval::evaluation(){
                     score -= bishop_score[Eval::mirror_square(sq)]; 
 
                     // mobility of bishop
+                    /// @todo find an efficient way to find sq threatened by bishops
                     score -= count_bits(get_bishop_attacks(sq, occupancies[NO_COLOR]));
                     
                     break;
@@ -157,17 +159,18 @@ int Eval::evaluation(){
                     score -= rook_score[Eval::mirror_square(sq)]; 
                     
                      // open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[sq]) == 0)
+                    if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
                         score -= open_file_score;
                     // semi open file
-                    else if (((bitboards[p] & file_masks[sq]) == 0) && ((bitboards[P] & file_masks[sq]) != 0))
-                        score -= semi_open_file_score;
+                    // else if (((st->bitboards[p] & file_masks[sq]) == 0) && ((st->bitboards[P] & file_masks[sq]) != 0))
+                        // score -= semi_open_file_score;
                     
                     break;
 
                 case q:
                     // mobility
-                    score -= count_bits(get_queen_attacks(sq, occupancies[NO_COLOR]));
+                    /// @todo find better way to evaluate
+                    // score -= count_bits(get_queen_attacks(sq, occupancies[NO_COLOR]));
 
                     break;
 
@@ -176,14 +179,14 @@ int Eval::evaluation(){
                     
                     // pawn shield and pawn storm
                     // open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[sq]) == 0)
-                        score += open_file_score;
+                    // if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
+                        // score += open_file_score;
                     // semi open file
-                    else if (((bitboards[p] & file_masks[sq]) == 0) && ((bitboards[P] & file_masks[sq]) != 0))
-                        score += semi_open_file_score;
+                    // else if (((st->bitboards[p] & file_masks[sq]) == 0) && ((st->bitboards[P] & file_masks[sq]) != 0))
+                    //     score += semi_open_file_score;
 
                     // king safety bonus
-                    score += count_bits(king_attacks[sq] & occupancies[BLACK]) * king_shield_bonus;
+                    score -= count_bits(king_attacks[sq] & occupancies[BLACK]) * king_shield_bonus;
 
                     break;
             }
@@ -191,6 +194,7 @@ int Eval::evaluation(){
 			pop_bit(bitboard, sq);
 		}
 	}
+
 	return (st->side) ? -score : score;
 }
 

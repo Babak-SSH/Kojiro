@@ -3,7 +3,7 @@
 
 #include <string>
 
-#define	hash_size 0x400000
+#define	hash_size 800000
 #define	no_hash_entry 100000
 
 #define    hashfEXACT   0

@@ -20,8 +20,7 @@ int probe_hash(int alpha, int beta, int depth) {
     TTEntry *hash_entry = &tt[st->key % hash_size];
     
     // check position hash keys
-    if (hash_entry->key == st->key)
-    {
+    if (hash_entry->key == st->key){
         // we don't want to use tt if the depth is smaller than our current depth
         if (hash_entry->depth >= depth)
         {

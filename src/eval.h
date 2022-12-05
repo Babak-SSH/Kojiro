@@ -15,16 +15,16 @@ const int mate_score = 48000; // it's not infinity :)
 
 const int material_score[12] = {
     100,      // white pawn score
-    320,      // white knight scrore
-    330,      // white bishop score
-    500,      // white rook score
-   1000,      // white queen score
+    305,      // white knight scrore
+    333,      // white bishop score
+    563,      // white rook score
+    950,      // white queen score
   10000,      // white king score
    -100,      // black pawn score
-   -320,      // black knight scrore
-   -330,      // black bishop score
-   -500,      // black rook score
-  -1000,      // black queen score
+   -305,      // black knight scrore
+   -333,      // black bishop score
+   -563,      // black rook score
+   -950,      // black queen score
  -10000,      // black king score
 };
 
@@ -33,11 +33,11 @@ const int pawn_score[64] =
 {
     90,  90,  90,  90,  90,  90,  90,  90,
     30,  30,  30,  40,  40,  30,  30,  30,
-    10,  10,  20,  30,  30,  20,  10,  10,
-     5,   5,  10,  25,  25,  10,   5,   5,
-     0,   0,   0,  20,  20,   0,   0,   0,
-     5,  -5, -10,   0,   0, -10,  -5,   5,
-     5,  10,  10, -20, -20,  10,  10,   5,
+    20,  20,  20,  30,  30,  20,  20,  20,
+    10,  10,  10,  20,  20,  10,  10,  10,
+     5,   5,  10,  20,  20,   5,   5,   5,
+     0,   0,   0,   5,   5,   0,   0,   0,
+     0,   0,   0, -10, -10,   0,   0,   0,
      0,   0,   0,   0,   0,   0,   0,   0
 };
 
@@ -95,17 +95,17 @@ const int king_score[64] =
      0,   0,   5,   0, -15,   0,  10,   0
 };
 
-const int double_pawn_penalty = -10;
+const int double_pawn_penalty = -3;
 
-const int isolated_pawn_penalty = -10;
+const int isolated_pawn_penalty = -2;
 
-const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 }; 
+const int passed_pawn_bonus[8] = { 0, 1, 5, 50, 75, 100, 150, 200 }; 
 
-const int semi_open_file_score = 8;
+const int semi_open_file_score = 4;
 
-const int open_file_score = 15;
+const int open_file_score = 10;
 
-const int king_shield_bonus = 5;
+const int king_shield_bonus = 2;
 
 
 //mirror positional score tables for opposite side

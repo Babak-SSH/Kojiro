@@ -39,6 +39,8 @@ void init_all(){
     init_knight_attacks();
     init_king_attacks();
 
+	Eval::init_eval_masks();
+
     // init_start();
 
 	init_hash();
@@ -60,8 +62,8 @@ int main(int argc, char* argv[]){
 		Search::search(2);
 	}
 	else{
-	    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     	init_state();
+		parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     	print_board();
 
 		Threads.set(size_t(1));

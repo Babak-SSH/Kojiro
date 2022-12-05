@@ -40,8 +40,8 @@ void UCI::position(std::istringstream& iss){
 	iss >> token;
 
 	if(token == "startpos"){
-		parse_fen(START_FEN);
 		init_state();
+		parse_fen(START_FEN);
 		iss >> token;
 	}
 	else if(token == "fen"){
@@ -49,8 +49,8 @@ void UCI::position(std::istringstream& iss){
 		{
 			fen += token + " ";
 		}
-		parse_fen(fen);
 		init_state();
+		parse_fen(fen);
 	}
 	if(token == "moves"){
 		while (iss >> token){
@@ -153,9 +153,9 @@ void UCI::loop(int argc, char* argv[]){
 			clear_tt();
 		}
 		else if(token == "ucinewgame"){
+			init_state();
 			parse_fen(START_FEN);
 			clear_tt();
-			init_state();
 			print_board();	
 		}	
 	}while (token != "quit" && argc == 1);

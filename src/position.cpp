@@ -216,16 +216,16 @@ void init_start(){
 void init_state(){
     st = new StateInfo();
 
-    memcpy(st->bitboards, bitboards, 96);
-    memcpy(st->occupancies, occupancies, 24);
+    // memcpy(st->bitboards, bitboards, 96);
+    // memcpy(st->occupancies, occupancies, 24);
     
-    st->castle = castle;
-    st->enpassant = enpassant;
-    st->rule50 = rule50;
-    st->side = side;
-    st->play_count = play_count;
+    // st->castle = castle;
+    // st->enpassant = enpassant;
+    // st->rule50 = rule50;
+    // st->side = side;
+    // st->play_count = play_count;
 
-	st->key = generate_hash_key();
+	// st->key = generate_hash_key();
     st->previous = NULL;
 }
 
@@ -240,15 +240,19 @@ string get_fen(){
 
 void parse_fen(const string& fen){
     // reset board position (bitboards)
-    memset(bitboards, 0ULL, sizeof(bitboards));
+    memset(st->bitboards, 0ULL, sizeof(st->bitboards));
     
     // reset occupancies (bitboards)
-    memset(occupancies, 0ULL, sizeof(occupancies));
+    memset(st->occupancies, 0ULL, sizeof(st->occupancies));
     
     // reset game state variables
-    side = WHITE;
-    enpassant = no_sq;
-    castle = 0;
+    st->side = WHITE;
+    st->enpassant = no_sq;
+    st->castle = 0;
+
+    Search::repetition_index = 0;
+
+    memset(Search::repetition_table, 0ULL, sizeof(Search::repetition_table));
 
     int square = 0, idx, file, rank;
     unsigned char token;
@@ -269,24 +273,24 @@ void parse_fen(const string& fen){
     
     // side
     iss >> token;
-    side = (token == 'w' ? WHITE : BLACK);
+    st->side = (token == 'w' ? WHITE : BLACK);
     iss >> token;
 
     //castling
     while ((iss >> token) && !isspace(token)){
         if (token == 'K')
-            castle |= castlingRights(WK);
+            st->castle |= castlingRights(WK);
         else if (token == 'Q'){
-            castle |= castlingRights(WQ);
+            st->castle |= castlingRights(WQ);
         }
         else if (token == 'k'){
-            castle |= castlingRights(BK);
+            st->castle |= castlingRights(BK);
         }
         else if (token == 'q'){
-            castle |= castlingRights(BQ);
+            st->castle |= castlingRights(BQ);
         }
         else if (token == '-'){
-			castle = 0;
+			st->castle = 0;
 		}
     }
 
@@ -295,16 +299,18 @@ void parse_fen(const string& fen){
         file =  token - 'a';
         iss >> token;
         rank = 8 - (token - '0');
-        enpassant = rank * 8 + file;
+        st->enpassant = rank * 8 + file;
     }
     else {
-        enpassant = no_sq;
+        st->enpassant = no_sq;
     }
 
     iss >> token;
-    iss >> rule50;
+    iss >> st->rule50;
     iss >> token;
-    iss >> play_count;
+    iss >> st->play_count;
+
+    st->key = generate_hash_key();
 }
 
 /// @todo get_attacks function with piece parameter to get rid of army of ifs.(maybe template)

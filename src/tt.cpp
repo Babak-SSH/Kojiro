@@ -28,8 +28,8 @@ int probe_hash(int alpha, int beta, int depth) {
 
             // retrieve score independent from the actual path
             // from root node (position) to current node (position)
-            if (score < -mate_score) score += st->play_count;
-            if (score > mate_score) score -= st->play_count;
+            if (score < -MateScore) score += st->play_count;
+            if (score > MateScore) score -= st->play_count;
 
             // (PV node) score 
             if (hash_entry->flag == hashfEXACT)
@@ -52,8 +52,8 @@ int probe_hash(int alpha, int beta, int depth) {
 void write_hash(int score, int depth, int hash_flag, int move) {
     TTEntry *hash_entry = &tt[st->key % hash_size];
 
-    if (score < -mate_score) score -= play_count;
-    if (score > mate_score) score += play_count;
+    if (score < -MateScore) score -= play_count;
+    if (score > MateScore) score += play_count;
 
     hash_entry->key = st->key;
     hash_entry->score = score;

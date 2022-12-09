@@ -407,7 +407,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
     if (legal_moves == 0) {
         // return mating score (assuming closest distance to mating position)
 		if (in_check){
-            return -mate_value + ply;
+            return -MateValue + ply;
 		}
 		// return stalemate score
         else{
@@ -467,13 +467,13 @@ void Thread::search(){
 			pvr << get_move_string(pv_table[0][count]); 
     	}
 
-		if (score > -mate_value && score < -mate_score)
+		if (score > -MateValue && score < -MateScore)
    			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							-(score + mate_value) / 2 - 1, current_depth, alphabeta_nodes+quiescence_nodes,
+							-(score + MateValue) / 2 - 1, current_depth, alphabeta_nodes+quiescence_nodes,
 							Time.getElapsed(), pvr.str()) << sync_endl;
-        else if (score > mate_score && score < mate_value)
+        else if (score > MateScore && score < MateValue)
 			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							(mate_value - score) / 2 + 1, current_depth, alphabeta_nodes+quiescence_nodes,
+							(MateValue - score) / 2 + 1, current_depth, alphabeta_nodes+quiescence_nodes,
 							Time.getElapsed(), pvr.str()) << sync_endl;
 		else
 			sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 

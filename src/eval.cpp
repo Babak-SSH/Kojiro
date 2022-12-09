@@ -38,26 +38,44 @@ void Eval::init_eval_masks() {
     }
 }
 
-int Eval::evaluation(){
+int Eval::get_phase_score() {
+    int score = 0;
+
+    for(int piece=W_PAWN;piece <= B_KING;piece++) {
+       score += count_bits(st->bitboards[piece]) * PieceValue[0][piece]; 
+    }   
+
+    return score;
+}
+
+int Eval::evaluation() {
 	int score = 0;
 	int sq, double_pawns;
 	uint64_t bitboard;
 
-	for(int bb_piece=W_PAWN;bb_piece <= B_KING;bb_piece++){
+    int phase_score = get_phase_score();
+
+	for(int bb_piece=W_PAWN;bb_piece <= B_KING;bb_piece++) {
 		bitboard = st->bitboards[bb_piece];
 
-		while (bitboard)
-		{
+		while (bitboard) {
 			sq = get_ls1b_index(bitboard);
 
-			score += material_score[bb_piece];
-
+            if(bb_piece >= B_PAWN) {
+                score -= (PieceValue[MG][bb_piece] * phase_score + 
+                PieceValue[EG][bb_piece] * (MidgameLimit - phase_score))/MidgameLimit;
+            }
+            else {
+                score += (PieceValue[MG][bb_piece] * phase_score + 
+                PieceValue[EG][bb_piece] * (MidgameLimit - phase_score))/MidgameLimit;
+            }
+            
 			// score positional piece scores
-            switch (bb_piece)
-            {
+            switch (bb_piece) {
                 // evaluate white pieces
                 case P: 
-                    score += pawn_score[sq]; 
+                    score += (PawnPosValue[MG][sq] * phase_score +
+                            PawnPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit; 
 
                     /// check double pawn @todo check double pawn in endgames separately and score difference between double pawns that have protection
                     double_pawns = count_bits(st->bitboards[P] & file_masks[sq]);
@@ -75,12 +93,14 @@ int Eval::evaluation(){
                     break;
 
                 case N: 
-                    score += knight_score[sq];
+                    score += (KnightPosValue[MG][sq] * phase_score +
+                            KnightPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit;
 
                     break;
 
                 case B: 
-                    score += bishop_score[sq];
+                    score += (BishopPosValue[MG][sq] * phase_score +
+                            BishopPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit;
 
                     // mobility of bishop
                     score += count_bits(get_bishop_attacks(sq, occupancies[NO_COLOR]));
@@ -88,7 +108,8 @@ int Eval::evaluation(){
                     break;
 
                 case R: 
-                    score += rook_score[sq];
+                    score += (RookPosValue[MG][sq] * phase_score +
+                            RookPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit;
 
                     // open file
                     if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
@@ -101,13 +122,17 @@ int Eval::evaluation(){
                     break;
 
                 case Q:
+                    score += (QueenPosValue[MG][sq] * phase_score +
+                            QueenPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit;
+                    
                     // mobility
                     // score += count_bits(get_queen_attacks(sq, occupancies[NO_COLOR]));
 
                     break;
 
                 case K: 
-                    score += king_score[sq];
+                    score += (KingPosValue[MG][sq] * phase_score +
+                            KingPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit;
 
                     // pawn shield and pawn storm
                     // open file
@@ -124,7 +149,8 @@ int Eval::evaluation(){
 
                 // evaluate black pieces
                 case p: 
-                    score -= pawn_score[Eval::mirror_square(sq)]; 
+                    score -= (PawnPosValue[MG][Eval::mirror_square(sq)] * phase_score +
+                            PawnPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
                     
                     // check double pawn
                     double_pawns = count_bits(st->bitboards[p] & file_masks[sq]);
@@ -142,12 +168,14 @@ int Eval::evaluation(){
                     break;
 
                 case n: 
-                    score -= knight_score[Eval::mirror_square(sq)]; 
+                    score -= (KnightPosValue[MG][Eval::mirror_square(sq)] * phase_score +
+                            KnightPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
                     
                     break;
 
                 case b: 
-                    score -= bishop_score[Eval::mirror_square(sq)]; 
+                    score -= (BishopPosValue[MG][Eval::mirror_square(sq)] * phase_score +
+                            BishopPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
 
                     // mobility of bishop
                     /// @todo find an efficient way to find sq threatened by bishops
@@ -156,7 +184,8 @@ int Eval::evaluation(){
                     break;
 
                 case r: 
-                    score -= rook_score[Eval::mirror_square(sq)]; 
+                    score -= (RookPosValue[MG][Eval::mirror_square(sq)] * phase_score +
+                            RookPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
                     
                      // open file
                     if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
@@ -168,6 +197,9 @@ int Eval::evaluation(){
                     break;
 
                 case q:
+                    score -= (QueenPosValue[MG][Eval::mirror_square(sq)] * phase_score +
+                            QueenPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
+
                     // mobility
                     /// @todo find better way to evaluate
                     // score -= count_bits(get_queen_attacks(sq, occupancies[NO_COLOR]));
@@ -175,7 +207,8 @@ int Eval::evaluation(){
                     break;
 
                 case k: 
-                    score -= king_score[Eval::mirror_square(sq)]; 
+                    score -= (KingPosValue[MG][Eval::mirror_square(sq)] * phase_score +
+                            KingPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
                     
                     // pawn shield and pawn storm
                     // open file

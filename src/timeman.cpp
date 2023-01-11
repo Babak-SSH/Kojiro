@@ -18,6 +18,7 @@ namespace Kojiro {
 		optScale = std::min(0.0088 + std::pow(ply + 3.0, 0.5) * 0.0044,
 							0.88 * info.time[st->side] / double(timeLeft));
 
+		/// @todo need a better function for time management
 		// for move limit
 		// optScale = std::min((0.88 + ply / 116.4) / remainingMoves,
                             // 0.88 * info.time[st->side] / double(timeLeft));

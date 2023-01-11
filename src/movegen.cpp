@@ -1,12 +1,15 @@
 #include "movegen.h"
 
 #include <sstream>
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
 
 
 namespace Kojiro {
 
 /// @todo bitboards instead of <> operaters in if statements and methods for numric operations.
 /// @todo shatter to small functions.
+/// generate all legal pawn moves in current state.
 void generate_pawn_moves(moves *move_list, Color side){
     uint64_t bb, bb_attacks, promotion_rank, double_push, attacks;
     int source_sq, target_sq;
@@ -93,6 +96,7 @@ void generate_pawn_moves(moves *move_list, Color side){
     }
 }
 
+/// generate all legal king moves in current state.
 void generate_king_moves(moves *move_list, Color side){
     int source_sq, target_sq;
     uint64_t bb, attacks;
@@ -163,6 +167,8 @@ void generate_king_moves(moves *move_list, Color side){
     }
 }
 
+/// @todo make a template function for all pieces or find a better way
+/// generate all legal moves for sliding pieces and knights.
 void generate_moves(moves *move_list, Color side, PieceType pType){
     int source_sq, target_sq;
     uint64_t bb, attacks;
@@ -257,7 +263,7 @@ moveInfo decode_move(int move){
     return info;
 }
 
-// get move (for UCI purposes)
+// get move ( used in UCI communication )
 std::string get_move_string(int move)
 {
     moveInfo info = decode_move(move);
@@ -271,23 +277,23 @@ std::string get_move_string(int move)
 	return move_string;
 }
 
-// print move list
+// print move list (help to debug)
 void print_move_list(moves *move_list)
 {
     if (!move_list->count)
     {
-        printf("\n     No move in the move list!\n");
+        fmt::print("\n     No move in the move list!\n");
         return;
     }
     
-    printf("\n     move    piece     capture   double    enpass    castling\n\n");
+    fmt::print("\n     move    piece     capture   double    enpass    castling\n\n");
     
     for (int move_count = 0; move_count < move_list->count; move_count++)
     {
         int move = move_list->moves[move_count];
         moveInfo info = decode_move(move);
 
-        printf("      %s%s%c   %c         %d         %d         %d         %d\n", convert_to_square[info.source],
+        fmt::print("      %s%s%c   %c         %d         %d         %d         %d\n", convert_to_square[info.source],
                                                                                 convert_to_square[info.target],
                                                                                 info.promoted ? promoted_pieces[info.promoted] : ' ',
                                                                                 ascii_pieces[info.piece],
@@ -297,7 +303,7 @@ void print_move_list(moves *move_list)
                                                                                 info.castling ? 1 : 0);
     }
     
-    printf("\n\n     Total number of moves: %d\n\n", move_list->count);
+    fmt::print("\n\n     Total number of moves: %d\n\n", move_list->count);
 }
 
 } // namespace Kojiro

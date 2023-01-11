@@ -1,4 +1,7 @@
 #include <string.h>
+#include <sstream>
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
 
 #include "magic.h"
 
@@ -10,7 +13,7 @@ unsigned int seed_state = 1804289383;
 
 /// generate 32-bit pseudo random number with xorshift algorithm.
 /// @TODO possible candidates to replace xorshift : xoshiro256** - xorshift*
-int get_random_U32_number(){
+int get_random_U32_number() {
     unsigned int number = seed_state;
     // XOR shift algorithm
     number ^= number << 13;
@@ -22,10 +25,9 @@ int get_random_U32_number(){
     return number;
 }
 
-
 /// generate 64-bit pseudo random number by putting together first 16 bits of 
 /// four 32-bit random numbers.
-uint64_t get_random_U64_number(){
+uint64_t get_random_U64_number() {
     // define 4 random numbers
     uint64_t number, n1, n2, n3, n4;
     
@@ -47,21 +49,19 @@ uint64_t random_fewbits() {
     return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
 }
 
-
 // generate magics.(yoinked from stockfish source code :))
 // www.chessprogramming.org/Looking_for_Magics
 // @TODO needs rework!
-uint64_t find_magic(int square, int relevant_bits, PieceType type)
-{
+uint64_t find_magic(int square, int relevant_bits, PieceType type) {
     uint64_t occupancies[4096];
     uint64_t attacks[4096];
     uint64_t used_attacks[4096];
     uint64_t attack_mask;
     
-    if(type == BISHOP){
+    if(type == BISHOP) {
         attack_mask = mask_bishop_attacks_relevant(square);
     }
-    else if(type == ROOK){
+    else if(type == ROOK) {
         attack_mask = mask_rook_attacks_relevant(square);
     }
     
@@ -69,8 +69,7 @@ uint64_t find_magic(int square, int relevant_bits, PieceType type)
     int occupancy_indicies = 1 << relevant_bits;
     
     // loop over occupancy indicies
-    for (int index = 0; index < occupancy_indicies; index++)
-    {
+    for (int index = 0; index < occupancy_indicies; index++) {
         occupancies[index] = set_occupancy(index, attack_mask);
     
         if(type == BISHOP){
@@ -82,8 +81,7 @@ uint64_t find_magic(int square, int relevant_bits, PieceType type)
     }
     
     // test magic numbers loop
-    for (int random_count = 0; random_count < 100000000; random_count++)
-    {
+    for (int random_count = 0; random_count < 100000000; random_count++) {
         uint64_t magic_number = random_fewbits();
         
         // skip inappropriate magic numbers ( but how, why, who ?????????)
@@ -93,8 +91,7 @@ uint64_t find_magic(int square, int relevant_bits, PieceType type)
         
         int index, fail;
         
-        for (index = 0, fail = 0; !fail && index < occupancy_indicies; index++)
-        {
+        for (index = 0, fail = 0; !fail && index < occupancy_indicies; index++) {
             int magic_index = (int)((occupancies[index] * magic_number) >> (64 - relevant_bits));
             
             // if magic index works
@@ -111,7 +108,7 @@ uint64_t find_magic(int square, int relevant_bits, PieceType type)
     }
     
     // if magic number doesn't work
-    printf("Magic number fails!\n");
+    fmt::print("Magic number failed!");
     return 0ULL;
 }
 

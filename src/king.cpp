@@ -1,10 +1,3 @@
-/***********************************************\
-=================================================
-                KING ATTACKS
-=================================================
-\***********************************************/
-
-
 #include "king.h"
 
 
@@ -12,8 +5,8 @@ namespace Kojiro {
 
 uint64_t king_attacks[64];
 
-/// masking position that can be attacked by the 
-/// specified king in all 8 direction.
+/// masking squares, which can be attacked by the specified
+/// king considering the blocked squares.
 uint64_t mask_king_attacks(int pos){
     uint64_t attacks = 0ull;
     uint64_t mask_bitboard = 0ull;

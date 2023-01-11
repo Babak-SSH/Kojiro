@@ -6,6 +6,7 @@
 #include "types.h"
 #include "bishop.h"
 #include "rook.h"
+#include "uci.h"
 
 
 namespace Kojiro {

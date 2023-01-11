@@ -2,7 +2,6 @@
 #define SEARCH_H
 
 #include "position.h"
-#include "uci.h"
 #include "eval.h"
 #include "misc.h"
 

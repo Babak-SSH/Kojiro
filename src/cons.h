@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+
 extern const char *convert_to_square[64];
 
 extern const uint64_t A_file;

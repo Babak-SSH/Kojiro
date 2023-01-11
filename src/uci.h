@@ -9,11 +9,7 @@
 #include "position.h"
 #include "movegen.h"
 #include "search.h"
-
-
-enum SyncCout { IO_LOCK, IO_UNLOCK };
-#define sync_cout std::cout << IO_LOCK
-#define sync_endl std::endl << IO_UNLOCK
+#include "misc.h"
 
 /// Used to serialize access to std::cout to avoid multiple threads writing at
 /// the same time.

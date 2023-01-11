@@ -1,10 +1,3 @@
-/***********************************************\
-=================================================
-                PAWN ATTACKS
-=================================================
-\***********************************************/
-
-
 #include "pawn.h"
 
 
@@ -14,11 +7,10 @@ uint64_t pawn_attacks[2][64];
 
 /// masking position that can be attacked by the 
 /// specified pawn. this is done by shifting 
-/// 7 or 9 bits according to the color and taking
-/// exceptaions of A and H file to considration
-/// because shiftin that ends up in this files gets
-/// square to one upper rank.
-uint64_t mask_pawn_attacks(int square, int side){
+/// 7 or 9 bits according to the color with 
+/// exceptaions of A and H files because
+/// shifting in that files ends up on an upper rank.
+uint64_t mask_pawn_attacks(int square, int side) {
     uint64_t bitboard = 0ull;
     uint64_t mask_bitboard = 0ull;
 
@@ -35,8 +27,8 @@ uint64_t mask_pawn_attacks(int square, int side){
 }
 
 /// initialize pawn attacks for all 64 squares.
-void init_pawn_attacks(){
-    for (int sq = 0; sq < 64; sq++){
+void init_pawn_attacks() {
+    for (int sq = 0; sq < 64; sq++) {
         // white pawn
         pawn_attacks[WHITE][sq] = mask_pawn_attacks(sq, WHITE);
 

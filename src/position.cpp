@@ -147,6 +147,7 @@ void init_hash() {
 	Zobrist::side = get_random_U64_number();
 }
 
+/// misc function
 void init_start(){
     // set black pawns
     set_bit(bitboards[W_PAWN], a2);

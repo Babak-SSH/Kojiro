@@ -23,5 +23,6 @@ uint64_t mask_king_attacks(int pos);
  * 
  */
 void init_king_attacks();
+
 } // namespace Kojiro
 #endif

@@ -1,10 +1,3 @@
-/***********************************************\
-=================================================
-                BISHOP ATTACKS
-=================================================
-\***********************************************/
-
-
 #include "bishop.h"
 
 
@@ -82,41 +75,39 @@ uint64_t bishop_masks[64];
 // bishop attacks table [square][occupancies]
 uint64_t bishop_attacks[64][4096];
 
-/// masking square that can be attacked by the specified
-/// bishop (this also covers the blocked squares) considering
-/// the blocked squares.
-uint64_t mask_bishop_attacks_on_fly(int square, uint64_t block){
+/// masking squares, which can be attacked by the specified
+/// bishop considering the blocked squares.
+uint64_t mask_bishop_attacks_on_fly(int square, uint64_t block) {
     uint64_t bb = 0ull;
     uint64_t mask_attacks = 0ull;
 
-    // rank, file
-    int r, f;
+    int rank, file;
 
-    r = square/8;
-    f = square%8;
+    rank = square/8;
+    file = square%8;
 
     set_bit(bb, square);
 
     // up right
-    for(int i = r-1, j = f+1, k=1; i >= 0 && j < 8; i--, j++, k++){
+    for(int i = rank-1, j = file+1, k=1; i >= 0 && j < 8; i--, j++, k++) {
         mask_attacks |= (bb >> (7*k));
         if((bb >> (7*k)) & block)  
             break;
     }
     // up left
-    for(int i = r-1, j = f-1, k=1; i >= 0 && j >= 0; i--, j--, k++){
+    for(int i = rank-1, j = file-1, k=1; i >= 0 && j >= 0; i--, j--, k++) {
         mask_attacks |= (bb >> (9*k));
         if((bb >> (9*k)) & block)  
             break;
     }
     // down right
-    for(int i = r+1, j = f+1, k=1; i < 8 && j < 8; i++, j++, k++){
+    for(int i = rank+1, j = file+1, k=1; i < 8 && j < 8; i++, j++, k++) {
         mask_attacks |= (bb << (9*k));
         if((bb << (9*k)) & block)  
             break;
     }
     // down left
-    for(int i = r+1, j = f-1, k=1; i < 8 && j >= 0; i++, j--, k++){
+    for(int i = rank+1, j = file-1, k=1; i < 8 && j >= 0; i++, j--, k++) {
         mask_attacks |= (bb << (7*k));
         if((bb << (7*k)) & block)  
             break;
@@ -125,83 +116,75 @@ uint64_t mask_bishop_attacks_on_fly(int square, uint64_t block){
     return mask_attacks;
 }
 
-/// masking relevant square that can be attacked by the 
-/// specified bishop but does'nt count the last squares in files
+/// masking relevant squares, which can be attacked by the 
+/// specified bishop but doesn't count the last squares in files
 /// and rows, because we will use this fucntion to find all
 /// possible orientaions of occupancy and we will cover 
 /// them (the last squares) in mask_bishop_attacks_on_fly.
-uint64_t mask_bishop_attacks_relevant(int square){
+uint64_t mask_bishop_attacks_relevant(int square) {
     uint64_t bb = 0ull;
     uint64_t mask_attacks = 0ull;
 
-    // rank, file
-    int r, f;
+    int rank, file;
 
-    r = square/8;
-    f = square%8;
+    rank = square/8;
+    file = square%8;
 
     set_bit(bb, square);
 
     // up right
-    for(int i = r-1, j = f+1, k=1; i > 0 && j < 7; i--, j++, k++){
+    for(int i = rank-1, j = file+1, k=1; i > 0 && j < 7; i--, j++, k++) {
         mask_attacks |= (bb >> (7*k));
     }
     // up left
-    for(int i = r-1, j = f-1, k=1; i > 0 && j > 0; i--, j--, k++){
+    for(int i = rank-1, j = file-1, k=1; i > 0 && j > 0; i--, j--, k++) {
         mask_attacks |= (bb >> (9*k));
     }
     // down right
-    for(int i = r+1, j = f+1, k=1; i < 7 && j < 7; i++, j++, k++){
+    for(int i = rank+1, j = file+1, k=1; i < 7 && j < 7; i++, j++, k++) {
         mask_attacks |= (bb << (9*k));
     }
     // down left
-    for(int i = r+1, j = f-1, k=1; i < 7 && j > 0; i++, j--, k++){
+    for(int i = rank+1, j = file-1, k=1; i < 7 && j > 0; i++, j--, k++) {
         mask_attacks |= (bb << (7*k));
     }
     
     return mask_attacks;
 }
 
-// initialize bishop attacks table by using magic index like a hash
-// for each square on the bitboard so we don't need to calculate 
-// them in each iteration and access them faster.
-void init_bishop_attacks(){
-    // bishop_magics is predefined and can be const but this part can be uncommented to
-    //  generate these numbers with another random seed or another PRNG algorithm. 
-    /*
+/// bishop_magics is predefined and constant but can be generated 
+/// with another random seed or another PRNG algorithm. 
+void init_bishop_magics() {
     for (int square = 0; square < 64; square++)
-        // init bishop magic numbers
-        bishop_magics[square] = find_magic(square, bishop_relevant_bits[square], bishop);
-    */
+        bishop_magics[square] = find_magic(square, bishop_relevant_bits[square], BISHOP);
+}
 
-    for (int square = 0; square < 64; square++)
-    {
-        // init current mask
+/// initialize bishop attacks table by using magic index as a hash
+/// for each square on the bitboard so we don't need to calculate 
+/// them in each iteration and access them faster.
+void init_bishop_attacks() {
+    for (int square = 0; square < 64; square++) {
         uint64_t mask = mask_bishop_attacks_relevant(square);
         int bit_count = count_bits(mask);
-        // occupancy variations count = 2 ^ bit_count (could be possible or not)
+        // occupancy variations count = 2 ^ bit_count (not all of them are valid)
         int occupancy_variations = 1 << bit_count;
 
-        // init bishop masks
         bishop_masks[square] = mask;
         
-        // loop over occupancy variations
-        for (int count = 0; count < occupancy_variations; count++)
-        {
-                // init occupancies, magic index & attacks
-                // magic index is used as hash for bishop_attacks table
-                uint64_t occupancy = set_occupancy(count, mask);
-                int magic_index = (occupancy * bishop_magics[square]) >> (64 - bishop_relevant_bits[square]);
-                bishop_attacks[square][magic_index] = mask_bishop_attacks_on_fly(square, occupancy);                
+        for (int count = 0; count < occupancy_variations; count++) {
+            // init occupancies, magic index & attacks
+            // magic index is used as hash for bishop_attacks table
+            uint64_t occupancy = set_occupancy(count, mask);
+            int magic_index = (occupancy * bishop_magics[square]) >> (64 - bishop_relevant_bits[square]);
+            bishop_attacks[square][magic_index] = mask_bishop_attacks_on_fly(square, occupancy);                
         }
     }
 }
 
-// encoding occupancy pattern into magic indexes(hashes) 
-// created for bishop_attacks to access to the specified bishop
-// attacks with the given occupancy.
+/// encoding occupancy pattern into magic indexes(hashes) 
+/// created for bishop_attacks to access to the specified bishop
+/// attacks with the given occupancy.
 uint64_t get_bishop_attacks(int square, uint64_t occupancy) {
-	
 	// calculate magic index(hash)
 	occupancy &= bishop_masks[square];
 	occupancy *=  bishop_magics[square];

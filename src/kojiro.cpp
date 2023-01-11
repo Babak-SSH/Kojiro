@@ -1,9 +1,3 @@
-/***********************************************\
-=================================================
-                    MAIN
-=================================================
-\***********************************************/
-
 #include <stdlib.h>
 #include <sys/time.h>
 
@@ -28,7 +22,7 @@
 
 using namespace Kojiro;
 
-void init_all(){
+void init_all() {
     // sliders
     // init_magic();
     init_rook_attacks();
@@ -55,13 +49,12 @@ int main(int argc, char* argv[]){
 
 	logger.setDebug(true);
 
-	if(debug){
-	    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	if(debug) {
     	init_state();
+	    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     	print_board();
-		Search::search(2);
-	}
-	else{
+	}	
+	else {
     	init_state();
 		parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     	print_board();

@@ -1,9 +1,8 @@
 #ifndef QUEEN_H
 #define QUEEN_H
 
-#include "bitboard.h"
-#include "magic.h"
-#include "types.h"
+#include "bishop.h"
+#include "rook.h"
 
 
 namespace Kojiro {

@@ -7,6 +7,11 @@
 
 namespace Kojiro {
 
+/**
+ * @brief time management functions and formulas for calculating optimum
+ * and maximum time for each move and total game.
+ * 
+ */
 class TimeManagement {
 public:
 	void init(Search::GameInfo& info, Color side, int ply);

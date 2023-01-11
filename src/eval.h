@@ -177,7 +177,7 @@ const int open_file_score = 10;
 const int king_shield_bonus = 2;
 
 
-//mirror positional score tables for opposite side
+// reflected position table for opposite side.
 const int mirror_score[128] =
 {
 	a1, b1, c1, d1, e1, f1, g1, h1,
@@ -192,15 +192,31 @@ const int mirror_score[128] =
 
 namespace Eval {
 
-  void init_eval_masks();
+/**
+ * @brief Initialize required masks for evaluation.  
+ * 
+ */
+void init_eval_masks();
 
-  int evaluation();
+/**
+ * @brief Get the phase score(to determine game stage).
+ * 
+ * @return int 
+ */
+int get_phase_score();
 
-  int get_phase_score();
+/**
+ * @brief calclulate evalution score.
+ * 
+ * @return int 
+ */
+int evaluation();
 
-	static inline int mirror_square(int sq){
-		return mirror_score[sq];
-	}
+/// return reflection of the square position.
+static inline int mirror_square(int sq){
+	return mirror_score[sq];
+}
+
 } // namespace Eval
 
 } // namespace Kojiro

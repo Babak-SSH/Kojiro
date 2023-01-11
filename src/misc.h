@@ -2,7 +2,12 @@
 #define MISC_H
 
 #include <chrono>
+#include <iostream>
 
+
+enum SyncCout { IO_LOCK, IO_UNLOCK };
+#define sync_cout std::cout << IO_LOCK
+#define sync_endl std::endl << IO_UNLOCK
 
 typedef std::chrono::milliseconds::rep TimePoint; // A value in milliseconds
 static_assert(sizeof(TimePoint) == sizeof(int64_t), "TimePoint should be 64 bits");

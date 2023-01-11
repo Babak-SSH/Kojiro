@@ -30,6 +30,12 @@ uint64_t mask_bishop_attacks_on_fly(int square, uint64_t block);
 uint64_t mask_bishop_attacks_relevant(int square);
 
 /**
+ * @brief init bishop magic numbers.
+ *
+ */
+void init_bishop_magics();
+
+/**
  * @brief initialize bishop attacks with magic indexes(hash) bishop_attacks[64][4096]
  * 
  */

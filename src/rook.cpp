@@ -1,9 +1,3 @@
-/***********************************************\
-=================================================
-                ROOK ATTACKS
-=================================================
-\***********************************************/
-
 #include "rook.h"
 
 
@@ -81,43 +75,40 @@ uint64_t rook_masks[64];
 // rook attacks table [square][occupancies]
 uint64_t rook_attacks[64][4096];
 
-
-/// masking square that can be attacked by the specified
-/// rook (this also covers the blocked squares) considering
-/// the blocked squares.
-uint64_t mask_rook_attacks_on_fly(int square, uint64_t block){
+/// masking squares, which can be attacked by the specified
+/// rook considering the blocked squares.
+uint64_t mask_rook_attacks_on_fly(int square, uint64_t block) {
     uint64_t bb = 0ull;
     uint64_t mask_attacks = 0ull;
 
-    // rank, file
-    int r, f;
+    int rank, file;
     int i, j, k;
 
-    r = square/8;
-    f = square%8;
+    rank = square/8;
+    file = square%8;
 
     set_bit(bb, square);
 
     // up 
-    for(i = r-1, k=1; i >= 0; i--, k++){
+    for(i = rank-1, k=1; i >= 0; i--, k++) {
         mask_attacks |= (bb >> (8*k));
         if((bb >> (8*k)) & block)  
             break;
     }
     // down 
-    for(i = r+1, k=1; i < 8; i++, k++){
+    for(i = rank+1, k=1; i < 8; i++, k++) {
         mask_attacks |= (bb << (8*k));
         if((bb << (8*k)) & block)  
             break;
     }
     //  left
-    for(j = f-1, k=1; j >= 0; j--, k++){
+    for(j = file-1, k=1; j >= 0; j--, k++) {
         mask_attacks |= (bb >> (k));
         if((bb >> (k)) & block)  
             break;
     }
     //  right
-    for(j = f+1, k=1; j < 8; j++, k++){
+    for(j = file+1, k=1; j < 8; j++, k++) {
         mask_attacks |= (bb << (k));
         if((bb << (k)) & block)  
             break;
@@ -126,58 +117,55 @@ uint64_t mask_rook_attacks_on_fly(int square, uint64_t block){
     return mask_attacks;
 }
 
-/// masking relevant square that can be attacked by the 
-/// specified rook but does'nt count the last squares in files
+/// masking relevant squares, which can be attacked by the 
+/// specified rook but doesn't count the last squares in files
 /// and rows, because we will use this fucntion to find all
 /// possible orientaions of occupancy and we will cover 
 /// them (the last squares) in mask_rook_attacks_on_fly.
-uint64_t mask_rook_attacks_relevant(int square){
+uint64_t mask_rook_attacks_relevant(int square) {
     uint64_t bb = 0ull;
     uint64_t mask_attacks = 0ull;
 
-    // rank, file
-    int r, f;
+    int rank, file;
     int i, j, k;
 
-    r = square/8;
-    f = square%8;
+    rank = square/8;
+    file = square%8;
 
     set_bit(bb, square);
 
     // up 
-    for(i = r-1, k=1; i > 0; i--, k++){
+    for(i = rank-1, k=1; i > 0; i--, k++) {
         mask_attacks |= (bb >> (8*k));
     }
     // down 
-    for(i = r+1, k=1; i < 7; i++, k++){
+    for(i = rank+1, k=1; i < 7; i++, k++) {
         mask_attacks |= (bb << (8*k));
     }
     //  left
-    for(j = f-1, k=1; j > 0; j--, k++){
+    for(j = file-1, k=1; j > 0; j--, k++) {
         mask_attacks |= (bb >> (k));
     }
     //  right
-    for(j = f+1, k=1; j < 7; j++, k++){
+    for(j = file+1, k=1; j < 7; j++, k++) {
         mask_attacks |= (bb << (k));
     }
     
     return mask_attacks;
 }
 
-// initialize rook attacks table by using magic index like a hash
-// for each square on the bitboard so we don't need to calculate 
-// them in each iteration and access them faster.
-void init_rook_attacks(){
-    // rook_magics is predefined and can be const but this part can be uncommented to
-    //  generate these numbers with another random seed or another PRNG algorithm. 
-    /*
+/// bishop_magics is predefined and constant but can be generated 
+/// with another random seed or another PRNG algorithm. 
+void init_rook_magics() {
     for (int square = 0; square < 64; square++)
-        // init rook magic numbers
-        rook_magics[square] = find_magic(square, rook_relevant_bits[square], rook);
-    */
+        rook_magics[square] = find_magic(square, rook_relevant_bits[square], ROOK);
+}
 
-    for (int square = 0; square < 64; square++)
-    {
+/// initialize bishop attacks table by using magic index as a hash
+/// for each square on the bitboard so we don't need to calculate 
+/// them in each iteration and access them faster.
+void init_rook_attacks() {
+    for (int square = 0; square < 64; square++) {
         // init current mask
         uint64_t mask = mask_rook_attacks_relevant(square);
         int bit_count = count_bits(mask);
@@ -188,22 +176,20 @@ void init_rook_attacks(){
         rook_masks[square] = mask;
         
         // loop over occupancy variations
-        for (int count = 0; count < occupancy_variations; count++)
-        {
-                // init occupancies, magic index & attacks
-                // magic index is used as hash for rook_attacks table
-                uint64_t occupancy = set_occupancy(count, mask);
-                int magic_index = (occupancy * rook_magics[square]) >> (64 - rook_relevant_bits[square]);
-                rook_attacks[square][magic_index] = mask_rook_attacks_on_fly(square, occupancy);                
+        for (int count = 0; count < occupancy_variations; count++) {
+            // init occupancies, magic index & attacks
+            // magic index is used as hash for rook_attacks table
+            uint64_t occupancy = set_occupancy(count, mask);
+            int magic_index = (occupancy * rook_magics[square]) >> (64 - rook_relevant_bits[square]);
+            rook_attacks[square][magic_index] = mask_rook_attacks_on_fly(square, occupancy);                
         }
     }
 }
 
-// encoding occupancy pattern into magic indexes(hashes) 
-// created for rook_attacks to access to the specified rook
-// attacks with the given occupancy.
+/// encoding occupancy pattern into magic indexes(hashes) 
+/// created for bishop_attacks to access to the specified bishop
+/// attacks with the given occupancy.
 uint64_t get_rook_attacks(int square, uint64_t occupancy) {
-	
 	// calculate magic index(hash)
 	occupancy &= rook_masks[square];
 	occupancy *=  rook_magics[square];

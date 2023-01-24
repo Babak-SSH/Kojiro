@@ -13,7 +13,7 @@
 #include "rook.h"
 #include "queen.h"
 #include "king.h"
-#include "movegen.h"
+#include "move.h"
 #include "magic.h"
 #include "search.h"
 
@@ -41,8 +41,6 @@ struct StateInfo {
     StateInfo* previous;
 };
 
-// ASCII pieces
-extern const std::string ascii_pieces;
 
 // temp state info
 extern StateInfo* st;

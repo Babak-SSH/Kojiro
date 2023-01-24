@@ -16,9 +16,6 @@ namespace Zobrist {
 	uint64_t side;
 }
 
-// ASCII pieces
-const string ascii_pieces("PNBRQKpnbrqk");
-
 StateInfo* st;
 
 // piece bitboards

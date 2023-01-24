@@ -71,4 +71,4 @@ const int castling_rights[64] = {
 };
 
 // ASCII pieces
-const string ascii_pieces("PNBRQKpnbrqk");
+const std::string ascii_pieces("PNBRQKpnbrqk");

@@ -1,3 +1,4 @@
+#include "rook.h"
 #include <string.h>
 #include <sstream>
 #define FMT_HEADER_ONLY
@@ -110,6 +111,20 @@ uint64_t find_magic(int square, int relevant_bits, PieceType type) {
     // if magic number doesn't work
     fmt::print("Magic number failed!");
     return 0ULL;
+}
+
+/// bishop_magics is predefined and constant but can be generated 
+/// with another random seed or another PRNG algorithm. 
+void init_bishop_magics() {
+    for (int square = 0; square < 64; square++)
+        bishop_magics[square] = find_magic(square, bishop_relevant_bits[square], BISHOP);
+}
+
+/// rook_magics is predefined and constant but can be generated 
+/// with another random seed or another PRNG algorithm. 
+void init_rook_magics() {
+    for (int square = 0; square < 64; square++)
+        rook_magics[square] = find_magic(square, rook_relevant_bits[square], ROOK);
 }
 
 } // namespace Kojiro

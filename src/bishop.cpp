@@ -152,13 +152,6 @@ uint64_t mask_bishop_attacks_relevant(int square) {
     return mask_attacks;
 }
 
-/// bishop_magics is predefined and constant but can be generated 
-/// with another random seed or another PRNG algorithm. 
-void init_bishop_magics() {
-    for (int square = 0; square < 64; square++)
-        bishop_magics[square] = find_magic(square, bishop_relevant_bits[square], BISHOP);
-}
-
 /// initialize bishop attacks table by using magic index as a hash
 /// for each square on the bitboard so we don't need to calculate 
 /// them in each iteration and access them faster.

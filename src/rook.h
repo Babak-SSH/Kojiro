@@ -3,7 +3,6 @@
 
 #include "bitboard.h"
 #include "types.h"
-#include "magic.h"
 
 
 namespace Kojiro {
@@ -28,12 +27,6 @@ uint64_t mask_rook_attacks_on_fly(int square, uint64_t block);
  * @return uint64_t mask_attacks 
  */
 uint64_t mask_rook_attacks_relevant(int square);
-
-/**
- * @brief init rook magic numbers.
- *
- */
-void init_rook_magics();
 
 /**
  * @brief initialize rook attacks with magic indexes(hash) rook_attacks[64][4096]

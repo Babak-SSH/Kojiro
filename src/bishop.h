@@ -2,7 +2,6 @@
 #define BISHOP_H
 
 #include "bitboard.h"
-#include "magic.h"
 #include "types.h"
 
 
@@ -34,12 +33,6 @@ uint64_t mask_bishop_attacks_relevant(int square);
  *
  */
 void init_bishop_magics();
-
-/**
- * @brief initialize bishop attacks with magic indexes(hash) bishop_attacks[64][4096]
- * 
- */
-void init_bishop_attacks();
 
 /**
  * @brief Get the specified bishopattacks with the given occupancy.

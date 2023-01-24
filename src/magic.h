@@ -6,7 +6,6 @@
 #include "types.h"
 #include "bishop.h"
 #include "rook.h"
-#include "uci.h"
 
 
 namespace Kojiro {
@@ -43,6 +42,18 @@ uint64_t random_fewbits();
  * @return uint64_t 
  */
 uint64_t find_magic(int square, int relevant_bits, PieceType type);
+
+/**
+ * @brief initialize bishop attacks with magic indexes(hash) bishop_attacks[64][4096]
+ * 
+ */
+void init_bishop_attacks();
+
+/**
+ * @brief init rook magic numbers.
+ *
+ */
+void init_rook_magics();
 
 } // namespace Kojiro
 #endif

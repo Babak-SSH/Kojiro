@@ -248,10 +248,6 @@ void parse_fen(const string& fen){
     st->enpassant = no_sq;
     st->castle = 0;
 
-    Search::repetition_index = 0;
-
-    memset(Search::repetition_table, 0ULL, sizeof(Search::repetition_table));
-
     int square = 0, idx, file, rank;
     unsigned char token;
     std::istringstream iss (fen);

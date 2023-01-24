@@ -1,5 +1,3 @@
-#include <bits/stdc++.h>
-
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
@@ -410,7 +408,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
             return -MateValue + ply;
 		}
 		// return stalemate score
-        else{
+		else{
             return 0;
 		}
     }
@@ -471,7 +469,7 @@ void Thread::search(){
    			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
 							-(score + MateValue) / 2 - 1, current_depth, alphabeta_nodes+quiescence_nodes,
 							Time.getElapsed(), pvr.str()) << sync_endl;
-        else if (score > MateScore && score < MateValue)
+		else if (score > MateScore && score < MateValue)
 			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
 							(MateValue - score) / 2 + 1, current_depth, alphabeta_nodes+quiescence_nodes,
 							Time.getElapsed(), pvr.str()) << sync_endl;
@@ -535,6 +533,11 @@ void Search::clear(){
 
 	score_pv = false;
 	follow_pv = false;
+
+	/// @todo check for correctness
+    Search::repetition_index = 0;
+    memset(Search::repetition_table, 0ULL, sizeof(Search::repetition_table));
+
 
  	// clear helper datas for search
     memset(killer_moves, 0, sizeof(killer_moves));

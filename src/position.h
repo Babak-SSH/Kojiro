@@ -15,7 +15,6 @@
 #include "king.h"
 #include "move.h"
 #include "magic.h"
-#include "search.h"
 
 
 namespace Kojiro {

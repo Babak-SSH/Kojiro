@@ -1,6 +1,7 @@
 #ifndef CONS_H
 #define CONS_H
 
+#include <string>
 #include <cstdint>
 
 
@@ -25,4 +26,7 @@ extern const int bishop_relevant_bits[64];
 extern const int rook_relevant_bits[64];
 
 extern const int castling_rights[64];
+
+// ASCII pieces
+extern const std::string ascii_pieces;
 #endif

@@ -1,7 +1,13 @@
+#include <istream>
 #include <sstream>
+#include <string>
+
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
+#include "cons.h"
+#include "logger.h"
+#include "types.h"
 #include "position.h"
 
 
@@ -37,10 +43,15 @@ int rule50 = 0;
 
 int play_count = 0;
 
-void print_board(){
+void log_board(){
     int sq;
+    std::stringstream board;
+
+    board << "board info:\n";
+
     for (int rank = 0; rank < 8; rank++){
-		fmt::print("{} ", 8-rank);
+        board << fmt::format("{} ", 8-rank);
+        
         for (int file = 0; file < 8; file++){
             sq = rank * 8 + file;
             // define piece variable
@@ -53,30 +64,34 @@ void print_board(){
                     piece = bb_piece;
             }
             
-			fmt::print(" {}", (piece == -1) ? '.' : ascii_pieces[piece]);
+            board << fmt::format(" {}", (piece == -1) ? '.' : ascii_pieces[piece]);
         }
-		fmt::print("\n");
+        board << fmt::format("\n");
     }
-	fmt::print("   a b c d e f g h\n\n");
+    board << fmt::format("   a b c d e f g h\n\n");
 
       
     // print side to move
-    fmt::print("   Side:     {}\n", !st->side ? "white" : "black");
+    board << fmt::format("   Side:     {}\n", !st->side ? "white" : "black");
 
     // print enpassant square
-	fmt::print("   Enpassant:   {}\n", (st->enpassant != no_sq) ? convert_to_square[st->enpassant] : "no");
+    board << fmt::format("   Enpassant:   {}\n", (st->enpassant != no_sq) ? convert_to_square[st->enpassant] : "no");
 
     // print castling rights
-	fmt::print("   Castling:  {}{}{}{}\n", (st->castle & WK) ? 'K' : '-',
+    board << fmt::format("   Castling:  {}{}{}{}\n", (st->castle & WK) ? 'K' : '-',
                                            (st->castle & WQ) ? 'Q' : '-',
                                            (st->castle & BK) ? 'k' : '-',
                                            (st->castle & BQ) ? 'q' : '-');
 
     // print turn count
-	fmt::print("   turn: {}\n", st->play_count);
+    board << fmt::format("   turn: {}\n", st->play_count);
 
     // print hash key of the position
-    fmt::print("   hash key: {:x}\n\n", st->key);
+    board << fmt::format("   hash key: {:x}\n", st->key);
+
+    board << fmt::format("   fen: {}\n\n", get_fen());
+
+    logger.logIt(board.str(), INFO);
 }
 
 // generate "almost" unique position ID aka hash key from scratch
@@ -211,7 +226,7 @@ void init_start(){
     castle |= BQ;
 }
 
-void init_state(){
+void init_state() {
     st = new StateInfo();
 
     // memcpy(st->bitboards, bitboards, 96);
@@ -227,13 +242,65 @@ void init_state(){
     st->previous = NULL;
 }
 
-void take_back(){
+void take_back() {
     if (st->previous != NULL)
         st = st->previous;
 }
 
-string get_fen(){
-    return "";
+string get_fen() {
+    std::stringstream fen;
+    bool empty = true;
+
+    // encode pieces
+    for(int sq = 0; sq < 64; sq++) {
+        
+        for(int piece = W_PAWN; piece <= B_KING; piece++) {
+            if (get_bit(st->bitboards[piece], sq)) {
+                fen << ascii_pieces[piece];
+                empty = false;
+            }
+        }
+        
+        if ((sq+1) % 8 == 0) {
+            if (empty)
+                fen << '8';
+            fen << '/';
+        }
+        empty = true;
+    }
+
+    // encode side
+    if (st->side)
+        fen << " b ";
+    else
+        fen << " w ";
+
+    // encode castling rights
+    if ((st->castle & castlingRights(WK)) == castlingRights(WK))
+        fen << 'K';
+    if ((st->castle & castlingRights(WQ)) == castlingRights(WQ))
+        fen << 'Q';
+    if ((st->castle & castlingRights(BK)) == castlingRights(BK))
+        fen << 'k';
+    if ((st->castle & castlingRights(BQ)) == castlingRights(BQ))
+        fen << 'q';
+    if (!(st->castle & 15))
+        fen << '-'; 
+
+    fen << ' ';
+
+    // encode enpassant
+    if (st->enpassant != no_sq)
+        fen << convert_to_square[st->enpassant];
+    else
+        fen << "- ";
+
+    // encode rule50 and play count
+    fen << fmt::to_string(st->rule50);
+    fen << ' ';
+    fen << fmt::to_string(st->play_count);
+    
+    return fen.str();
 }
 
 void parse_fen(const string& fen){

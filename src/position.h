@@ -67,8 +67,15 @@ extern int play_count;
  * @brief return an ASCII representation of the position.
  * 
  */
-void print_board();
+void log_board();
+
+/**
+ * @brief generate hash key.
+ * 
+ * @return uint64_t 
+ */
 uint64_t generate_hash_key();
+
 /**
  * @brief Initialize hash keys.
  * 

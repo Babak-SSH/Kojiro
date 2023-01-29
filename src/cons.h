@@ -29,4 +29,8 @@ extern const int castling_rights[64];
 
 // ASCII pieces
 extern const std::string ascii_pieces;
+
+// default start position fen
+extern const std::string START_FEN;
+
 #endif

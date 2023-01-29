@@ -5,8 +5,6 @@
 
 using namespace Kojiro;
 
-const std::string START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
-
 void UCI::go(std::istringstream& iss){
 
 	Search::GameInfo info;
@@ -63,7 +61,7 @@ void UCI::position(std::istringstream& iss){
 		}
 	}
 
-	print_board();
+	log_board();
 }
 
 int UCI::parse_move(std::string mov){
@@ -156,7 +154,7 @@ void UCI::loop(int argc, char* argv[]){
 			init_state();
 			parse_fen(START_FEN);
 			clear_tt();
-			print_board();	
+			log_board();	
 		}	
 	}while (token != "quit" && argc == 1);
 }

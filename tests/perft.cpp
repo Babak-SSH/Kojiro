@@ -117,7 +117,7 @@ int main(int argc, char** argv){
 		
 		parse_fen(argv[2]);
 		init_state();
-		print_board();
+		log_board();
 
 		int start = get_time_ms();
 

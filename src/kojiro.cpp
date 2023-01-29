@@ -52,12 +52,12 @@ int main(int argc, char* argv[]){
 	if(debug) {
     	init_state();
 	    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    	print_board();
+    	log_board();
 	}	
 	else {
     	init_state();
 		parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    	print_board();
+    	log_board();
 
 		Threads.set(size_t(1));
 

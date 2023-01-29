@@ -2,6 +2,7 @@
 #define LOGGER_H
 
 #include "uci.h"
+#include <string>
 
 
 namespace Kojiro{
@@ -16,7 +17,7 @@ class MyDebugger
     public:
         MyDebugger();
         void setDebug(bool debug);
-        void logIt(const char* message, int type);
+        void logIt(const std::string message, int type);
 		std::string getCurrentDateTime(std::string s);
 };
 

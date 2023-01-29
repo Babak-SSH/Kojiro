@@ -49,7 +49,10 @@ std::string get_move_string(int move)
 	std::string move_string = "";
 	std::stringstream ss;
 
-	ss << convert_to_square[info.source] << convert_to_square[info.target] << ((info.promoted) ? promoted_pieces[info.promoted] : ' ');
+	ss << convert_to_square[info.source] << convert_to_square[info.target];
+    if (promoted_pieces[info.promoted])
+        ss << info.promoted;
+    ss << ' ';
 
 	move_string = ss.str();
 

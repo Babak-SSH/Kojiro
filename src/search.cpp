@@ -127,7 +127,7 @@ static void Search::sort_moves(moves *move_list){
 /// is dangerous, we need to have not certain but acceptable view on the rest of that position
 /// Thus we use this search algorithm to check for captures and avoid any bad moves in deeper depths
 /// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
-static int Search::quiescence(int alpha, int beta){
+static int Search::quiescence(int alpha, int beta) {
 	if (thisThread == Threads.main())
 		static_cast<MainThread*>(thisThread)->check_time();
 
@@ -419,7 +419,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
     return alpha;
 }
 
-void MainThread::search(){
+void MainThread::search() {
 	
 	Time.init(Search::Info, Color(st->side), st->play_count);
 
@@ -428,7 +428,7 @@ void MainThread::search(){
 	Thread::search();
 }
 
-void Thread::search(){
+void Thread::search() {
 	// clear(reset) helper data(globals)
 	Search::clear();
 
@@ -438,6 +438,7 @@ void Thread::search(){
 	int score = 0;
 	std::stringstream pvr;
 	moveInfo minfo;
+	std::string output;
 
     int alpha = -50000;
     int beta = 50000;
@@ -465,18 +466,22 @@ void Thread::search(){
 			pvr << get_move_string(pv_table[0][count]); 
     	}
 
-		if (score > -MateValue && score < -MateScore)
-   			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+		if (score > -MateValue && score < -MateScore) 
+			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
 							-(score + MateValue) / 2 - 1, current_depth, alphabeta_nodes+quiescence_nodes,
-							Time.getElapsed(), pvr.str()) << sync_endl;
+							Time.getElapsed(), pvr.str());
+
 		else if (score > MateScore && score < MateValue)
-			sync_cout << fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
 							(MateValue - score) / 2 + 1, current_depth, alphabeta_nodes+quiescence_nodes,
-							Time.getElapsed(), pvr.str()) << sync_endl;
+							Time.getElapsed(), pvr.str());
 		else
-			sync_cout << fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+			output = fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
 							score, current_depth, alphabeta_nodes+quiescence_nodes,
-							Time.getElapsed(), pvr.str()) << sync_endl;
+							Time.getElapsed(), pvr.str());
+		
+		logger.logIt(output, LOG);
+		sync_cout << output << sync_endl;
 
 		// outside the window so we need to check again from scratch. 	
 		if ((score <= alpha) || (score >= beta)) {
@@ -499,8 +504,9 @@ void Thread::search(){
 		}
 	}
 
-	sync_cout << "bestmove " 
-			  << convert_to_square[minfo.source] << convert_to_square[minfo.target] << sync_endl;
+	output = fmt::format("bestmove {}{}", convert_to_square[minfo.source], convert_to_square[minfo.target]);
+	logger.logIt(output, LOG);
+	sync_cout << output << sync_endl;
 }
 
 /// @todo can we get pvr by tracing the hash table back?????

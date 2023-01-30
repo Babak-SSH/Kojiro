@@ -142,7 +142,7 @@ inline void set_piece(Piece p, int sq){
  * @param newST 
  * @return int 
  */
-int make_move(int move, int move_flag, StateInfo& newST);
+int make_move(int move, int move_flag, StateInfo& newST, int depth=-1);
 
 extern long captures_count;
 extern long captures_flag;

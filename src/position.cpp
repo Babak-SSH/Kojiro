@@ -398,7 +398,7 @@ long enpassant_flag = 0;
 long castles_count = 0;
 long castles_flag = 0;
 /// @todo check if assinging a variable is faster than getting it from structure.
-int make_move(int move, int move_flag, StateInfo& newST){
+int make_move(int move, int move_flag, StateInfo& newST, int depth){
     moveInfo m = decode_move(move);
 
 	if(move_flag == 2 && !m.capture)
@@ -445,6 +445,7 @@ int make_move(int move, int move_flag, StateInfo& newST){
 					newST.key ^= Zobrist::psq[p][m.target + 8];
 
             enpassant_flag = 1;
+            captures_flag = 1;
         }
 
 		if(newST.enpassant != no_sq) {
@@ -544,14 +545,15 @@ int make_move(int move, int move_flag, StateInfo& newST){
             // return illegal move
             return 0;
         }
-        else{
-            if (captures_flag && move_flag==1)
+        else {
+            if (depth == 1 && move_flag == 1) {  
+            if (captures_flag)
                 captures_count++;
-            if (enpassant_flag && move_flag==1)
+            if (enpassant_flag)
                 enpassant_count++;
-            if (castles_flag && move_flag==1)
+            if (castles_flag)
                 castles_count++;
-
+            }
             captures_flag=0;
             enpassant_flag = 0;
             castles_flag = 0;

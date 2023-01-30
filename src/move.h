@@ -35,10 +35,10 @@ struct moveInfo
 
 // promoted pieces
 static char promoted_pieces[] = {
-    'Q',
-    'R',
-    'B',
-    'N',
+    'q',
+    'r',
+    'b',
+    'n',
     'q',
     'r',
     'b',

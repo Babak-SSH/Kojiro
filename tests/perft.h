@@ -7,6 +7,7 @@
 #include "../src/bitboard.h"
 #include "../src/magic.h"
 #include "../src/types.h"
+#include "../src/move.h"
 #include "../src/position.h"
 #include "../src/pawn.h"
 #include "../src/knight.h"
@@ -15,6 +16,7 @@
 #include "../src/rook.h"
 #include "../src/queen.h"
 #include "../src/movegen.h"
+
 
 /**
  * @brief Get the time in ms
@@ -42,5 +44,7 @@ static inline void perft_driver(int depth);
  * @param depth 
  */
 void perft_test(int depth);
+
+int main(int argc, char* argv[]);
 
 #endif

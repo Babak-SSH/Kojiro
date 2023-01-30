@@ -50,8 +50,8 @@ std::string get_move_string(int move)
 	std::stringstream ss;
 
 	ss << convert_to_square[info.source] << convert_to_square[info.target];
-    if (promoted_pieces[info.promoted])
-        ss << info.promoted;
+    if (info.promoted)
+        ss << promoted_pieces[info.promoted];
     ss << ' ';
 
 	move_string = ss.str();

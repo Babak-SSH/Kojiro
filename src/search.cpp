@@ -437,8 +437,8 @@ void Thread::search() {
 
 	int score = 0;
 	std::stringstream pvr;
-	moveInfo minfo;
 	std::string output;
+	int bestmove;
 
     int alpha = -50000;
     int beta = 50000;
@@ -458,13 +458,13 @@ void Thread::search() {
 		if(Threads.stop)
 			break;
 
-		minfo = decode_move(pv_table[0][0]);
-
-
 		for(int count = 0; count < pv_length[0]; count++) {
     	    // print PV moves
 			pvr << get_move_string(pv_table[0][count]); 
+			pvr << ' ';
     	}
+
+		bestmove = pv_table[0][0];
 
 		if (score > -MateValue && score < -MateScore) 
 			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
@@ -504,7 +504,8 @@ void Thread::search() {
 		}
 	}
 
-	output = fmt::format("bestmove {}{}", convert_to_square[minfo.source], convert_to_square[minfo.target]);
+	output = fmt::format("bestmove {}", get_move_string(bestmove));
+
 	logger.logIt(output, LOG);
 	sync_cout << output << sync_endl;
 }

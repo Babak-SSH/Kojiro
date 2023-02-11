@@ -39,10 +39,10 @@ static char promoted_pieces[] = {
     'r',
     'b',
     'n',
-    'q',
-    'r',
-    'b',
-    'n'
+    'Q',
+    'R',
+    'B',
+    'N'
 };
 
 /**

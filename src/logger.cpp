@@ -1,4 +1,7 @@
 #include "logger.h"
+#include "fmt/core.h"
+#include <bits/types/FILE.h>
+#include <cstddef>
 #include <string>
 
 namespace Kojiro{
@@ -14,22 +17,27 @@ void MyDebugger::setDebug(bool debug) {
 }
 
 void MyDebugger::logIt(const std::string message, int type) {
+	FILE* stream;
     if(m_debug)
     {
 		std::string filePath = "./log_"+getCurrentDateTime("date")+".txt";
     	std::string now = getCurrentDateTime("now");
 
-		if(type==LOG){
-			freopen(filePath.c_str(), "a", stderr);
-			std::clog << now << "log: " << message << std::endl;
-		}	
-		else if(type==INFO){
-			freopen(filePath.c_str(), "a", stderr);
-			std::clog << now << "info: " << message << std::endl;
+		stream = freopen(filePath.c_str(), "a", stderr);
+
+		if (stream == NULL) {
+			fmt::print("error on fropen!\n");
 		}
-		else if(type==ERROR){
-			freopen(filePath.c_str(), "a", stderr);
-			std::cerr << now << "error: " << message << std::endl;
+		else {
+			if(type==LOG){
+				std::clog << now << "log: " << message << std::endl;
+			}	
+			else if(type==INFO){
+				std::clog << now << "info: " << message << std::endl;
+			}
+			else if(type==ERROR){
+				std::cerr << now << "error: " << message << std::endl;
+			}
 		}
 	}
 }

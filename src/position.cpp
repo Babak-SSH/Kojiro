@@ -374,6 +374,11 @@ void parse_fen(const string& fen){
     st->key = generate_hash_key();
 }
 
+bool is_check() {
+    int square = (st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : get_ls1b_index(st->bitboards[k]);
+    return is_square_attacked(square, (st->side) ^ 1);
+}
+
 /// @todo get_attacks function with piece parameter to get rid of army of ifs.(maybe template)
 bool is_square_attacked(int square, int side){
     // pawn

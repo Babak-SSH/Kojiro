@@ -133,7 +133,12 @@ static int Search::quiescence(int alpha, int beta) {
 
 	if(Threads.stop)
 		return 0;
-
+	int pv_node = (beta - alpha) > 1;
+	// probe hash entry
+	int score = probe_hash(alpha, beta, 0);
+	if(score != no_hash_entry) {
+	 	return score;
+	}
 	int standpat = Eval::evaluation();
 
 	quiescence_nodes++;
@@ -208,6 +213,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 	int score = 0;
 	bool found_pv = false;
 	int temp_enp;
+	bool in_check;
 
 	if (thisThread == Threads.main())
 		static_cast<MainThread*>(thisThread)->check_time();
@@ -239,10 +245,10 @@ static int Search::negamax(int alpha, int beta, int depth) {
 	if(ply > max_ply-1)
 		return Eval::evaluation();
 
-    int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
-                                                        get_ls1b_index(st->bitboards[k]),
-                                                        (st->side) ^ 1);
-
+    // int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
+                                                        // get_ls1b_index(st->bitboards[k]),
+                                                        // (st->side) ^ 1);
+	in_check = is_check();
 	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
 	// increase search depth if king is in danger.
 	if(in_check){
@@ -328,7 +334,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 			/// them look interesting or returns a score greater than alpha that move will be re-searched in full depth.
 			if (moves_searched >= full_depth_moves &&
                depth >= reduction_limit &&
-               in_check == 0 && 
+               !in_check && 
                get_move_capture(move_list->moves[move_count]) == 0 &&
                get_move_promoted(move_list->moves[move_count]) == 0){
         		score = -negamax(-alpha - 1, -alpha, depth - 2);

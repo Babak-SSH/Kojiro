@@ -114,7 +114,13 @@ std::string get_fen();
  */
 void parse_fen(const std::string& fen);
 
-//void set_piece(Piece p, int sq);
+/**
+ * @brief check if side that will play is in check
+ * 
+ * @return true if the side that should play is in check
+ * @return false if the side that should play is not in check 
+ */
+bool is_check();
 
 /**
  * @brief  check if square is under attack.

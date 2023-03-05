@@ -3,7 +3,6 @@
 
 #include <string>
 
-#define	hash_size 800000
 #define	no_hash_entry 100000
 
 #define    hashfEXACT   0
@@ -22,6 +21,13 @@ struct TTEntry
 	int move;
 	void reset();
 };
+
+/**
+ * @brief allocate memory for hash table. 
+ * 
+ * @param mb megabyte
+ */
+void init_hash_table(int mb);
 
 /**
  * @brief Read hash entries in transposition table.
@@ -48,7 +54,7 @@ void write_hash(int score, int depth, int hash_flag, int move);
  */
 void clear_tt();
 
-extern TTEntry tt[hash_size];
+extern TTEntry* tt;
 
 } // namespace Kojiro
 

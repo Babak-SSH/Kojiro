@@ -35,11 +35,9 @@ void init_all() {
 
 	Eval::init_eval_masks();
 
-    // init_start();
-
 	init_hash();
-	// tt->reset();
-	clear_tt();
+
+	init_hash_table(128);
 }
 
 int main(int argc, char* argv[]){

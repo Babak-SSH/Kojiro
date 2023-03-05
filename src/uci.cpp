@@ -1,6 +1,8 @@
 #include "uci.h"
 #include "thread.h"
 #include "tt.h"
+#include <iostream>
+#include <sstream>
 
 
 using namespace Kojiro;
@@ -30,19 +32,19 @@ void UCI::go(std::istringstream& iss){
 	Threads.start_thinking(info, false, depth);
 }
 
-void UCI::position(std::istringstream& iss){
+void UCI::position(std::istringstream& iss) {
 
 	std::string token, fen;
 	int move;
 
 	iss >> token;
 
-	if(token == "startpos"){
+	if(token == "startpos") {
 		init_state();
 		parse_fen(START_FEN);
 		iss >> token;
 	}
-	else if(token == "fen"){
+	else if(token == "fen") {
 		while (iss >> token && token != "moves")
 		{
 			fen += token + " ";
@@ -50,8 +52,8 @@ void UCI::position(std::istringstream& iss){
 		init_state();
 		parse_fen(fen);
 	}
-	if(token == "moves"){
-		while (iss >> token){
+	if(token == "moves") {
+		while (iss >> token) {
 			move = UCI::parse_move(token);
 
 			if(!move)
@@ -64,7 +66,7 @@ void UCI::position(std::istringstream& iss){
 	log_board();
 }
 
-int UCI::parse_move(std::string mov){
+int UCI::parse_move(std::string mov) {
 
 	int source_sq, target_sq;
 	char promoted_piece;
@@ -76,14 +78,14 @@ int UCI::parse_move(std::string mov){
 	source_sq = (mov[0] - 'a') + (8 - (mov[1] - '0')) * 8;
 	target_sq = (mov[2] - 'a') + (8 - (mov[3] - '0')) * 8;
 
-	for(int move_count = 0; move_count < move_list->count; move_count++){
+	for(int move_count = 0; move_count < move_list->count; move_count++) {
 		int move = move_list->moves[move_count];
 		info = decode_move(move);
 
 		if(info.source == source_sq && info.target == target_sq){
 			if(info.promoted){
 				// promoted to queen
-                if ((info.promoted == Q || info.promoted == q) && mov[4] == 'q'){
+                if ((info.promoted == Q || info.promoted == q) && mov[4] == 'q') {
                     return move;
 				}
                 
@@ -109,7 +111,24 @@ int UCI::parse_move(std::string mov){
 	return 0;
 }
 
-void UCI::loop(int argc, char* argv[]){
+void UCI::set_option(std::istringstream& iss) {
+	std::string token, name;
+	int value;
+
+	while(iss >> token) {
+		if(token == "name")
+			iss >> name;
+		if (token == "value")
+			iss >> value;
+	}
+
+	if (name == "Hash") {
+		std::cout << value << std::endl;
+		init_hash_table(value);
+	}
+}
+
+void UCI::loop(int argc, char* argv[]) {
 
 	std::string token, cmd;
 
@@ -120,8 +139,8 @@ void UCI::loop(int argc, char* argv[]){
 	for (int i = 1; i < argc; ++i)
     	cmd += std::string(argv[i]) + " ";
 
-	do{
-		if(argc == 1 && !getline(std::cin, cmd)){
+	do {
+		if(argc == 1 && !getline(std::cin, cmd)) {
 			cmd = "quit";
 		}
 
@@ -131,30 +150,38 @@ void UCI::loop(int argc, char* argv[]){
       	token.clear(); // Avoid a stale if getline() returns empty or blank line
       	iss >> std::skipws >> token;
 
-		if(token == "quit" || token == "stop")
+		if(token == "quit" || token == "stop") {
+			clear_tt();
+			Search::clear();
+			delete tt;
+			delete st;
 			Threads.stop = true;
+		}
 
-		else if(token == "uci"){
+		else if(token == "uci") {
 			sync_cout << "id name kojiro\n"
 			  << "id author babak sefidgar\n"
 			  << "uciok"
 			  << sync_endl;
 		}
-		else if(token == "isready"){
+		else if(token == "isready") {
 			sync_cout << "readyok" << sync_endl;
 		}
-		else if(token == "go"){
+		else if(token == "go") {
 			go(iss);
 		}
-		else if(token == "position"){
+		else if(token == "position") {
 			position(iss);
 			clear_tt();
 		}
-		else if(token == "ucinewgame"){
+		else if(token == "ucinewgame") {
 			init_state();
 			parse_fen(START_FEN);
 			clear_tt();
 			log_board();	
 		}	
+		else if (token == "setoption") {
+			set_option(iss);	
+		}
 	}while (token != "quit" && argc == 1);
 }

@@ -56,5 +56,12 @@ namespace UCI{
 	 * @return int 
 	 */
 	int parse_move(std::string mov);
+
+	/**
+	 * @brief Set options
+	 * 
+	 * @param iss 
+	 */
+	void set_option(std::istringstream& iss);
 }
 #endif

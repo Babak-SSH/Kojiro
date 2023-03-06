@@ -25,8 +25,8 @@ long alphabeta_nodes = 0;
 long quiescence_nodes = 0;
 int ply = 0; // half moves
 
-int killer_moves[2][max_ply]; // killer moves [id][ply]
-int history_moves[12][64]; // history moves [piece][square]
+int killer_moves[2][max_ply] {0}; // killer moves [id][ply]
+int history_moves[12][64] = {0}; // history moves [piece][square]
 
 int pv_length[max_ply];
 int pv_table[max_ply][max_ply];
@@ -95,8 +95,8 @@ static int Search::score_move(int move){
         
         // score history move
         else
-            return history_moves[info.piece][info.target];
-	}
+			return history_moves[info.piece][info.target]; 
+	}	
 	return 0;
 }
 
@@ -139,10 +139,10 @@ static int Search::quiescence(int alpha, int beta) {
 	if(score != no_hash_entry) {
 	 	return score;
 	}
+
 	int standpat = Eval::evaluation();
 
 	quiescence_nodes++;
-
 	 // fail-hard beta cutoff
 	 /// @todo check fail-soft beta cutoff
     if (standpat >= beta){
@@ -157,9 +157,7 @@ static int Search::quiescence(int alpha, int beta) {
     }
 
 	moves move_list[1];
-
     generate_all(move_list, Color(st->side));
-
 	Search::sort_moves(move_list);
 
     for (int move_count = 0; move_count < move_list->count; move_count++){
@@ -372,11 +370,6 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 			mInfo = decode_move(move_list->moves[move_count]);
 
-			if(!mInfo.capture){
-				/// store history moves @todo check if not needed remove history moves
-	            history_moves[mInfo.piece][mInfo.target] += depth;
-			}
-
             // principle variation node(move)
             alpha = score;
 
@@ -394,8 +387,9 @@ static int Search::negamax(int alpha, int beta, int depth) {
         if (score >= beta)
         {
 			write_hash(beta, depth, hashfBETA, move_list->moves[move_count]);
-
-			if(!mInfo.capture){
+			if(!mInfo.capture) {
+				// store history moves
+	            history_moves[mInfo.piece][mInfo.target] = std::max(history_moves[mInfo.piece][mInfo.target], depth*depth);
 				// store killer moves
             	killer_moves[1][ply] = killer_moves[0][ply];
             	killer_moves[0][ply] = move_list->moves[move_count];
@@ -485,7 +479,8 @@ void Thread::search() {
 			output = fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
 							score, current_depth, alphabeta_nodes+quiescence_nodes,
 							Time.getElapsed(), pvr.str());
-		
+
+		logger.logIt(fmt::format("alphabeta: %ld, quiescence: %ld\n", alphabeta_nodes, quiescence_nodes), LOG);
 		logger.logIt(output, LOG);
 		sync_cout << output << sync_endl;
 

@@ -123,7 +123,6 @@ void UCI::set_option(std::istringstream& iss) {
 	}
 
 	if (name == "Hash") {
-		std::cout << value << std::endl;
 		init_hash_table(value);
 	}
 }

@@ -212,6 +212,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 	bool found_pv = false;
 	int temp_enp;
 	bool in_check;
+	int eval;
 
 	if (thisThread == Threads.main())
 		static_cast<MainThread*>(thisThread)->check_time();
@@ -255,6 +256,16 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 	alphabeta_nodes++;
 
+	eval = Eval::evaluation();
+
+	/// Reverse Futility Purning @todo check for different depth assessment
+	if (depth < 3 && !pv_node && !in_check &&  abs(beta - 1) > -InfinityValue + 100) {
+		int margin = 120 * depth;
+
+		if (eval - margin >= beta)
+			return eval - margin;
+	}
+
 	/// Null-Move Forward Pruning: we give the opponent a free move and if that returns a score higher than beta,
 	/// then we don't need to look at our moves or even generate them because our position is so good even with 
 	/// giving a free move we can exceed beta so we can cutoff this position.
@@ -292,6 +303,25 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 		if (score >= beta)
 			return beta;
+	}
+	
+	/// razoring
+	if (!pv_node && !in_check && depth <= 3) {
+		int svalue, qvalue;
+		svalue = eval + 125;
+
+		// fail-low node
+		if (svalue < beta)
+			if (depth == 1) {
+				qvalue = quiescence(alpha, beta);
+				return std::max(qvalue, svalue);
+			}
+
+		svalue += 175;
+		if (score < beta && depth <= 2) {
+			if (qvalue < beta)
+				return std::max(qvalue, svalue);	
+		}
 	}
 
     generate_all(move_list, Color(st->side));

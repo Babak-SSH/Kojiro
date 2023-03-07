@@ -17,6 +17,7 @@ enum Phase {
 // mg : middlegame eg : endgame 
 enum Value : int {
   ValueZero = 0,
+  InfinityValue = 50000,
   MateValue = 49000,
   MateScore = 48000,
 

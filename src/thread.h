@@ -1,6 +1,7 @@
 #ifndef THREAD_H_INCLUDED
 #define THREAD_H_INCLUDED
 
+#include "position.h"
 #include "search.h"
 
 #include <atomic>
@@ -34,6 +35,9 @@ namespace Kojiro{
 
 			std::atomic<uint64_t> nodes;
 			int depth;
+			StateInfo rootState;
+			Position rootPos;
+
 	};
 	
 	struct MainThread : public Thread{
@@ -47,7 +51,7 @@ namespace Kojiro{
 	};
 
 	struct ThreadPool : public std::vector<Thread*>{
-		void start_thinking(const Search::GameInfo&, bool, int);
+		void start_thinking(Position& pos, const Search::GameInfo&, bool, int);
 		void clear();
 		void set(size_t);
 

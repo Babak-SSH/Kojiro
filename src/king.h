@@ -11,12 +11,12 @@ namespace Kojiro {
 extern uint64_t king_attacks[64];
 
 /**
- * @brief masking position that can be attacked by the specified king.
+ * @brief masking sqition that can be attacked by the specified king.
  * 
- * @param pos 
+ * @param sq 
  * @return uint64_t 
  */
-uint64_t mask_king_attacks(int pos);
+uint64_t mask_king_attacks(int sq);
 
 /**
  * @brief initialize king attacks for all 64 squares.

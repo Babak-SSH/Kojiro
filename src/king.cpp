@@ -7,11 +7,11 @@ uint64_t king_attacks[64];
 
 /// masking squares, which can be attacked by the specified
 /// king considering the blocked squares.
-uint64_t mask_king_attacks(int pos){
+uint64_t mask_king_attacks(int sq){
     uint64_t attacks = 0ull;
     uint64_t mask_bitboard = 0ull;
 
-    set_bit(attacks, pos);
+    set_bit(attacks, sq);
 
     // right
     mask_bitboard |= (attacks << 1) & not_A_file;

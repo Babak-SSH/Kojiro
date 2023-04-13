@@ -47,6 +47,7 @@ class Thread;
 class Position {
 
     private:
+        int ply;
         Thread* thisTh;
         StateInfo* st;
 
@@ -139,7 +140,9 @@ class Position {
         u_int64_t bitboards(int p) const;
         u_int64_t occupancies(int color) const;
         u_int64_t key() const;
+        int get_ply() const;
         StateInfo* state() const;
+        Thread* thread() const;
 };
 
 inline int Position::enpassant() const {
@@ -170,8 +173,16 @@ inline u_int64_t Position::key() const {
     return st->key;
 }
 
+inline int Position::get_ply() const {
+    return ply;
+}
+
 inline StateInfo* Position::state() const {
     return st;
+}
+
+inline Thread* Position::thread() const {
+    return thisTh;
 }
 
 /// @todo get_attacks function with piece parameter to get rid of army of ifs.(maybe template)

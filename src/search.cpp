@@ -1,5 +1,7 @@
+#include "bitboard.h"
 #include "eval.h"
 #include "movegen.h"
+#include <atomic>
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
@@ -21,12 +23,6 @@ namespace Search{
 	int repetition_index;
 }
 
-Thread* thisThread;
-
-long alphabeta_nodes = 0;
-long quiescence_nodes = 0;
-int ply = 0; // half moves
-
 int killer_moves[2][max_ply] {0}; // killer moves [id][ply]
 int history_moves[12][64] = {0}; // history moves [piece][square]
 
@@ -39,14 +35,14 @@ const int full_depth_moves = 4;
 const int reduction_limit = 3;
 
 // enable PV move scoring
-static void Search::enable_pv_scoring(moves *move_list){
+static void Search::enable_pv_scoring(moves *move_list, const Position& pos){
     // disable following PV
     follow_pv = false;
     
     // loop over the moves within a move list
     for (int count = 0; count < move_list->count; count++){
         // make sure we hit PV move
-        if (pv_table[0][ply] == move_list->moves[count]){
+        if (pv_table[0][pos.get_ply()] == move_list->moves[count]){
             // enable move scoring and following pv
             score_pv = true;
             follow_pv = true;
@@ -68,7 +64,7 @@ static int Search::score_move(int move, const Position& pos){
 
 	// score pv moves
     if (score_pv){
-        if (pv_table[0][ply] == move){
+        if (pv_table[0][pos.get_ply()] == move){
     		score_pv = 0;
             
             // give PV move the highest score to search it first
@@ -88,11 +84,11 @@ static int Search::score_move(int move, const Position& pos){
 	}
 	else{
 		// score 1st killer move
-        if (killer_moves[0][ply] == move)
+        if (killer_moves[0][pos.get_ply()] == move)
             return 9000;
         
         // score 2nd killer move
-        else if (killer_moves[1][ply] == move)
+        else if (killer_moves[1][pos.get_ply()] == move)
             return 8000;
         
         // score history move
@@ -130,8 +126,8 @@ static void Search::sort_moves(moves *move_list, const Position& pos){
 /// Thus we use this search algorithm to check for captures and avoid any bad moves in deeper depths
 /// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
 static int Search::quiescence(int alpha, int beta, Position& pos) {
-	if (thisThread == Threads.main())
-		static_cast<MainThread*>(thisThread)->check_time();
+	if (pos.thread() == Threads.main())
+		static_cast<MainThread*>(pos.thread())->check_time();
 
 	if(Threads.stop)
 		return 0;
@@ -143,9 +139,10 @@ static int Search::quiescence(int alpha, int beta, Position& pos) {
 	}
 
 	int standpat = Eval::evaluation(pos);
-	quiescence_nodes++;
-	 // fail-hard beta cutoff
-	 /// @todo check fail-soft beta cutoff
+	pos.thread()->quiescence_nodes.fetch_add(1, std::memory_order_relaxed);
+
+	// fail-hard beta cutoff
+	/// @todo check fail-soft beta cutoff
     if (standpat >= beta){
         // node(move) fails high
         return beta;
@@ -162,21 +159,17 @@ static int Search::quiescence(int alpha, int beta, Position& pos) {
 	Search::sort_moves(move_list, pos);
 
     for (int move_count = 0; move_count < move_list->count; move_count++){
-		ply++;
 		Search::repetition_index++;
 		Search::repetition_table[Search::repetition_index] = pos.key();
 
 		StateInfo nst;
 
 		if(!pos.make_move(move_list->moves[move_count], 2, nst)){
-			ply--;
 			Search::repetition_index--;
 			continue;
 		}
 
 		int score = -Search::quiescence(-beta, -alpha, pos);
-
-		ply--;
 
 		Search::repetition_index--;
 
@@ -215,25 +208,25 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	bool in_check;
 	int eval;
 
-	if (thisThread == Threads.main())
-		static_cast<MainThread*>(thisThread)->check_time();
+	if (pos.thread() == Threads.main())
+		static_cast<MainThread*>(pos.thread())->check_time();
 
 	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[pos.side()]))
 		return 0;
 
 	int hash_flag = hashfALPHA;
 
-	if (ply && Search::is_repetition()) {
+	if (pos.get_ply() && Search::is_repetition(pos)) {
 		return 0;
 	}
 
 	int pv_node = (beta - alpha) > 1;
 	// probe hash entry
-	if(ply && (score = TT::probe_hash(alpha, beta, depth, pos)) != no_hash_entry && pv_node==0) {
+	if(pos.get_ply() && (score = TT::probe_hash(alpha, beta, depth, pos)) != no_hash_entry && pv_node==0) {
 	 	return score;
 	}
 
-	pv_length[ply] = ply;
+	pv_length[pos.get_ply()] = pos.get_ply();
 
 
 	// for a better evaluation and removing horizon effect we use quiescence 
@@ -243,20 +236,21 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	
 	// if depth is more than usual we can return the static evaluation
 	// to avoid extra calculations of quiescence search.
-	if(ply > max_ply-1)
+	if(pos.get_ply() > max_ply-1)
 		return Eval::evaluation(pos);
 
     // int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
                                                         // get_ls1b_index(st->bitboards[k]),
                                                         // (st->side) ^ 1);
 	in_check = pos.is_check();
+
 	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
 	// increase search depth if king is in danger.
 	if(in_check){
 		depth++;
 	}
 
-	alphabeta_nodes++;
+	pos.thread()->alphabeta_nodes.fetch_add(1, std::memory_order_relaxed);
 
 	eval = Eval::evaluation(pos);
 
@@ -271,9 +265,8 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	/// Null-Move Forward Pruning: we give the opponent a free move and if that returns a score higher than beta,
 	/// then we don't need to look at our moves or even generate them because our position is so good even with 
 	/// giving a free move we can exceed beta so we can cutoff this position.
-	if(depth >= 3 && !in_check && ply){
-		ply++;
-
+	if(pos.get_ply() && depth >= 3 && !in_check){
+		// ply++;
 		Search::repetition_index++;
         Search::repetition_table[Search::repetition_index] = pos.key();
 		
@@ -290,7 +283,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 
 		score = -negamax(-beta, -beta + 1, depth-3, pos);
 
-		ply--;
+		// ply--;
 
 		Search::repetition_index--;
 
@@ -306,7 +299,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 		if (score >= beta)
 			return beta;
 	}
-	
+
 	/// razoring
 	if (!pv_node && !in_check && depth <= 3) {
 		int svalue, qvalue;
@@ -330,7 +323,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 
     // enable PV move scoring if we are in a principle variation route 
 	if (follow_pv)
-        Search::enable_pv_scoring(move_list);
+        Search::enable_pv_scoring(move_list, pos);
 
 	Search::sort_moves(move_list, pos);
 
@@ -339,17 +332,12 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
     for (int move_count = 0; move_count < move_list->count; move_count++){
 		StateInfo nst;
 
-		ply++;
-
 		Search::repetition_index++;
         Search::repetition_table[Search::repetition_index] = pos.key();
 
 		// if illegal move, continue
 		if(!pos.make_move(move_list->moves[move_count], 1, nst)){
-			ply--;
-
 			Search::repetition_index--;
-
 			continue;
 		}
 
@@ -387,8 +375,6 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
             }
 		}
 
-		ply--;
-
 		Search::repetition_index--;
 
 		pos.take_back();
@@ -406,13 +392,13 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
             alpha = score;
 
 			found_pv = true;
-            pv_table[ply][ply] = move_list->moves[move_count];
+            pv_table[pos.get_ply()][pos.get_ply()] = move_list->moves[move_count];
             
-            for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++)
+            for (int next_ply = pos.get_ply() + 1; next_ply < pv_length[pos.get_ply() + 1]; next_ply++)
                 // copy move from deeper ply into a current ply's line
-                pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
+                pv_table[pos.get_ply()][next_ply] = pv_table[pos.get_ply() + 1][next_ply];
             
-            pv_length[ply] = pv_length[ply + 1];                        
+            pv_length[pos.get_ply()] = pv_length[pos.get_ply() + 1];
 
 		 // fail-hard beta cutoff
 		 /// @todo check fail-soft beta cutoff
@@ -422,8 +408,8 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 				// store history moves
 	            history_moves[mInfo.piece][mInfo.target] = std::max(history_moves[mInfo.piece][mInfo.target], depth*depth);
 				// store killer moves
-            	killer_moves[1][ply] = killer_moves[0][ply];
-            	killer_moves[0][ply] = move_list->moves[move_count];
+            	killer_moves[1][pos.get_ply()] = killer_moves[0][pos.get_ply()];
+            	killer_moves[0][pos.get_ply()] = move_list->moves[move_count];
 			}
 
             // node(move) fails high
@@ -436,7 +422,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
     if (legal_moves == 0) {
         // return mating score (assuming closest distance to mating position)
 		if (in_check){
-            return -MateValue + ply;
+            return -MateValue + pos.get_ply();
 		}
 		// return stalemate score
 		else{
@@ -444,7 +430,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 		}
     }
 
-	TT::write_hash(alpha, depth, hash_flag, pv_table[ply][ply], pos);
+	TT::write_hash(alpha, depth, hash_flag, pv_table[pos.get_ply()][pos.get_ply()], pos);
 
     // node(move) fails low
     return alpha;
@@ -465,13 +451,10 @@ void Thread::search() {
 	// clear(reset) helper data(globals)
 	Search::clear();
 
-	thisThread = this;
-
 	if (this == Threads.main()) //{
 		printf("in main thread\n");
 	else
 		printf("thread id: %ld\n", this->idx);
-		// thisThread = this;
 
 	int score = 0;
 	std::stringstream pvr;
@@ -578,9 +561,6 @@ void MainThread::check_time(){
 }
 
 void Search::clear(){
-	alphabeta_nodes = 0;
-	quiescence_nodes = 0;
-
 	score_pv = false;
 	follow_pv = false;
 
@@ -596,12 +576,12 @@ void Search::clear(){
     memset(pv_length, 0, sizeof(pv_length));	
 }
 
-int Search::is_repetition()
+int Search::is_repetition(const Position& pos)
 {
     // loop over repetition indicies range
     for (int index = 0; index < Search::repetition_index; index++){
         // if we found the hash key same with a current
-        if (Search::repetition_table[index] == thisThread->rootPos.key()){
+        if (Search::repetition_table[index] == pos.key()){
             // we found a repetition
             return 1;
 		}

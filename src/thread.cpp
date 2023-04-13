@@ -113,8 +113,9 @@ void ThreadPool::start_thinking(Position& pos, const Search::GameInfo& info, boo
 	Search::Info = info;
 
 	for(Thread* th : *this){
+    th->nodes = th->alphabeta_nodes = th->quiescence_nodes = 0;
 		th->depth = depth;
-    th->rootPos = pos.parse_fen(pos.get_fen(), &th->rootState, th);
+    th->rootPos.parse_fen(pos.get_fen(), &th->rootState, th);
     // th->rootState = state;
 	}
 	main()->start_searching();

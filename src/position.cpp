@@ -1,3 +1,4 @@
+#include "bitboard.h"
 #include "thread.h"
 #include <cstddef>
 #include <istream>
@@ -230,6 +231,7 @@ void init_start(){
 void Position::take_back() {
     if (st->previous != NULL)
         st = st->previous;
+    ply--;
 }
 
 string Position::get_fen() {
@@ -300,6 +302,8 @@ Position& Position::parse_fen(const string& fen, StateInfo* state, Thread* th){
     st->side = WHITE;
     st->enpassant = no_sq;
     st->castle = 0;
+    
+    ply = 0;
 
     int square = 0, idx, file, rank;
     unsigned char token;
@@ -317,7 +321,7 @@ Position& Position::parse_fen(const string& fen, StateInfo* state, Thread* th){
             square++;
         }
     }
-    
+
     // side
     iss >> token;
     st->side = (token == 'w' ? WHITE : BLACK);
@@ -525,6 +529,7 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
         if (is_square_attacked((st->side == WHITE) ? 
             get_ls1b_index(st->bitboards[k]) : get_ls1b_index(st->bitboards[K]), st->side)){
             // take move back
+            ply++; /// @todo change it its dogshit.
             take_back();
             
             captures_flag=0;
@@ -546,6 +551,9 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
             captures_flag=0;
             enpassant_flag = 0;
             castles_flag = 0;
+
+            ply++;
+
             return 1;
         }
     }

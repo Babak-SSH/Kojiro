@@ -55,7 +55,7 @@ namespace Search
 	 * 
 	 * @param move_list 
 	 */
-	static inline void enable_pv_scoring(moves *move_list);
+	static inline void enable_pv_scoring(moves *move_list, const Position& pos);
 
 	/**
 	 * @brief score moves depending on their type (capture, quite, killer,...)
@@ -115,7 +115,13 @@ namespace Search
 	 */
 	void clear();
 
-	int is_repetition();
+	/**
+	 * @brief 
+	 * 
+	 * @param pos 
+	 * @return int 
+	 */
+	int is_repetition(const Position& pos);
 
 	extern GameInfo Info;
 	// @todo how much?

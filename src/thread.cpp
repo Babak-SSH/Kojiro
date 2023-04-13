@@ -1,4 +1,5 @@
 #include "thread.h"
+#include "logger.h"
 #include "search.h"
 
 #include <cassert>
@@ -103,7 +104,7 @@ void ThreadPool::clear() {
       th->clear();
 }
 
-void ThreadPool::start_thinking(const Search::GameInfo& info, bool ponderMode, int depth){
+void ThreadPool::start_thinking(Position& pos, const Search::GameInfo& info, bool ponderMode, int depth){
 	main()->wait_until_search_finished();
 
 	main()->stop_on_ponder_hit = stop = false;
@@ -113,23 +114,28 @@ void ThreadPool::start_thinking(const Search::GameInfo& info, bool ponderMode, i
 
 	for(Thread* th : *this){
 		th->depth = depth;
+    th->rootPos = pos.parse_fen(pos.get_fen(), &th->rootState, th);
+    // th->rootState = state;
 	}
-
 	main()->start_searching();
 }
 
 /// Start non-main threads
 void ThreadPool::start_searching() {
     for (Thread* th : *this)
-        if (th != front())
+        if (th != front()){
+          printf("non-main thread start searching\n");
             th->start_searching();
+        }
 }
 
 /// Wait for non-main threads
 void ThreadPool::wait_until_search_finished() const {
     for (Thread* th : *this)
-        if (th != front())
+        if (th != front()){
+          printf("wait until non-main thread search finished\n");
             th->wait_until_search_finished();
+        }
 }
 
 }

@@ -36,14 +36,14 @@ void init_all();
  * 
  * @param depth 
  */
-static inline void perft_driver(int depth);
+static inline void perft_driver(int depth, Kojiro::Position& pos);
 
 /**
  * @brief perft test calling perft driver
  * 
  * @param depth 
  */
-void perft_test(int depth);
+void perft_test(int depth, Kojiro::Position& pos);
 
 int main(int argc, char* argv[]);
 

@@ -1,4 +1,5 @@
 #include "perft.h"
+#include "../src/thread.h"
 
 
 using namespace Kojiro;
@@ -28,7 +29,7 @@ void init_all() {
 
 /// loop over each generated moves for current colors turn
 /// by calling itself recursivly.
-static inline void perft_driver(int depth) {
+static inline void perft_driver(int depth, Position& pos) {
     // reccursion escape condition
     if (depth == 0) {
         // increment nodes count (count reached positions)
@@ -37,24 +38,24 @@ static inline void perft_driver(int depth) {
     }
     
     moves move_list[1];
-    generate_all(move_list, Color(st->side));
+    MoveGen::generate_all(move_list, pos);
     
         // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         StateInfo nST;
         int move = move_list->moves[move_count];
 
-        if (!make_move(move, 1, nST, depth))
+        if (!pos.make_move(move, 1, nST, depth))
             continue;
-        perft_driver(depth - 1);
+        perft_driver(depth - 1, pos);
 
-        take_back();
+        pos.take_back();
     }
 }
 
 /// generates all moves and nodes and uses perft_driver.
 /// calculates the time spend for the depth given in ms.
-void perft_test(int depth) {
+void perft_test(int depth, Position& pos) {
     captures_count = 0;
     enpassant_count = 0;
     castles_count = 0;
@@ -62,8 +63,9 @@ void perft_test(int depth) {
     
     nodes = 0;
     moves move_list[1];
-    generate_all(move_list, WHITE);
-    generate_all(move_list, BLACK);
+    MoveGen::generate_all(move_list, pos);
+    pos.state()->side ^= 1;
+    MoveGen::generate_all(move_list, pos);
     
     // init start time
     long start = get_time_ms();
@@ -73,14 +75,13 @@ void perft_test(int depth) {
         StateInfo nST;
         int move = move_list->moves[move_count];
 
-        if (!make_move(move, 1, nST, depth))
+        if (!pos.make_move(move, 1, nST, depth))
             continue;
         
         // call perft driver recursively
-        perft_driver(depth - 1);
+        perft_driver(depth - 1, pos);
         
-        // take back
-        take_back();
+        pos.take_back();
         moveInfo info = decode_move(move);
     }
     
@@ -100,13 +101,15 @@ int main(int argc, char* argv[]) {
 	}
 	else if(argc == 3){
 		init_all();
+
+        Position pos;
+        StateInfo state;
 		
-		init_state();
-		parse_fen(argv[2]);
-		log_board();
+		pos.parse_fen(argv[2], &state, Threads.main());
+		pos.log_board();
 
 		int start = get_time_ms();
-		perft_test(atoi(argv[1]));
+		perft_test(atoi(argv[1]), pos);
 		
 		/// @todo optimize speed?
 		// delete st;

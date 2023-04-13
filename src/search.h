@@ -63,7 +63,7 @@ namespace Search
 	 * @param move 
 	 * @return int 
 	 */
-	static int score_move(int move);
+	static int score_move(int move, const Position& pos);
 
 	/**
 	 * @brief compare scores(first) of pair
@@ -79,7 +79,7 @@ namespace Search
 	 * 
 	 * @param move_list 
 	 */
-	static void sort_moves(moves *move_list);
+	static void sort_moves(moves *move_list, const Position& pos);
 
 	/**
 	 * @brief quiescence search for horizon effect.
@@ -88,7 +88,7 @@ namespace Search
 	 * @param beta 
 	 * @return int 
 	 */
-	static int quiescence(int alpha, int beta);
+	static int quiescence(int alpha, int beta, Position& pos);
 
 	/**
 	 * @brief negamax alpha beta search (recursive)
@@ -98,7 +98,7 @@ namespace Search
 	 * @param depth 
 	 * @return int 
 	 */
-	static int negamax(int alpha, int beta, int depth);
+	static int negamax(int alpha, int beta, int depth, Position& pos);
 
 	/**
 	 * @brief main search function to get best move

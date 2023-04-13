@@ -1,3 +1,5 @@
+#include "eval.h"
+#include "movegen.h"
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
@@ -58,7 +60,7 @@ static void Search::enable_pv_scoring(moves *move_list){
 /// alphabet(negamax) or quisence search look at them earlier. also killer moves
 /// and history moves with higher score can make a beta cutoff earlier in search 
 /// and avoid searching many unnecessery nodes,(about 90% node optimization in my case)
-static int Search::score_move(int move){
+static int Search::score_move(int move, const Position& pos){
 	moveInfo info;
 	int target_piece = 0;
 
@@ -76,8 +78,8 @@ static int Search::score_move(int move){
 
 	// score capture moves
 	if (info.capture){
-		for(int bb_piece = B_PAWN-(st->side*6); bb_piece <= B_KING-(st->side*6); bb_piece++){
-			if(get_bit(st->bitboards[bb_piece], info.target)){
+		for(int bb_piece = B_PAWN-(pos.side()*6); bb_piece <= B_KING-(pos.side()*6); bb_piece++){
+			if(get_bit(pos.bitboards(bb_piece), info.target)){
 				target_piece = bb_piece;
 				break;
 			}
@@ -106,13 +108,13 @@ static int Search::compare(std::pair<int, int> t1, std::pair<int, int> t2){
 }
 
 /// sorting moves by their respective score evaluated by Search::score_move function.
-static void Search::sort_moves(moves *move_list){
+static void Search::sort_moves(moves *move_list, const Position& pos){
 	int move_count = move_list->count;
 	int move_scores[move_count];
 	std::pair<int, int> ms[move_count];
 
 	for(int count = 0; count < move_count; count++){
-		ms[count].first = Search::score_move(move_list->moves[count]);
+		ms[count].first = Search::score_move(move_list->moves[count], pos);
 		ms[count].second = move_list->moves[count];
 	}
 
@@ -127,7 +129,7 @@ static void Search::sort_moves(moves *move_list){
 /// is dangerous, we need to have not certain but acceptable view on the rest of that position
 /// Thus we use this search algorithm to check for captures and avoid any bad moves in deeper depths
 /// without searching all those nodes and to make sure we are only evaluating quiescence (quite) positions.
-static int Search::quiescence(int alpha, int beta) {
+static int Search::quiescence(int alpha, int beta, Position& pos) {
 	if (thisThread == Threads.main())
 		static_cast<MainThread*>(thisThread)->check_time();
 
@@ -135,13 +137,12 @@ static int Search::quiescence(int alpha, int beta) {
 		return 0;
 	int pv_node = (beta - alpha) > 1;
 	// probe hash entry
-	int score = probe_hash(alpha, beta, 0);
+	int score = TT::probe_hash(alpha, beta, 0, pos);
 	if(score != no_hash_entry) {
 	 	return score;
 	}
 
-	int standpat = Eval::evaluation();
-
+	int standpat = Eval::evaluation(pos);
 	quiescence_nodes++;
 	 // fail-hard beta cutoff
 	 /// @todo check fail-soft beta cutoff
@@ -157,29 +158,29 @@ static int Search::quiescence(int alpha, int beta) {
     }
 
 	moves move_list[1];
-    generate_all(move_list, Color(st->side));
-	Search::sort_moves(move_list);
+    MoveGen::generate_all(move_list, pos);
+	Search::sort_moves(move_list, pos);
 
     for (int move_count = 0; move_count < move_list->count; move_count++){
 		ply++;
 		Search::repetition_index++;
-		Search::repetition_table[Search::repetition_index] = st->key;
+		Search::repetition_table[Search::repetition_index] = pos.key();
 
 		StateInfo nst;
 
-		if(!make_move(move_list->moves[move_count], 2, nst)){
+		if(!pos.make_move(move_list->moves[move_count], 2, nst)){
 			ply--;
 			Search::repetition_index--;
 			continue;
 		}
 
-		int score = -Search::quiescence(-beta, -alpha);
+		int score = -Search::quiescence(-beta, -alpha, pos);
 
 		ply--;
 
 		Search::repetition_index--;
 
-		take_back();
+		pos.take_back();
 
 		// found a better move
         if (score > alpha)
@@ -204,7 +205,7 @@ static int Search::quiescence(int alpha, int beta) {
 /// whites score evaluation for black is negation of that value in that state therefor the player on move looks 
 /// for a move that maximizes the negation of the value resulting from the move: this successor position must 
 /// by definition have been valued by the opponent.
-static int Search::negamax(int alpha, int beta, int depth) {
+static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	moves move_list[1];
 	int legal_moves = 0;
 	moveInfo mInfo;
@@ -217,7 +218,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 	if (thisThread == Threads.main())
 		static_cast<MainThread*>(thisThread)->check_time();
 
-	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[st->side]))
+	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[pos.side()]))
 		return 0;
 
 	int hash_flag = hashfALPHA;
@@ -228,26 +229,27 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 	int pv_node = (beta - alpha) > 1;
 	// probe hash entry
-	if(ply && (score = probe_hash(alpha, beta, depth)) != no_hash_entry && pv_node==0) {
+	if(ply && (score = TT::probe_hash(alpha, beta, depth, pos)) != no_hash_entry && pv_node==0) {
 	 	return score;
 	}
 
 	pv_length[ply] = ply;
 
+
 	// for a better evaluation and removing horizon effect we use quiescence 
 	// search to evalute further and in more depth.
 	if(depth == 0)
-		return Search::quiescence(alpha, beta);
+		return Search::quiescence(alpha, beta, pos);
 	
 	// if depth is more than usual we can return the static evaluation
 	// to avoid extra calculations of quiescence search.
 	if(ply > max_ply-1)
-		return Eval::evaluation();
+		return Eval::evaluation(pos);
 
     // int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
                                                         // get_ls1b_index(st->bitboards[k]),
                                                         // (st->side) ^ 1);
-	in_check = is_check();
+	in_check = pos.is_check();
 	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
 	// increase search depth if king is in danger.
 	if(in_check){
@@ -256,7 +258,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 	alphabeta_nodes++;
 
-	eval = Eval::evaluation();
+	eval = Eval::evaluation(pos);
 
 	/// Reverse Futility Purning @todo check for different depth assessment
 	if (depth < 3 && !pv_node && !in_check &&  abs(beta - 1) > -InfinityValue + 100) {
@@ -273,33 +275,33 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		ply++;
 
 		Search::repetition_index++;
-        Search::repetition_table[Search::repetition_index] = st->key;
+        Search::repetition_table[Search::repetition_index] = pos.key();
 		
 		// handling enpassant in null move
-		temp_enp = st->enpassant;
+		temp_enp = pos.enpassant();
 		if(temp_enp != no_sq)
-			st->key ^= Zobrist::enpassant[temp_enp];
+			pos.state()->key ^= Zobrist::enpassant[temp_enp];
 
-		st->enpassant = no_sq;
+		pos.state()->enpassant = no_sq;
 
-		st->side ^= 1;
+		pos.state()->side ^= 1;
 
-		st->key ^= Zobrist::side;
+		pos.state()->key ^= Zobrist::side;
 
-		score = -negamax(-beta, -beta + 1, depth-3);
+		score = -negamax(-beta, -beta + 1, depth-3, pos);
 
 		ply--;
 
 		Search::repetition_index--;
 
-		st->side ^= 1;
-		st->key ^= Zobrist::side;
+		pos.state()->side ^= 1;
+		pos.state()->key ^= Zobrist::side;
 
-		st->enpassant = temp_enp;
+		pos.state()->enpassant = temp_enp;
 
 		// handling enpassant in null move
 		if(temp_enp != no_sq)
-			st->key ^= Zobrist::enpassant[temp_enp];
+			pos.state()->key ^= Zobrist::enpassant[temp_enp];
 
 		if (score >= beta)
 			return beta;
@@ -313,7 +315,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		// fail-low node
 		if (svalue < beta)
 			if (depth == 1) {
-				qvalue = quiescence(alpha, beta);
+				qvalue = quiescence(alpha, beta, pos);
 				return std::max(qvalue, svalue);
 			}
 
@@ -324,13 +326,13 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		}
 	}
 
-    generate_all(move_list, Color(st->side));
+    MoveGen::generate_all(move_list, pos);
 
     // enable PV move scoring if we are in a principle variation route 
 	if (follow_pv)
         Search::enable_pv_scoring(move_list);
 
-	Search::sort_moves(move_list);
+	Search::sort_moves(move_list, pos);
 
 	int moves_searched = 0;
 
@@ -340,10 +342,10 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		ply++;
 
 		Search::repetition_index++;
-        Search::repetition_table[Search::repetition_index] = st->key;
+        Search::repetition_table[Search::repetition_index] = pos.key();
 
 		// if illegal move, continue
-		if(!make_move(move_list->moves[move_count], 1, nst)){
+		if(!pos.make_move(move_list->moves[move_count], 1, nst)){
 			ply--;
 
 			Search::repetition_index--;
@@ -354,7 +356,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		legal_moves++;
 
 		if (moves_searched == 0) {
-			score = -negamax(-beta, -alpha, depth-1);
+			score = -negamax(-beta, -alpha, depth-1, pos);
 		}
 		else {
 			/// LMR(late move reduction); if the move ordring is good then we will encounter a cutoff in first node
@@ -365,7 +367,7 @@ static int Search::negamax(int alpha, int beta, int depth) {
                !in_check && 
                get_move_capture(move_list->moves[move_count]) == 0 &&
                get_move_promoted(move_list->moves[move_count]) == 0){
-        		score = -negamax(-alpha - 1, -alpha, depth - 2);
+        		score = -negamax(-alpha - 1, -alpha, depth - 2, pos);
 			}
 			else {
 				score = alpha + 1;
@@ -378,10 +380,10 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		 		the new pv path, in this case we have done extra search and wasted time :)(but it is less likely to happen)
 		 	*/
 			if (score > alpha) {
-                score = -negamax(-alpha - 1, -alpha, depth-1);
+                score = -negamax(-alpha - 1, -alpha, depth-1, pos);
 
                 if((score > alpha) && (score < beta))
-                    score = -negamax(-beta, -alpha, depth-1);
+                    score = -negamax(-beta, -alpha, depth-1, pos);
             }
 		}
 
@@ -389,8 +391,8 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 		Search::repetition_index--;
 
-		take_back();
-
+		pos.take_back();
+	
 		moves_searched++;
 
         // found a better move
@@ -414,9 +416,8 @@ static int Search::negamax(int alpha, int beta, int depth) {
 
 		 // fail-hard beta cutoff
 		 /// @todo check fail-soft beta cutoff
-        if (score >= beta)
-        {
-			write_hash(beta, depth, hashfBETA, move_list->moves[move_count]);
+        if (score >= beta) {
+			TT::write_hash(beta, depth, hashfBETA, move_list->moves[move_count], pos);
 			if(!mInfo.capture) {
 				// store history moves
 	            history_moves[mInfo.piece][mInfo.target] = std::max(history_moves[mInfo.piece][mInfo.target], depth*depth);
@@ -443,27 +444,34 @@ static int Search::negamax(int alpha, int beta, int depth) {
 		}
     }
 
-	write_hash(alpha, depth, hash_flag, pv_table[ply][ply]);
+	TT::write_hash(alpha, depth, hash_flag, pv_table[ply][ply], pos);
 
     // node(move) fails low
     return alpha;
 }
 
-void MainThread::search() {
-	
-	Time.init(Search::Info, Color(st->side), st->play_count);
-
+void MainThread::search() {	
+	Time.init(Search::Info, rootPos);
 	Threads.start_searching();
 
 	Thread::search();
+
+	Threads.stop = true;
+
+	Threads.wait_until_search_finished();
 }
 
 void Thread::search() {
 	// clear(reset) helper data(globals)
 	Search::clear();
 
-	if (this == Threads.main())
-		thisThread = this;
+	thisThread = this;
+
+	if (this == Threads.main()) //{
+		printf("in main thread\n");
+	else
+		printf("thread id: %ld\n", this->idx);
+		// thisThread = this;
 
 	int score = 0;
 	std::stringstream pvr;
@@ -483,7 +491,7 @@ void Thread::search() {
 		// enable pv following
 		follow_pv = true;
 
-		score = Search::negamax(alpha, beta, current_depth);
+		score = Search::negamax(alpha, beta, current_depth, rootPos);
 
 		if(Threads.stop)
 			break;
@@ -510,7 +518,7 @@ void Thread::search() {
 							score, current_depth, alphabeta_nodes+quiescence_nodes,
 							Time.getElapsed(), pvr.str());
 
-		logger.logIt(fmt::format("alphabeta: %ld, quiescence: %ld\n", alphabeta_nodes, quiescence_nodes), LOG);
+		logger.logIt(fmt::format("alphabeta: {}, quiescence: {}", alphabeta_nodes, quiescence_nodes), LOG);
 		logger.logIt(output, LOG);
 		sync_cout << output << sync_endl;
 
@@ -539,6 +547,10 @@ void Thread::search() {
 
 	logger.logIt(output, LOG);
 	sync_cout << output << sync_endl;
+	// }
+	// else {
+		// printf("im still alive\n");
+	// }
 }
 
 /// @todo can we get pvr by tracing the hash table back?????
@@ -589,7 +601,7 @@ int Search::is_repetition()
     // loop over repetition indicies range
     for (int index = 0; index < Search::repetition_index; index++){
         // if we found the hash key same with a current
-        if (Search::repetition_table[index] == st->key){
+        if (Search::repetition_table[index] == thisThread->rootPos.key()){
             // we found a repetition
             return 1;
 		}

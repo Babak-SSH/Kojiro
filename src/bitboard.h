@@ -22,26 +22,26 @@ void print_bitboard(uint64_t bitboard);
  * @brief Set the bit to 1.
  * 
  * @param bitboard 
- * @param pos 
+ * @param sq 
  */
-void set_bit(uint64_t &bitboard, int pos);
+void set_bit(uint64_t &bitboard, int sq);
 
 /**
  * @brief Get value of the bit.
  * 
  * @param bitboard 
- * @param pos 
+ * @param sq 
  * @return int 
  */
-int get_bit(uint64_t bitboard, int pos);
+int get_bit(uint64_t bitboard, int sq);
 
 /**
  * @brief change 1 to 0. (pop bit)
  * 
  * @param bitboard 
- * @param pos 
+ * @param sq 
  */
-void pop_bit(uint64_t &bitboard, int pos);
+void pop_bit(uint64_t &bitboard, int sq);
 
 /**
  * @brief count bits in bitboard.

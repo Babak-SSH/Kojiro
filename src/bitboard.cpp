@@ -20,19 +20,19 @@ void print_bitboard(uint64_t  bitboard) {
 }
 
 /// set a bit to 1 using or operater.
-void set_bit(uint64_t &bitboard, int pos) {
-    bitboard |= (1ull << pos);
+void set_bit(uint64_t &bitboard, int sq) {
+    bitboard |= (1ull << sq);
 }
 
 /// get the value of the bit (1 or 0).
-int get_bit(uint64_t bitboard, int pos) {
-    return bitboard & (1ull << pos) ? 1:0; 
+int get_bit(uint64_t bitboard, int sq) {
+    return bitboard & (1ull << sq) ? 1:0; 
 }
 
 /// change 1s to 0 using xor operator.
-void pop_bit(uint64_t &bitboard, int pos) {
+void pop_bit(uint64_t &bitboard, int sq) {
     /// @TODO &= ~
-    bitboard ^= (1ull << pos);
+    bitboard ^= (1ull << sq);
 }
 
 /* @TODO there is a hardware bit count for gcc which requieres cpu type with march arg in command 

@@ -35,32 +35,24 @@ void init_all() {
 
 	Eval::init_eval_masks();
 
-	init_hash();
+	Position::init_hash();
 
-	init_hash_table(128);
+	TT::init_hash_table(128);
 }
 
 int main(int argc, char* argv[]){
-    init_all();
-
 	int debug = 0;
 
 	logger.setDebug(true);
 
-	if(debug) {
-    	init_state();
-	    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    	log_board();
-	}	
-	else {
-    	init_state();
-		parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    	log_board();
+    init_all();
 
-		Threads.set(size_t(1));
+	// Position::init_state();
+	// Position::parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-		UCI::loop(argc, argv);
-	}
+	Threads.set(size_t(1));
+
+	UCI::loop(argc, argv);
 	
 	Threads.set(0);
     /// @todo optimize speed?

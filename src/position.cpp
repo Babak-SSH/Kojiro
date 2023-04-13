@@ -1,3 +1,5 @@
+#include "thread.h"
+#include <cstddef>
 #include <istream>
 #include <sstream>
 #include <string>
@@ -9,6 +11,7 @@
 #include "logger.h"
 #include "types.h"
 #include "position.h"
+#include "thread.h"
 
 
 using std::string;
@@ -21,8 +24,6 @@ namespace Zobrist {
 	uint64_t castling[16];
 	uint64_t side;
 }
-
-StateInfo* st;
 
 // piece bitboards
 uint64_t bitboards[12];
@@ -43,12 +44,12 @@ int rule50 = 0;
 
 int play_count = 0;
 
-void log_board(){
+/// logging board in a file with ascii(alphabet) represention.
+void Position::log_board(){
     int sq;
     std::stringstream board;
 
     board << "board info:\n";
-
     for (int rank = 0; rank < 8; rank++){
         board << fmt::format("{} ", 8-rank);
         
@@ -60,7 +61,7 @@ void log_board(){
             // loop over all piece bitboards
             for (int bb_piece = W_PAWN; bb_piece <= B_KING; bb_piece++)
             {
-                if (get_bit(st->bitboards[bb_piece], sq))
+                if (get_bit(bitboards(bb_piece), sq))
                     piece = bb_piece;
             }
             
@@ -72,31 +73,31 @@ void log_board(){
 
       
     // print side to move
-    board << fmt::format("   Side:     {}\n", !st->side ? "white" : "black");
+    board << fmt::format("   Side:     {}\n", !side() ? "white" : "black");
 
     // print enpassant square
-    board << fmt::format("   Enpassant:   {}\n", (st->enpassant != no_sq) ? convert_to_square[st->enpassant] : "no");
+    board << fmt::format("   Enpassant:   {}\n", (enpassant() != no_sq) ? convert_to_square[enpassant()] : "no");
 
     // print castling rights
-    board << fmt::format("   Castling:  {}{}{}{}\n", (st->castle & WK) ? 'K' : '-',
-                                           (st->castle & WQ) ? 'Q' : '-',
-                                           (st->castle & BK) ? 'k' : '-',
-                                           (st->castle & BQ) ? 'q' : '-');
+    board << fmt::format("   Castling:  {}{}{}{}\n", (castle() & WK) ? 'K' : '-',
+                                           (castle() & WQ) ? 'Q' : '-',
+                                           (castle() & BK) ? 'k' : '-',
+                                           (castle() & BQ) ? 'q' : '-');
 
     // print turn count
-    board << fmt::format("   turn: {}\n", st->play_count);
+    board << fmt::format("   turn: {}\n", play_count());
 
     // print hash key of the position
-    board << fmt::format("   hash key: {:x}\n", st->key);
+    board << fmt::format("   hash key: {:x}\n", key());
 
     board << fmt::format("   fen: {}\n\n", get_fen());
 
     logger.logIt(board.str(), INFO);
 }
 
-// generate "almost" unique position ID aka hash key from scratch
-uint64_t generate_hash_key()
-{
+/// generate "almost" unique position ID aka hash key for state of the game
+/// with the help of the zobrist hash keys.
+uint64_t Position::generate_hash_key() {
     // final hash key
     uint64_t final_key = 0ULL;
     
@@ -107,7 +108,7 @@ uint64_t generate_hash_key()
     for (int piece = P; piece <= k; piece++)
     {
         // init piece bitboard copy
-        bitboard = st->bitboards[piece];
+        bitboard = bitboards(piece);
         
         // loop over the pieces within a bitboard
         while (bitboard)
@@ -124,22 +125,22 @@ uint64_t generate_hash_key()
     }
     
     // if enpassant square is on board
-    if (st->enpassant != no_sq){
+    if (enpassant() != no_sq){
         // hash enpassant
-        final_key ^= Zobrist::enpassant[st->enpassant];
+        final_key ^= Zobrist::enpassant[enpassant()];
 	}
     
     // hash castling rights
-    final_key ^= Zobrist::castling[st->castle];
+    final_key ^= Zobrist::castling[castle()];
     
     // hash the side only if black is to move
-    if (st->side == BLACK) final_key ^= Zobrist::side;
+    if (side() == BLACK) final_key ^= Zobrist::side;
     
     // return generated hash key
     return final_key;
 }
 
-void init_hash() {
+void Position::init_hash() {
 	// random seed. 1804289383 is the first number generated with rand() function in "linux"
 	unsigned int seed_state = 1804289383;
 	for(int bb_piece=W_PAWN;bb_piece <= B_KING;bb_piece++) {
@@ -226,28 +227,12 @@ void init_start(){
     castle |= BQ;
 }
 
-void init_state() {
-    st = new StateInfo();
-
-    // memcpy(st->bitboards, bitboards, 96);
-    // memcpy(st->occupancies, occupancies, 24);
-    
-    // st->castle = castle;
-    // st->enpassant = enpassant;
-    // st->rule50 = rule50;
-    // st->side = side;
-    // st->play_count = play_count;
-
-	// st->key = generate_hash_key();
-    st->previous = NULL;
-}
-
-void take_back() {
+void Position::take_back() {
     if (st->previous != NULL)
         st = st->previous;
 }
 
-string get_fen() {
+string Position::get_fen() {
     std::stringstream fen;
     bool empty = true;
 
@@ -303,13 +288,14 @@ string get_fen() {
     return fen.str();
 }
 
-void parse_fen(const string& fen){
-    // reset board position (bitboards)
-    memset(st->bitboards, 0ULL, sizeof(st->bitboards));
-    
-    // reset occupancies (bitboards)
-    memset(st->occupancies, 0ULL, sizeof(st->occupancies));
-    
+/// initialiaing the position and state for the current thread by parsing the given fen string.
+Position& Position::parse_fen(const string& fen, StateInfo* state, Thread* th){
+    memset(this, 0ULL, sizeof(Position));
+    memset(state, 0, sizeof(StateInfo));
+    memset(state->bitboards, 0ULL, sizeof(st->bitboards));
+    memset(state->occupancies, 0ULL, sizeof(st->occupancies));
+    st = state; 
+
     // reset game state variables
     st->side = WHITE;
     st->enpassant = no_sq;
@@ -337,7 +323,7 @@ void parse_fen(const string& fen){
     st->side = (token == 'w' ? WHITE : BLACK);
     iss >> token;
 
-    //castling
+    // castling
     while ((iss >> token) && !isspace(token)){
         if (token == 'K')
             st->castle |= castlingRights(WK);
@@ -355,6 +341,7 @@ void parse_fen(const string& fen){
 		}
     }
 
+    // enpassant
     iss >> token;
     if (token != '-'){
         file =  token - 'a';
@@ -371,31 +358,27 @@ void parse_fen(const string& fen){
     iss >> token;
     iss >> st->play_count;
 
-    st->key = generate_hash_key();
+    st->key = Position::generate_hash_key();
+    thisTh = th;
+
+    return *this;
 }
 
-bool is_check() {
-    int square = (st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : get_ls1b_index(st->bitboards[k]);
+bool Position::is_check() {
+    int square = (st->side == WHITE) ? 
+        get_ls1b_index(st->bitboards[K]) : get_ls1b_index(st->bitboards[k]);
+
     return is_square_attacked(square, (st->side) ^ 1);
 }
 
-/// @todo get_attacks function with piece parameter to get rid of army of ifs.(maybe template)
-bool is_square_attacked(int square, int side){
-    // pawn
-    if (pawn_attacks[!side][square] & st->bitboards[P+(6*side)]) return 1;
-    // knight
-    if (knight_attacks[square] & st->bitboards[N+(6*side)]) return 1;
-    // bishop
-    if (get_bishop_attacks(square, st->occupancies[NO_COLOR]) & st->bitboards[B+(6*side)]) return 1;
-    // rook
-    if (get_rook_attacks(square, st->occupancies[NO_COLOR]) & st->bitboards[R+(6*side)]) return 1;
-    // queen
-    if (get_queen_attacks(square, st->occupancies[NO_COLOR]) & st->bitboards[Q+(6*side)]) return 1;
-    // king
-    if (king_attacks[square] & st->bitboards[K+(6*side)]) return 1;
-
-    return 0;
+/// @todo enhance color(side) finding
+void Position::set_piece(Piece p, int sq){
+    set_bit(st->bitboards[p], sq);
+    
+    st->occupancies[(p > 5)] |= st->bitboards[p];
+    st->occupancies[2] |= st->bitboards[p];
 }
+
 long captures_count = 0;
 long captures_flag = 0;
 long enpassant_count = 0;
@@ -403,7 +386,9 @@ long enpassant_flag = 0;
 long castles_count = 0;
 long castles_flag = 0;
 /// @todo check if assinging a variable is faster than getting it from structure.
-int make_move(int move, int move_flag, StateInfo& newST, int depth){
+/// change the state and position according to the given move if the move is legal and assigning 
+/// the current state to the previous state so we can undo the move in take_back function.
+int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
     moveInfo m = decode_move(move);
 
 	if(move_flag == 2 && !m.capture)
@@ -411,24 +396,22 @@ int make_move(int move, int move_flag, StateInfo& newST, int depth){
 
     if (get_bit(st->occupancies[st->side], m.source)){
         // preserving the previous state
-        memcpy(&newST, st, offsetof(StateInfo, previous));
+        memcpy(&newSt, st, offsetof(StateInfo, previous));
+        newSt.previous = st;
+        st = &newSt;
 
-        newST.previous = st;
-
-        st = &newST;
-
-        pop_bit(newST.bitboards[m.piece], m.source);
-		newST.key ^= Zobrist::psq[m.piece][m.source];
-        set_bit(newST.bitboards[m.piece], m.target);
-		newST.key ^= Zobrist::psq[m.piece][m.target];
+        pop_bit(st->bitboards[m.piece], m.source);
+		st->key ^= Zobrist::psq[m.piece][m.source];
+        set_bit(st->bitboards[m.piece], m.target);
+		st->key ^= Zobrist::psq[m.piece][m.target];
 
         if (m.capture){
-            for (int bb_piece = W_PAWN + (6*!newST.side); bb_piece <= 5 + (6*!newST.side); bb_piece++){
-                if (get_bit(newST.bitboards[bb_piece], m.target)){
+            for (int bb_piece = W_PAWN + (6*!st->side); bb_piece <= 5 + (6*!st->side); bb_piece++){
+                if (get_bit(st->bitboards[bb_piece], m.target)){
                     captures_flag = 1;
 
-                    pop_bit(newST.bitboards[bb_piece], m.target);
-					newST.key ^= Zobrist::psq[bb_piece][m.target];
+                    pop_bit(st->bitboards[bb_piece], m.target);
+					st->key ^= Zobrist::psq[bb_piece][m.target];
 
                     break;
                 }
@@ -436,35 +419,35 @@ int make_move(int move, int move_flag, StateInfo& newST, int depth){
         }
         
         if (m.promoted){
-            pop_bit(newST.bitboards[(newST.side) ? p : P], m.target);
-			newST.key ^= Zobrist::psq[(newST.side) ? p : P][m.target];
-            set_bit(newST.bitboards[(newST.side) ? m.promoted + 6: m.promoted], m.target);
-			newST.key ^= Zobrist::psq[(newST.side) ? m.promoted + 6: m.promoted][m.target];
+            pop_bit(st->bitboards[(st->side) ? p : P], m.target);
+			st->key ^= Zobrist::psq[(st->side) ? p : P][m.target];
+            set_bit(st->bitboards[(st->side) ? m.promoted + 6: m.promoted], m.target);
+			st->key ^= Zobrist::psq[(st->side) ? m.promoted + 6: m.promoted][m.target];
         }
 
         if (m.enpassant){
-            (newST.side) ? pop_bit(newST.bitboards[P], m.target - 8) :
-                    pop_bit(newST.bitboards[p], m.target + 8);
+            (st->side) ? pop_bit(st->bitboards[P], m.target - 8) :
+                    pop_bit(st->bitboards[p], m.target + 8);
 
-			(newST.side) ? newST.key ^= Zobrist::psq[P][m.target - 8] :
-					newST.key ^= Zobrist::psq[p][m.target + 8];
+			(st->side) ? st->key ^= Zobrist::psq[P][m.target - 8] :
+					st->key ^= Zobrist::psq[p][m.target + 8];
 
             enpassant_flag = 1;
             captures_flag = 1;
         }
 
-		if(newST.enpassant != no_sq) {
-			newST.key ^= Zobrist::enpassant[newST.enpassant];
+		if(st->enpassant != no_sq) {
+			st->key ^= Zobrist::enpassant[st->enpassant];
 		}
 
-        newST.enpassant = no_sq;
+        st->enpassant = no_sq;
 
         if (m.double_push){
-            (newST.side) ? newST.enpassant = m.target - 8 :
-                    newST.enpassant = m.target + 8;
+            (st->side) ? st->enpassant = m.target - 8 :
+                    st->enpassant = m.target + 8;
 
-			(newST.side) ? newST.key ^= Zobrist::enpassant[m.target - 8] :
-                    newST.key ^= Zobrist::enpassant[m.target + 8];
+			(st->side) ? st->key ^= Zobrist::enpassant[m.target - 8] :
+                    st->key ^= Zobrist::enpassant[m.target + 8];
         }
 
         if (m.castling){
@@ -474,72 +457,73 @@ int make_move(int move, int move_flag, StateInfo& newST, int depth){
                 // white castles king side
                 case (g1):
                     // move H rook
-                    pop_bit(newST.bitboards[R], h1);
-					newST.key ^= Zobrist::psq[R][h1];
-                    set_bit(newST.bitboards[R], f1);
-					newST.key ^= Zobrist::psq[R][f1];
+                    pop_bit(st->bitboards[R], h1);
+					st->key ^= Zobrist::psq[R][h1];
+                    set_bit(st->bitboards[R], f1);
+					st->key ^= Zobrist::psq[R][f1];
                     break;
                 
                 // white castles queen side
                 case (c1):
                     // move A rook
-                    pop_bit(newST.bitboards[R], a1);
-					newST.key ^= Zobrist::psq[R][a1];
-                    set_bit(newST.bitboards[R], d1);
-					newST.key ^= Zobrist::psq[R][d1];
+                    pop_bit(st->bitboards[R], a1);
+					st->key ^= Zobrist::psq[R][a1];
+                    set_bit(st->bitboards[R], d1);
+					st->key ^= Zobrist::psq[R][d1];
                     break;
                 
                 // black castles king side
                 case (g8):
                     // move H rook
-                    pop_bit(newST.bitboards[r], h8);
-					newST.key ^= Zobrist::psq[r][h8];
-                    set_bit(newST.bitboards[r], f8);
-					newST.key ^= Zobrist::psq[r][f8];
+                    pop_bit(st->bitboards[r], h8);
+					st->key ^= Zobrist::psq[r][h8];
+                    set_bit(st->bitboards[r], f8);
+					st->key ^= Zobrist::psq[r][f8];
                     break;
                 
                 // black castles queen side
                 case (c8):
                     // move A rook
-                    pop_bit(newST.bitboards[r], a8);
-					newST.key ^= Zobrist::psq[r][a8];
-                    set_bit(newST.bitboards[r], d8);
-					newST.key ^= Zobrist::psq[r][d8];
+                    pop_bit(st->bitboards[r], a8);
+					st->key ^= Zobrist::psq[r][a8];
+                    set_bit(st->bitboards[r], d8);
+					st->key ^= Zobrist::psq[r][d8];
                     break;
             } 
             castles_flag = 1;
         }
 
         // update castling rights
-		newST.key ^= Zobrist::castling[newST.castle];
-        newST.castle &= castling_rights[m.source];
-        newST.castle &= castling_rights[m.target];
-		newST.key ^= Zobrist::castling[newST.castle];
+		st->key ^= Zobrist::castling[st->castle];
+        st->castle &= castling_rights[m.source];
+        st->castle &= castling_rights[m.target];
+		st->key ^= Zobrist::castling[st->castle];
         
         // reset occupancies
-        memset(newST.occupancies, 0ULL, 24);
+        memset(st->occupancies, 0ULL, 24);
         
         // loop over white pieces bitboards
         for (int bb_piece = P; bb_piece <= K; bb_piece++)
             // update white occupancies
-            newST.occupancies[WHITE] |= newST.bitboards[bb_piece];
+            st->occupancies[WHITE] |= st->bitboards[bb_piece];
 
         // loop over black pieces bitboards
         for (int bb_piece = p; bb_piece <= k; bb_piece++)
             // update black occupancies
-            newST.occupancies[BLACK] |= newST.bitboards[bb_piece];
+            st->occupancies[BLACK] |= st->bitboards[bb_piece];
 
         // update both sides occupancies
-        newST.occupancies[NO_COLOR] |= newST.occupancies[WHITE];
-        newST.occupancies[NO_COLOR] |= newST.occupancies[BLACK];
+        st->occupancies[NO_COLOR] |= st->occupancies[WHITE];
+        st->occupancies[NO_COLOR] |= st->occupancies[BLACK];
         
         // change side
         st->side ^= 1;
-		newST.key ^= Zobrist::side;
+		st->key ^= Zobrist::side;
         st->play_count++;
         
         // make sure that king has not been exposed into a check
-        if (is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[k]) : get_ls1b_index(st->bitboards[K]), st->side)){
+        if (is_square_attacked((st->side == WHITE) ? 
+            get_ls1b_index(st->bitboards[k]) : get_ls1b_index(st->bitboards[K]), st->side)){
             // take move back
             take_back();
             

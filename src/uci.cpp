@@ -1,4 +1,8 @@
 #include "uci.h"
+#include "cons.h"
+#include "logger.h"
+#include "position.h"
+#include "search.h"
 #include "thread.h"
 #include "tt.h"
 #include <iostream>
@@ -7,7 +11,7 @@
 
 using namespace Kojiro;
 
-void UCI::go(std::istringstream& iss){
+void UCI::go(Position& pos, std::istringstream& iss){
 
 	Search::GameInfo info;
 	int depth = 6;
@@ -29,10 +33,10 @@ void UCI::go(std::istringstream& iss){
 	}
 
 	//search best move
-	Threads.start_thinking(info, false, depth);
+	Threads.start_thinking(pos, info, false, depth);
 }
 
-void UCI::position(std::istringstream& iss) {
+void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
 
 	std::string token, fen;
 	int move;
@@ -40,8 +44,9 @@ void UCI::position(std::istringstream& iss) {
 	iss >> token;
 
 	if(token == "startpos") {
-		init_state();
-		parse_fen(START_FEN);
+		// Position::init_state();
+		// Position::parse_fen(START_FEN);
+		pos.parse_fen(START_FEN, &state, Threads.main());
 		iss >> token;
 	}
 	else if(token == "fen") {
@@ -49,31 +54,33 @@ void UCI::position(std::istringstream& iss) {
 		{
 			fen += token + " ";
 		}
-		init_state();
-		parse_fen(fen);
+		// Position::init_state();
+		// Position::parse_fen(fen);
+		pos.parse_fen(fen, &state, Threads.main());
 	}
 	if(token == "moves") {
 		while (iss >> token) {
-			move = UCI::parse_move(token);
+			move = UCI::parse_move(token, pos);
 
 			if(!move)
 				break;
 
-			make_move(move, 1, *st);
+			StateInfo st;
+			pos.make_move(move, 1, st);
 		}
 	}
 
-	log_board();
+	// Position::log_board();
 }
 
-int UCI::parse_move(std::string mov) {
+int UCI::parse_move(std::string mov, const Position& pos) {
 
 	int source_sq, target_sq;
 	char promoted_piece;
 	moves move_list[1];
 	moveInfo info;
 
-	generate_all(move_list, Color(st->side));
+	MoveGen::generate_all(move_list, pos);
 
 	source_sq = (mov[0] - 'a') + (8 - (mov[1] - '0')) * 8;
 	target_sq = (mov[2] - 'a') + (8 - (mov[3] - '0')) * 8;
@@ -123,17 +130,22 @@ void UCI::set_option(std::istringstream& iss) {
 	}
 
 	if (name == "Hash") {
-		init_hash_table(value);
+		TT::init_hash_table(value);
+	}
+	else if (name == "Threads") {
+		Threads.set(value);
+		printf("Threads created: %d\n", value);
 	}
 }
 
 void UCI::loop(int argc, char* argv[]) {
+	Position pos;
+	StateInfo state;
 
+	pos.parse_fen(START_FEN, &state, Threads.main());
 	std::string token, cmd;
 
 	std::istringstream iss (cmd);
-
-	
 
 	for (int i = 1; i < argc; ++i)
     	cmd += std::string(argv[i]) + " ";
@@ -150,10 +162,9 @@ void UCI::loop(int argc, char* argv[]) {
       	iss >> std::skipws >> token;
 
 		if(token == "quit" || token == "stop") {
-			clear_tt();
+			TT::clear_tt();
 			Search::clear();
-			delete tt;
-			delete st;
+			delete TT::tt;
 			Threads.stop = true;
 		}
 
@@ -167,17 +178,18 @@ void UCI::loop(int argc, char* argv[]) {
 			sync_cout << "readyok" << sync_endl;
 		}
 		else if(token == "go") {
-			go(iss);
+			go(pos, iss);
 		}
 		else if(token == "position") {
-			position(iss);
-			clear_tt();
+			UCI::position(iss, pos, state);
+			TT::clear_tt();
 		}
 		else if(token == "ucinewgame") {
-			init_state();
-			parse_fen(START_FEN);
-			clear_tt();
-			log_board();	
+			// Position::init_state();
+			// Position::parse_fen(START_FEN);
+			TT::clear_tt();
+			Search::clear();
+			// Position::log_board();	
 		}	
 		else if (token == "setoption") {
 			set_option(iss);	

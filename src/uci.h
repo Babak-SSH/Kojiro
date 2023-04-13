@@ -40,14 +40,14 @@ namespace UCI{
 	 * 
 	 * @param iss 
 	 */
-	void go(std::istringstream& iss);
+	void go(Kojiro::Position& pos, std::istringstream& iss);
 
 	/**
 	 * @brief UCI position command (fen, startpos, moves,...)
 	 * 
 	 * @param iss 
 	 */
-	void position(std::istringstream& iss);
+	void position(std::istringstream& iss, Kojiro::Position& pos, Kojiro::StateInfo& state);
 
 	/**
 	 * @brief get the move notaion from GUI and convert to encrypted int move.
@@ -55,7 +55,7 @@ namespace UCI{
 	 * @param mov input move 
 	 * @return int 
 	 */
-	int parse_move(std::string mov);
+	int parse_move(std::string mov, const Kojiro::Position& state);
 
 	/**
 	 * @brief Set options

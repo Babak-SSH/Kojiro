@@ -1,6 +1,7 @@
 #ifndef TIMEMAN_H
 #define TIMEMAN_H
 
+#include "position.h"
 #include "search.h"
 #include "misc.h"
 
@@ -14,7 +15,7 @@ namespace Kojiro {
  */
 class TimeManagement {
 public:
-	void init(Search::GameInfo& info, Color side, int ply);
+	void init(Search::GameInfo& info, const Position& pos);
 	TimePoint getOptimum() const { return optimumTime; };
 	TimePoint getMaximum() const { return maximumTime; };
 	TimePoint getElapsed() const { return now() - startTime; };

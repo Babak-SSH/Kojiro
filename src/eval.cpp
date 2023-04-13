@@ -1,4 +1,6 @@
 #include "eval.h"
+#include "position.h"
+#include <thread>
 
 
 namespace Kojiro {
@@ -11,10 +13,13 @@ uint64_t isolated_masks[64];
 
 uint64_t pawn_passed_masks[2][64];
 
+namespace Eval {
+
+
 /// initializing general rank and file bitboards for all pieces
 /// and isolated files(not protected from left or right) and passed
 /// pawns mask for both side.
-void Eval::init_eval_masks() {
+void init_eval_masks() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
             int square = rank * 8 + file;
@@ -43,26 +48,26 @@ void Eval::init_eval_masks() {
 
 /// guessing phase of the game by counting each piece from each side and 
 /// suming them according to their value in midgame.
-int Eval::get_phase_score() {
+int get_phase_score(const Position& pos) {
     int score = 0;
 
     for(int piece=W_PAWN;piece <= B_KING;piece++) {
-       score += count_bits(st->bitboards[piece]) * PieceValue[0][piece]; 
+       score += count_bits(pos.bitboards(piece)) * PieceValue[0][piece]; 
     }   
 
     return score;
 }
 
 /// evaluating game score in each state by evaluating each piece from each side.
-int Eval::evaluation() {
+int evaluation(const Position& pos) {
 	int score = 0;
 	int sq, double_pawns;
 	uint64_t bitboard;
 
-    int phase_score = get_phase_score();
+    int phase_score = get_phase_score(pos);
 
 	for(int bb_piece=W_PAWN;bb_piece <= B_KING;bb_piece++) {
-		bitboard = st->bitboards[bb_piece];
+		bitboard = pos.bitboards(bb_piece);
 
         /// Step 1. values of each piece according to the stage of game which
         /// is calculated by the difference of phase score with MidgameLimit,
@@ -90,16 +95,16 @@ int Eval::evaluation() {
                             PawnPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit; 
 
                     /// check double pawn @todo check double pawn in endgames separately and score difference between double pawns that have protection
-                    double_pawns = count_bits(st->bitboards[P] & file_masks[sq]);
+                    double_pawns = count_bits(pos.bitboards(P) & file_masks[sq]);
                     if (double_pawns > 1)
                         score += double_pawns * double_pawn_penalty;
 
                     /// check isolated pawn that doesnt have protection
-                    if ((st->bitboards[P] & isolated_masks[sq]) == 0)
+                    if ((pos.bitboards(P) & isolated_masks[sq]) == 0)
                         score += isolated_pawn_penalty;
 
                     /// check passed pawns 
-                    if ((pawn_passed_masks[WHITE][sq] & st->bitboards[p]) == 0)
+                    if ((pawn_passed_masks[WHITE][sq] & pos.bitboards(p)) == 0)
                         score += passed_pawn_bonus[(63-sq)/8];
 
                     break;
@@ -124,11 +129,11 @@ int Eval::evaluation() {
                             RookPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit;
 
                     /// check for open files
-                    if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
+                    if (((pos.bitboards(P) | pos.bitboards(p)) & file_masks[sq]) == 0)
                         score += open_file_score;
                     /// check for semi open files
                     /// @todo needs more parameters
-                    // else if (((st->bitboards[P] & file_masks[sq]) == 0) && ((st->bitboards[p] & file_masks[sq]) != 0))
+                    // else if (((pos.bitboards(P] & file_masks[sq]) == 0) && ((pos.bitboards(p] & file_masks[sq]) != 0))
                         // score += semi_open_file_score;
                     
                     break;
@@ -149,10 +154,10 @@ int Eval::evaluation() {
                     /// @todo
                     // pawn shield and pawn storm
                     // open file
-                    // if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
+                    // if (((pos.bitboards(P] | pos.bitboards(p]) & file_masks[sq]) == 0)
                         // score -= open_file_score;
                     // semi open file
-                    // else if (((st->bitboards[P] & file_masks[sq]) == 0) && ((st->bitboards[p] & file_masks[sq]) != 0))
+                    // else if (((pos.bitboards(P] & file_masks[sq]) == 0) && ((pos.bitboards(p] & file_masks[sq]) != 0))
                         // score -= semi_open_file_score;
 
                     /// king safety bonus
@@ -166,16 +171,16 @@ int Eval::evaluation() {
                             PawnPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
                     
                     /// check double pawn
-                    double_pawns = count_bits(st->bitboards[p] & file_masks[sq]);
+                    double_pawns = count_bits(pos.bitboards(p) & file_masks[sq]);
                     if (double_pawns > 1)
                         score -= double_pawns * double_pawn_penalty;
 
                     /// check isolated pawn that doesnt have protection 
-                    if ((st->bitboards[p] & isolated_masks[sq]) == 0)
+                    if ((pos.bitboards(p) & isolated_masks[sq]) == 0)
                         score -= isolated_pawn_penalty;
 
                     /// check passed pawns 
-                    if ((pawn_passed_masks[BLACK][sq] & st->bitboards[P]) == 0)
+                    if ((pawn_passed_masks[BLACK][sq] & pos.bitboards(P)) == 0)
                         score -= passed_pawn_bonus[(63-Eval::mirror_square(sq))/8];
 
                     break;
@@ -201,10 +206,10 @@ int Eval::evaluation() {
                             RookPosValue[EG][Eval::mirror_square(sq)] * (MidgameLimit - phase_score))/MidgameLimit;
                     
                      // open file
-                    if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
+                    if (((pos.bitboards(P) | pos.bitboards(p)) & file_masks[sq]) == 0)
                         score -= open_file_score;
                     // semi open file
-                    // else if (((st->bitboards[p] & file_masks[sq]) == 0) && ((st->bitboards[P] & file_masks[sq]) != 0))
+                    // else if (((pos.bitboards(p] & file_masks[sq]) == 0) && ((pos.bitboards(P] & file_masks[sq]) != 0))
                         // score -= semi_open_file_score;
                     
                     break;
@@ -225,10 +230,10 @@ int Eval::evaluation() {
                     
                     // pawn shield and pawn storm
                     // open file
-                    // if (((st->bitboards[P] | st->bitboards[p]) & file_masks[sq]) == 0)
+                    // if (((pos.bitboards(P] | pos.bitboards(p]) & file_masks[sq]) == 0)
                         // score += open_file_score;
                     // semi open file
-                    // else if (((st->bitboards[p] & file_masks[sq]) == 0) && ((st->bitboards[P] & file_masks[sq]) != 0))
+                    // else if (((pos.bitboards(p] & file_masks[sq]) == 0) && ((pos.bitboards(P] & file_masks[sq]) != 0))
                     //     score += semi_open_file_score;
 
                     // king safety bonus
@@ -241,7 +246,9 @@ int Eval::evaluation() {
 		}
 	}
 
-	return (st->side) ? -score : score;
+	return (pos.side()) ? -score : score;
 }
+
+} // namespace Eval
 
 } // namespace Kojiro

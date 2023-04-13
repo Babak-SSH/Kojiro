@@ -204,14 +204,14 @@ void init_eval_masks();
  * 
  * @return int 
  */
-int get_phase_score();
+int get_phase_score(const Position& pos);
 
 /**
  * @brief calclulate evalution score.
  * 
  * @return int 
  */
-int evaluation();
+int evaluation(const Position& pos);
 
 /// return reflection of the square position.
 static inline int mirror_square(int sq){

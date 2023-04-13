@@ -1,14 +1,16 @@
-#include "tt.h"
+#include <cstddef>
+
+#define FMT_HEADER_ONLY
 #include "fmt/format.h"
+
+#include "tt.h"
 #include "logger.h"
 #include "position.h"
 #include "eval.h"
-#include <cstddef>
 
 
 namespace Kojiro {
 
-TTEntry* tt = NULL;
 int hash_size = 0;
 
 void TTEntry::reset() {
@@ -18,6 +20,10 @@ void TTEntry::reset() {
 	score = 0;
 	move = 0;
 }
+
+namespace TT {
+
+TTEntry* tt = NULL;
 
 void init_hash_table(int mb) {
     int size = 0x100000 * mb;
@@ -36,15 +42,16 @@ void init_hash_table(int mb) {
     
     // clear hash table
     clear_tt();
-    logger.logIt(fmt::format("Hash table is initialied with %d entries\n", hash_size), LOG) ;
+
+    logger.logIt(fmt::format("Hash table is initialied with {} entries\n", hash_size), LOG);
 }
 
 /// read transposition table entries data and find the proper score or return no_hash_entry
-int probe_hash(int alpha, int beta, int depth) {
-    TTEntry *hash_entry = &tt[st->key % hash_size];
+int probe_hash(int alpha, int beta, int depth, Position& pos) {
+    TTEntry *hash_entry = &tt[pos.key() % hash_size];
     
     // check position hash keys
-    if (hash_entry->key == st->key){
+    if (hash_entry->key == pos.key()){
         // we don't want to use tt if the depth is smaller than our current depth
         if (hash_entry->depth >= depth)
         {
@@ -52,8 +59,8 @@ int probe_hash(int alpha, int beta, int depth) {
 
             // retrieve score independent from the actual path
             // from root node (position) to current node (position)
-            if (score < -MateScore) score += st->play_count;
-            if (score > MateScore) score -= st->play_count;
+            if (score < -MateScore) score += pos.play_count();
+            if (score > MateScore) score -= pos.play_count();
 
             // (PV node) score 
             if (hash_entry->flag == hashfEXACT)
@@ -73,13 +80,14 @@ int probe_hash(int alpha, int beta, int depth) {
 }
 
 /// write to transposition table entries
-void write_hash(int score, int depth, int hash_flag, int move) {
-    TTEntry *hash_entry = &tt[st->key % hash_size];
+void write_hash(int score, int depth, int hash_flag, int move, Position& pos) {
+    TTEntry *hash_entry = &tt[pos.key() % hash_size];
 
-    if (score < -MateScore) score -= play_count;
-    if (score > MateScore) score += play_count;
+    /// @todo check why we have global play_count :)
+    if (score < -MateScore) score -= pos.play_count();
+    if (score > MateScore) score += pos.play_count();
 
-    hash_entry->key = st->key;
+    hash_entry->key = pos.key();
     hash_entry->score = score;
     hash_entry->flag = hash_flag;
     hash_entry->depth = depth;
@@ -92,5 +100,7 @@ void clear_tt() {
 		tt[i].reset();
 	}
 }
+
+} // namespcae TT
 
 } // namespace Kojiro

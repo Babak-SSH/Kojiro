@@ -117,10 +117,14 @@ void ThreadPool::start_thinking(Position& pos, const Search::GameInfo& info, boo
 	for(Thread* th : *this){
     th->nodes = th->alphabeta_nodes = th->quiescence_nodes = 0;
 		th->depth = depth;
+    th->scorePV = false;
+    th->followPV = true;
     th->rootPos.parse_fen(pos.get_fen(), &th->rootState, th);
     // th->rootState = state;
     memset(th->killer_moves, 0, sizeof(th->killer_moves));
     memset(th->history_moves, 0, sizeof(th->history_moves));
+    memset(th->pvLength, 0, sizeof(th->pvLength));
+    memset(th->pvTable, 0, sizeof(th->pvTable));
 	}
 	main()->start_searching();
 }

@@ -40,6 +40,9 @@ namespace Kojiro{
 			Position rootPos;
 			int killer_moves[12][MaxPly];
 			int history_moves[12][64];
+			int pvLength[MaxPly];
+			int pvTable[MaxPly][MaxPly];
+			bool scorePV, followPV;
 
 	};
 	

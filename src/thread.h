@@ -3,6 +3,7 @@
 
 #include "position.h"
 #include "search.h"
+#include "types.h"
 
 #include <atomic>
 #include <mutex>
@@ -37,7 +38,7 @@ namespace Kojiro{
 			int depth;
 			StateInfo rootState;
 			Position rootPos;
-			int killer_moves[12][max_ply];
+			int killer_moves[12][MaxPly];
 			int history_moves[12][64];
 
 	};

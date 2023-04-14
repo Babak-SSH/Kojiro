@@ -13,7 +13,7 @@
 #include "misc.h"
 #include "tt.h"
 
-// #define max_ply 256 
+// #define MaxPly 256 
 
 namespace Kojiro {
 
@@ -23,13 +23,10 @@ namespace Search{
 	int repetition_index;
 }
 
-int pv_length[max_ply];
-int pv_table[max_ply][max_ply];
+int pv_length[MaxPly];
+int pv_table[MaxPly][MaxPly];
 
 bool score_pv, follow_pv;
-
-const int full_depth_moves = 4;
-const int reduction_limit = 3;
 
 // enable PV move scoring
 static void Search::enable_pv_scoring(moves *move_list, const Position& pos){
@@ -233,7 +230,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	
 	// if depth is more than usual we can return the static evaluation
 	// to avoid extra calculations of quiescence search.
-	if(pos.get_ply() > max_ply-1)
+	if(pos.get_ply() > MaxPly-1)
 		return Eval::evaluation(pos);
 
     // int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
@@ -347,8 +344,8 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 			/// LMR(late move reduction); if the move ordring is good then we will encounter a cutoff in first node
 			/// thus we will search the few first moves in full depth and other moves in reduced depth and if one of
 			/// them look interesting or returns a score greater than alpha that move will be re-searched in full depth.
-			if (moves_searched >= full_depth_moves &&
-               depth >= reduction_limit &&
+			if (moves_searched >= FullDepthMoves &&
+               depth >= ReductionLimit &&
                !in_check && 
                get_move_capture(move_list->moves[move_count]) == 0 &&
                get_move_promoted(move_list->moves[move_count]) == 0){

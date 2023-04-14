@@ -44,6 +44,10 @@ enum { P, N, B, R, Q, K, p, n, b, r, q, k };
 */
 enum castlingRights {WK=1, WQ=2, BK=4, BQ=8};
 
+constexpr int MaxPly = 128;
+constexpr int FullDepthMoves = 4;
+constexpr int ReductionLimit = 3;
+
 struct moves{
     int moves[256];
 

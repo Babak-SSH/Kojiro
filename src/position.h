@@ -1,6 +1,7 @@
 #ifndef POSITION_H
 #define POSITION_H
 
+#include <cstdint>
 #include <string>
 #include <cstring>
 #include <sys/types.h>
@@ -48,6 +49,8 @@ class Position {
 
     private:
         int ply;
+        uint64_t repetitionTable[1000];
+        int repetitionIndex;
         Thread* thisTh;
         StateInfo* st;
 
@@ -141,6 +144,8 @@ class Position {
         u_int64_t occupancies(int color) const;
         u_int64_t key() const;
         int get_ply() const;
+        uint64_t repetition_table(int index) const;
+        int repetition_index() const;
         StateInfo* state() const;
         Thread* thread() const;
 };
@@ -175,6 +180,14 @@ inline u_int64_t Position::key() const {
 
 inline int Position::get_ply() const {
     return ply;
+}
+
+inline uint64_t Position::repetition_table(int index) const {
+    return repetitionTable[index];
+}
+
+inline int Position::repetition_index() const {
+    return repetitionIndex;
 }
 
 inline StateInfo* Position::state() const {

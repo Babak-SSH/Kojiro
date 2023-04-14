@@ -232,6 +232,7 @@ void Position::take_back() {
     if (st->previous != NULL)
         st = st->previous;
     ply--;
+    repetitionIndex--;
 }
 
 string Position::get_fen() {
@@ -304,6 +305,8 @@ Position& Position::parse_fen(const string& fen, StateInfo* state, Thread* th){
     st->castle = 0;
     
     ply = 0;
+    memset(repetitionTable, 0, sizeof(repetitionTable));
+    repetitionIndex = 0;
 
     int square = 0, idx, file, rank;
     unsigned char token;
@@ -403,6 +406,8 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
         memcpy(&newSt, st, offsetof(StateInfo, previous));
         newSt.previous = st;
         st = &newSt;
+
+        repetitionTable[repetitionIndex] = st->key;
 
         pop_bit(st->bitboards[m.piece], m.source);
 		st->key ^= Zobrist::psq[m.piece][m.source];
@@ -530,6 +535,7 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
             get_ls1b_index(st->bitboards[k]) : get_ls1b_index(st->bitboards[K]), st->side)){
             // take move back
             ply++; /// @todo change it its dogshit.
+            repetitionIndex++;
             take_back();
             
             captures_flag=0;
@@ -553,6 +559,7 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
             castles_flag = 0;
 
             ply++;
+            repetitionIndex++;
 
             return 1;
         }

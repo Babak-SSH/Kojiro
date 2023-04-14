@@ -124,9 +124,6 @@ namespace Search
 	int is_repetition(const Position& pos);
 
 	extern GameInfo Info;
-	// @todo how much?
-	extern uint64_t repetition_table[1000];
-	extern int repetition_index;
 
 } // namespace Search
 

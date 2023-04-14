@@ -19,27 +19,20 @@ namespace Kojiro {
 
 namespace Search{
 	GameInfo Info;
-	uint64_t repetition_table[1000];
-	int repetition_index;
 }
-
-int pv_length[MaxPly];
-int pv_table[MaxPly][MaxPly];
-
-bool score_pv, follow_pv;
 
 // enable PV move scoring
 static void Search::enable_pv_scoring(moves *move_list, const Position& pos){
     // disable following PV
-    follow_pv = false;
+    pos.thread()->followPV = false;
     
     // loop over the moves within a move list
     for (int count = 0; count < move_list->count; count++){
         // make sure we hit PV move
-        if (pv_table[0][pos.get_ply()] == move_list->moves[count]){
+        if (pos.thread()->pvTable[0][pos.get_ply()] == move_list->moves[count]){
             // enable move scoring and following pv
-            score_pv = true;
-            follow_pv = true;
+            pos.thread()->scorePV = true;
+            pos.thread()->followPV = true;
 
 			break;
         }
@@ -57,9 +50,9 @@ static int Search::score_move(int move, const Position& pos){
 	info = decode_move(move);
 
 	// score pv moves
-    if (score_pv){
-        if (pv_table[0][pos.get_ply()] == move){
-    		score_pv = 0;
+    if (pos.thread()->scorePV){
+        if (pos.thread()->pvTable[0][pos.get_ply()] == move){
+    		pos.thread()->scorePV = 0;
             
             // give PV move the highest score to search it first
             return 20000;
@@ -153,19 +146,13 @@ static int Search::quiescence(int alpha, int beta, Position& pos) {
 	Search::sort_moves(move_list, pos);
 
     for (int move_count = 0; move_count < move_list->count; move_count++){
-		Search::repetition_index++;
-		Search::repetition_table[Search::repetition_index] = pos.key();
-
 		StateInfo nst;
 
 		if(!pos.make_move(move_list->moves[move_count], 2, nst)){
-			Search::repetition_index--;
 			continue;
 		}
 
 		int score = -Search::quiescence(-beta, -alpha, pos);
-
-		Search::repetition_index--;
 
 		pos.take_back();
 
@@ -220,7 +207,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	 	return score;
 	}
 
-	pv_length[pos.get_ply()] = pos.get_ply();
+	pos.thread()->pvLength[pos.get_ply()] = pos.get_ply();
 
 
 	// for a better evaluation and removing horizon effect we use quiescence 
@@ -260,10 +247,6 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	/// then we don't need to look at our moves or even generate them because our position is so good even with 
 	/// giving a free move we can exceed beta so we can cutoff this position.
 	if(pos.get_ply() && depth >= 3 && !in_check){
-		// ply++;
-		Search::repetition_index++;
-        Search::repetition_table[Search::repetition_index] = pos.key();
-		
 		// handling enpassant in null move
 		temp_enp = pos.enpassant();
 		if(temp_enp != no_sq)
@@ -276,10 +259,6 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 		pos.state()->key ^= Zobrist::side;
 
 		score = -negamax(-beta, -beta + 1, depth-3, pos);
-
-		// ply--;
-
-		Search::repetition_index--;
 
 		pos.state()->side ^= 1;
 		pos.state()->key ^= Zobrist::side;
@@ -316,7 +295,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
     MoveGen::generate_all(move_list, pos);
 
     // enable PV move scoring if we are in a principle variation route 
-	if (follow_pv)
+	if (pos.thread()->followPV)
         Search::enable_pv_scoring(move_list, pos);
 
 	Search::sort_moves(move_list, pos);
@@ -326,12 +305,8 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
     for (int move_count = 0; move_count < move_list->count; move_count++){
 		StateInfo nst;
 
-		Search::repetition_index++;
-        Search::repetition_table[Search::repetition_index] = pos.key();
-
 		// if illegal move, continue
 		if(!pos.make_move(move_list->moves[move_count], 1, nst)){
-			Search::repetition_index--;
 			continue;
 		}
 
@@ -369,15 +344,12 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
             }
 		}
 
-		Search::repetition_index--;
-
 		pos.take_back();
 	
 		moves_searched++;
 
         // found a better move
-        if (score > alpha)
-        {
+        if (score > alpha) {
 			hash_flag = hashfEXACT;
 
 			mInfo = decode_move(move_list->moves[move_count]);
@@ -386,29 +358,29 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
             alpha = score;
 
 			found_pv = true;
-            pv_table[pos.get_ply()][pos.get_ply()] = move_list->moves[move_count];
+            pos.thread()->pvTable[pos.get_ply()][pos.get_ply()] = move_list->moves[move_count];
             
-            for (int next_ply = pos.get_ply() + 1; next_ply < pv_length[pos.get_ply() + 1]; next_ply++)
+            for (int next_ply = pos.get_ply() + 1; next_ply < pos.thread()->pvLength[pos.get_ply() + 1]; next_ply++)
                 // copy move from deeper ply into a current ply's line
-                pv_table[pos.get_ply()][next_ply] = pv_table[pos.get_ply() + 1][next_ply];
+                pos.thread()->pvTable[pos.get_ply()][next_ply] = pos.thread()->pvTable[pos.get_ply() + 1][next_ply];
             
-            pv_length[pos.get_ply()] = pv_length[pos.get_ply() + 1];
+            pos.thread()->pvLength[pos.get_ply()] = pos.thread()->pvLength[pos.get_ply() + 1];
 
-		 // fail-hard beta cutoff
-		 /// @todo check fail-soft beta cutoff
-        if (score >= beta) {
-			TT::write_hash(beta, depth, hashfBETA, move_list->moves[move_count], pos);
-			if(!mInfo.capture) {
-				// store history moves
-	            pos.thread()->history_moves[mInfo.piece][mInfo.target] = std::max(pos.thread()->history_moves[mInfo.piece][mInfo.target], depth*depth);
-				// store killer moves
-            	pos.thread()->killer_moves[1][pos.get_ply()] = pos.thread()->killer_moves[0][pos.get_ply()];
-            	pos.thread()->killer_moves[0][pos.get_ply()] = move_list->moves[move_count];
-			}
+		    // fail-hard beta cutoff
+		    /// @todo check fail-soft beta cutoff
+  	        if (score >= beta) {
+				TT::write_hash(beta, depth, hashfBETA, move_list->moves[move_count], pos);
+				if(!mInfo.capture) {
+					// store history moves
+	 	           pos.thread()->history_moves[mInfo.piece][mInfo.target] = std::max(pos.thread()->history_moves[mInfo.piece][mInfo.target], depth*depth);
+					// store killer moves
+  	          	pos.thread()->killer_moves[1][pos.get_ply()] = pos.thread()->killer_moves[0][pos.get_ply()];
+  	          	pos.thread()->killer_moves[0][pos.get_ply()] = move_list->moves[move_count];
+				}
 
-            // node(move) fails high
-            return beta;
-        }
+  	            // node(move) fails high
+  	            return beta;
+  	        }
         }
 	}	
 
@@ -424,7 +396,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 		}
     }
 
-	TT::write_hash(alpha, depth, hash_flag, pv_table[pos.get_ply()][pos.get_ply()], pos);
+	TT::write_hash(alpha, depth, hash_flag, pos.thread()->pvTable[pos.get_ply()][pos.get_ply()], pos);
 
     // node(move) fails low
     return alpha;
@@ -466,20 +438,20 @@ void Thread::search() {
 		pvr.str("");
 
 		// enable pv following
-		follow_pv = true;
+		followPV = true;
 
 		score = Search::negamax(alpha, beta, current_depth, rootPos);
 
 		if(Threads.stop)
 			break;
 
-		for(int count = 0; count < pv_length[0]; count++) {
+		for(int count = 0; count < pvLength[0]; count++) {
     	    // print PV moves
-			pvr << get_move_string(pv_table[0][count]); 
+			pvr << get_move_string(pvTable[0][count]); 
 			pvr << ' ';
     	}
 
-		bestmove = pv_table[0][0];
+		bestmove = pvTable[0][0];
 
 		if (score > -MateValue && score < -MateScore) 
 			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
@@ -555,25 +527,15 @@ void MainThread::check_time(){
 }
 
 void Search::clear(){
-	score_pv = false;
-	follow_pv = false;
-
-	/// @todo check for correctness
-    Search::repetition_index = 0;
-    memset(Search::repetition_table, 0ULL, sizeof(Search::repetition_table));
-
-
  	// clear helper datas for search
-    memset(pv_table, 0, sizeof(pv_table));
-    memset(pv_length, 0, sizeof(pv_length));	
 }
 
 int Search::is_repetition(const Position& pos)
 {
     // loop over repetition indicies range
-    for (int index = 0; index < Search::repetition_index; index++){
+    for (int index = 0; index < pos.repetition_index(); index++){
         // if we found the hash key same with a current
-        if (Search::repetition_table[index] == pos.key()){
+        if (pos.repetition_table(index) == pos.key()){
             // we found a repetition
             return 1;
 		}

@@ -13,7 +13,7 @@
 #include "misc.h"
 #include "tt.h"
 
-#define max_ply 64
+// #define max_ply 256 
 
 namespace Kojiro {
 
@@ -22,9 +22,6 @@ namespace Search{
 	uint64_t repetition_table[1000];
 	int repetition_index;
 }
-
-int killer_moves[2][max_ply] {0}; // killer moves [id][ply]
-int history_moves[12][64] = {0}; // history moves [piece][square]
 
 int pv_length[max_ply];
 int pv_table[max_ply][max_ply];
@@ -84,16 +81,16 @@ static int Search::score_move(int move, const Position& pos){
 	}
 	else{
 		// score 1st killer move
-        if (killer_moves[0][pos.get_ply()] == move)
+        if (pos.thread()->killer_moves[0][pos.get_ply()] == move)
             return 9000;
         
         // score 2nd killer move
-        else if (killer_moves[1][pos.get_ply()] == move)
+        else if (pos.thread()->killer_moves[1][pos.get_ply()] == move)
             return 8000;
         
         // score history move
         else
-			return history_moves[info.piece][info.target]; 
+			return pos.thread()->history_moves[info.piece][info.target]; 
 	}	
 	return 0;
 }
@@ -406,10 +403,10 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 			TT::write_hash(beta, depth, hashfBETA, move_list->moves[move_count], pos);
 			if(!mInfo.capture) {
 				// store history moves
-	            history_moves[mInfo.piece][mInfo.target] = std::max(history_moves[mInfo.piece][mInfo.target], depth*depth);
+	            pos.thread()->history_moves[mInfo.piece][mInfo.target] = std::max(pos.thread()->history_moves[mInfo.piece][mInfo.target], depth*depth);
 				// store killer moves
-            	killer_moves[1][pos.get_ply()] = killer_moves[0][pos.get_ply()];
-            	killer_moves[0][pos.get_ply()] = move_list->moves[move_count];
+            	pos.thread()->killer_moves[1][pos.get_ply()] = pos.thread()->killer_moves[0][pos.get_ply()];
+            	pos.thread()->killer_moves[0][pos.get_ply()] = move_list->moves[move_count];
 			}
 
             // node(move) fails high
@@ -570,8 +567,6 @@ void Search::clear(){
 
 
  	// clear helper datas for search
-    memset(killer_moves, 0, sizeof(killer_moves));
-    memset(history_moves, 0, sizeof(history_moves));
     memset(pv_table, 0, sizeof(pv_table));
     memset(pv_length, 0, sizeof(pv_length));	
 }

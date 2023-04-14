@@ -3,6 +3,7 @@
 #include "search.h"
 
 #include <cassert>
+#include <cstring>
 
 
 namespace Kojiro{
@@ -27,6 +28,9 @@ Thread::~Thread() {
 
 /// Thread::clear() reset histories, usually before a new game
 void Thread::clear() {
+    logger.logIt("thread clearing...\n", LOG);
+    memset(killer_moves, 0, sizeof(killer_moves));
+    memset(history_moves, 0, sizeof(history_moves));
 }
 
 /// Thread::start_searching() wakes up the thread that will start the search
@@ -54,8 +58,7 @@ void Thread::idle_loop() {
   // NUMA machinery is not needed.
 //   if (Options["Threads"] > 8)
 //       WinProcGroup::bindThisThread(idx);
-  while (true)
-  {
+  while (true) {
       std::unique_lock<std::mutex> lk(mutex);
       searching = false;
       cv.notify_one(); // Wake up anyone waiting for search finished
@@ -65,9 +68,9 @@ void Thread::idle_loop() {
           return;
 	  }
 
-      lk.unlock();
+        lk.unlock();
 
-      search();
+        search();
   }
 }
 
@@ -76,8 +79,7 @@ void Thread::idle_loop() {
 /// Upon resizing, threads are recreated to allow for binding if necessary.
 void ThreadPool::set(size_t requested) {
 
-  if (size() > 0)   // destroy any existing thread(s)
-  {
+  if (size() > 0) {   // destroy any existing thread(s)
       main()->wait_until_search_finished();
 
       while (size() > 0)
@@ -117,6 +119,8 @@ void ThreadPool::start_thinking(Position& pos, const Search::GameInfo& info, boo
 		th->depth = depth;
     th->rootPos.parse_fen(pos.get_fen(), &th->rootState, th);
     // th->rootState = state;
+    memset(th->killer_moves, 0, sizeof(th->killer_moves));
+    memset(th->history_moves, 0, sizeof(th->history_moves));
 	}
 	main()->start_searching();
 }

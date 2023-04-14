@@ -37,6 +37,8 @@ namespace Kojiro{
 			int depth;
 			StateInfo rootState;
 			Position rootPos;
+			int killer_moves[12][max_ply];
+			int history_moves[12][64];
 
 	};
 	

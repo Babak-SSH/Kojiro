@@ -56,9 +56,6 @@ static inline void perft_driver(int depth, Position& pos) {
 /// generates all moves and nodes and uses perft_driver.
 /// calculates the time spend for the depth given in ms.
 void perft_test(int depth, Position& pos) {
-    captures_count = 0;
-    enpassant_count = 0;
-    castles_count = 0;
     printf("\n     Performance test\n\n");
     
     nodes = 0;
@@ -89,7 +86,7 @@ void perft_test(int depth, Position& pos) {
     fmt::print("\nDepth: {:<6}\n", depth);
     fmt::print("Nodes: {:<6}\n", nodes);
     fmt::print("Time: {:<6}\n\n", get_time_ms() - start);
-    fmt::print("captures: {:<6}\nenpassant: {:<6}\ncastles: {:<6}\n", captures_count, enpassant_count, castles_count);
+    fmt::print("captures: {:<6}\nenpassant: {:<6}\ncastles: {:<6}\n", Threads.captures_searched(), Threads.enpassants_searched(), Threads.captures_searched());
 }
 
 

@@ -422,7 +422,7 @@ void Thread::search() {
 	else
 		printf("thread id: %ld\n", this->idx);
 
-	int score = 0;
+	int score = 0, totalNodes = 0;
 	std::stringstream pvr;
 	std::string output;
 	int bestmove;
@@ -452,22 +452,23 @@ void Thread::search() {
     	}
 
 		bestmove = pvTable[0][0];
+		totalNodes = Threads.nodes_searched();
 
 		if (score > -MateValue && score < -MateScore) 
 			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							-(score + MateValue) / 2 - 1, current_depth, alphabeta_nodes+quiescence_nodes,
+							-(score + MateValue) / 2 - 1, current_depth, totalNodes,
 							Time.getElapsed(), pvr.str());
 
 		else if (score > MateScore && score < MateValue)
 			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							(MateValue - score) / 2 + 1, current_depth, alphabeta_nodes+quiescence_nodes,
+							(MateValue - score) / 2 + 1, current_depth, totalNodes,
 							Time.getElapsed(), pvr.str());
 		else
 			output = fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							score, current_depth, alphabeta_nodes+quiescence_nodes,
+							score, current_depth, totalNodes,
 							Time.getElapsed(), pvr.str());
 
-		logger.logIt(fmt::format("alphabeta: {}, quiescence: {}", alphabeta_nodes, quiescence_nodes), LOG);
+		logger.logIt(fmt::format("alphabeta: {}, quiescence: {}", Threads.alphabeta_searched(), Threads.quiescence_searched()), LOG);
 		logger.logIt(output, LOG);
 		sync_cout << output << sync_endl;
 
@@ -496,10 +497,6 @@ void Thread::search() {
 
 	logger.logIt(output, LOG);
 	sync_cout << output << sync_endl;
-	// }
-	// else {
-		// printf("im still alive\n");
-	// }
 }
 
 /// @todo can we get pvr by tracing the hash table back?????

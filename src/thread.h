@@ -34,7 +34,7 @@ namespace Kojiro{
 			void wait_until_search_finished();
 			size_t id() const {return idx;}
 
-			std::atomic<uint64_t> nodes, alphabeta_nodes, quiescence_nodes;
+			std::atomic<uint64_t> nodes, alphabeta_nodes, quiescence_nodes, capture_count, enpassant_count, castle_count;
 			int depth;
 			StateInfo rootState;
 			Position rootPos;
@@ -65,6 +65,10 @@ namespace Kojiro{
 		uint64_t nodes_searched() const { return accumulate(&Thread::nodes); }
   		uint64_t alphabeta_searched() const { return accumulate(&Thread::alphabeta_nodes);}
   		uint64_t quiescence_searched() const { return accumulate(&Thread::quiescence_nodes);}
+  		uint64_t captures_searched() const { return accumulate(&Thread::capture_count);}
+  		uint64_t enpassants_searched() const { return accumulate(&Thread::enpassant_count);}
+  		uint64_t castels_searched() const { return accumulate(&Thread::castle_count);}
+
 		Thread* get_best_thread() const;
   		void start_searching();
   		void wait_until_search_finished() const;

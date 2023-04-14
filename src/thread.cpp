@@ -116,6 +116,7 @@ void ThreadPool::start_thinking(Position& pos, const Search::GameInfo& info, boo
 
 	for(Thread* th : *this){
     th->nodes = th->alphabeta_nodes = th->quiescence_nodes = 0;
+    th->capture_count = th->enpassant_count = th->castle_count = 0;
 		th->depth = depth;
     th->scorePV = false;
     th->followPV = true;

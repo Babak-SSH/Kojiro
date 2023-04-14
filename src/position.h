@@ -216,38 +216,6 @@ inline bool Position::is_square_attacked(int square, int side) const {
     return 0;
 }
 
-// piece bitboards
-extern uint64_t bitboards[12];
-
-// occupancy bitboards
-extern uint64_t occupancies[3];
-
-// side to move
-extern int side;
-
-// enpassant square
-extern int enpassant; 
-
-// castling rights
-extern int castle;
-
-extern int rule50;
-
-extern int play_count;
-
-// /**
-//  * @brief Initialize state variables.
-//  * 
-//  */
-// void init_state();
-
-extern long captures_count;
-extern long captures_flag;
-extern long enpassant_count;
-extern long enpassant_flag;
-extern long castles_count;
-extern long castles_flag;
-
 } // namespace Kojiro
 
 #endif

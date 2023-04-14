@@ -1,4 +1,5 @@
 #include "uci.h"
+#include "bitboard.h"
 #include "cons.h"
 #include "logger.h"
 #include "position.h"
@@ -11,8 +12,7 @@
 
 using namespace Kojiro;
 
-void UCI::go(Position& pos, std::istringstream& iss){
-
+void UCI::go(Position& pos, std::istringstream& iss) {
 	Search::GameInfo info;
 	int depth = 6;
 	std::string token;
@@ -31,13 +31,12 @@ void UCI::go(Position& pos, std::istringstream& iss){
 		else if (token == "binc")
 			iss >> info.inc[BLACK];
 	}
-
+	
 	//search best move
 	Threads.start_thinking(pos, info, false, depth);
 }
 
 void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
-
 	std::string token, fen;
 	int move;
 
@@ -154,7 +153,6 @@ void UCI::loop(int argc, char* argv[]) {
 		if(argc == 1 && !getline(std::cin, cmd)) {
 			cmd = "quit";
 		}
-
 		
 		std::istringstream iss(cmd);
 
@@ -185,11 +183,8 @@ void UCI::loop(int argc, char* argv[]) {
 			TT::clear_tt();
 		}
 		else if(token == "ucinewgame") {
-			// Position::init_state();
-			// Position::parse_fen(START_FEN);
 			TT::clear_tt();
 			Search::clear();
-			// Position::log_board();	
 		}	
 		else if (token == "setoption") {
 			set_option(iss);	

@@ -1,5 +1,6 @@
 #include "bitboard.h"
 #include "thread.h"
+#include <atomic>
 #include <cstddef>
 #include <istream>
 #include <sstream>
@@ -161,73 +162,6 @@ void Position::init_hash() {
 	Zobrist::side = get_random_U64_number();
 }
 
-/// misc function
-void init_start(){
-    // set black pawns
-    set_bit(bitboards[W_PAWN], a2);
-    set_bit(bitboards[W_PAWN], b2);
-    set_bit(bitboards[W_PAWN], c2);
-    set_bit(bitboards[W_PAWN], d2);
-    set_bit(bitboards[W_PAWN], e2);
-    set_bit(bitboards[W_PAWN], f2);
-    set_bit(bitboards[W_PAWN], g2);
-    set_bit(bitboards[W_PAWN], h2);
-    
-    // set black knights
-    set_bit(bitboards[W_KNIGHT], b1);
-    set_bit(bitboards[W_KNIGHT], g1);
-    
-    // set black bishops
-    set_bit(bitboards[W_BISHOP], c1);
-    set_bit(bitboards[W_BISHOP], f1);
-    
-    // set black rooks
-    set_bit(bitboards[W_ROOK], a1);
-    set_bit(bitboards[W_ROOK], h1);
-    
-    // set black queen & king
-    set_bit(bitboards[W_QUEEN], d1);
-    set_bit(bitboards[W_KING], e1);
-    
-    // set white pawns
-    set_bit(bitboards[B_PAWN], a7);
-    set_bit(bitboards[B_PAWN], b7);
-    set_bit(bitboards[B_PAWN], c7);
-    set_bit(bitboards[B_PAWN], d7);
-    set_bit(bitboards[B_PAWN], e7);
-    set_bit(bitboards[B_PAWN], f7);
-    set_bit(bitboards[B_PAWN], g7);
-    set_bit(bitboards[B_PAWN], h7);
-    
-    // set white knights
-    set_bit(bitboards[B_KNIGHT], b8);
-    set_bit(bitboards[B_KNIGHT], g8);
-    
-    // set white bishops
-    set_bit(bitboards[B_BISHOP], c8);
-    set_bit(bitboards[B_BISHOP], f8);
-    
-    // set white rooks
-    set_bit(bitboards[B_ROOK], a8);
-    set_bit(bitboards[B_ROOK], h8);
-    
-    // set white queen & king
-    set_bit(bitboards[B_QUEEN], d8);
-    set_bit(bitboards[B_KING], e8);
-    
-    // init side
-    side = WHITE;
-    
-    // init enpassant
-    enpassant = no_sq;
-    
-    // init castling
-    castle |= WK;
-    castle |= WQ;
-    castle |= BK;
-    castle |= BQ;
-}
-
 void Position::take_back() {
     if (st->previous != NULL)
         st = st->previous;
@@ -386,17 +320,15 @@ void Position::set_piece(Piece p, int sq){
     st->occupancies[2] |= st->bitboards[p];
 }
 
-long captures_count = 0;
-long captures_flag = 0;
-long enpassant_count = 0;
-long enpassant_flag = 0;
-long castles_count = 0;
-long castles_flag = 0;
+
 /// @todo check if assinging a variable is faster than getting it from structure.
 /// change the state and position according to the given move if the move is legal and assigning 
 /// the current state to the previous state so we can undo the move in take_back function.
 int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
     moveInfo m = decode_move(move);
+    long captures_flag = 0;
+    long enpassant_flag = 0;
+    long castles_flag = 0;
 
 	if(move_flag == 2 && !m.capture)
 		return 0;
@@ -547,17 +479,15 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
         }
         else {
             if (depth == 1 && move_flag == 1) {  
-            if (captures_flag)
-                captures_count++;
-            if (enpassant_flag)
-                enpassant_count++;
-            if (castles_flag)
-                castles_count++;
+                if (captures_flag)
+                    thisTh->capture_count++;
+                if (enpassant_flag)
+                    thisTh->enpassant_count++;
+                if (castles_flag)
+                    thisTh->castle_count++;
             }
-            captures_flag=0;
-            enpassant_flag = 0;
-            castles_flag = 0;
-
+            
+            thisTh->nodes.fetch_add(1, std::memory_order_relaxed);
             ply++;
             repetitionIndex++;
 
@@ -565,10 +495,6 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
         }
     }
     else{
-        captures_flag=0;
-		enpassant_flag = 0;
-		castles_flag = 0;
-		
         // not this sides turn
         return 0;
     }

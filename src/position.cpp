@@ -27,25 +27,6 @@ namespace Zobrist {
 	uint64_t side;
 }
 
-// piece bitboards
-uint64_t bitboards[12];
-
-// occupancy bitboards
-uint64_t occupancies[3];
-
-// side to move
-int side = WHITE;
-
-// enpassant square
-int enpassant = no_sq; 
-
-// castling rights
-int castle = 0;
-
-int rule50 = 0;
-
-int play_count = 0;
-
 /// logging board in a file with ascii(alphabet) represention.
 void Position::log_board(){
     int sq;
@@ -172,22 +153,32 @@ void Position::take_back() {
 string Position::get_fen() {
     std::stringstream fen;
     bool empty = true;
+    int space = 0;
 
     // encode pieces
     for(int sq = 0; sq < 64; sq++) {
-        
         for(int piece = W_PAWN; piece <= B_KING; piece++) {
             if (get_bit(st->bitboards[piece], sq)) {
+                if (space > 0) {
+                    fen << space;
+                    space = 0;
+                }
                 fen << ascii_pieces[piece];
                 empty = false;
             }
         }
         
-        if ((sq+1) % 8 == 0) {
-            if (empty)
-                fen << '8';
+        if (empty)
+            space++;
+
+        if (sq < 63 && (sq+1) % 8 == 0) {
+            if (space > 0) {
+                fen << space;
+                space = 0;
+            }
             fen << '/';
         }
+
         empty = true;
     }
 
@@ -213,14 +204,14 @@ string Position::get_fen() {
 
     // encode enpassant
     if (st->enpassant != no_sq)
-        fen << convert_to_square[st->enpassant];
+        fen << convert_to_square[st->enpassant] << ' ';
     else
         fen << "- ";
 
     // encode rule50 and play count
     fen << fmt::to_string(st->rule50);
     fen << ' ';
-    fen << fmt::to_string(st->play_count);
+    fen << fmt::to_string((st->play_count+1)/2);
     
     return fen.str();
 }
@@ -384,11 +375,14 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
         st->enpassant = no_sq;
 
         if (m.double_push){
-            (st->side) ? st->enpassant = m.target - 8 :
+            if (((m.target+1)%8!=0 && (st->bitboards[(st->side) ? P : p] & (1ULL << (m.target+1)))) || 
+                ((m.target-1)%8!=0 && (st->bitboards[(st->side) ? P : p] & (1ULL << (m.target-1))))) {
+                (st->side) ? st->enpassant = m.target - 8 :
                     st->enpassant = m.target + 8;
 
-			(st->side) ? st->key ^= Zobrist::enpassant[m.target - 8] :
+			    (st->side) ? st->key ^= Zobrist::enpassant[m.target - 8] :
                     st->key ^= Zobrist::enpassant[m.target + 8];
+            }
         }
 
         if (m.castling){

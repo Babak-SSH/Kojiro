@@ -43,8 +43,6 @@ void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
 	iss >> token;
 
 	if(token == "startpos") {
-		// Position::init_state();
-		// Position::parse_fen(START_FEN);
 		pos.parse_fen(START_FEN, &state, Threads.main());
 		iss >> token;
 	}
@@ -53,8 +51,7 @@ void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
 		{
 			fen += token + " ";
 		}
-		// Position::init_state();
-		// Position::parse_fen(fen);
+		state = StateInfo();
 		pos.parse_fen(fen, &state, Threads.main());
 	}
 	if(token == "moves") {
@@ -64,12 +61,11 @@ void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
 			if(!move)
 				break;
 
-			StateInfo st;
-			pos.make_move(move, 1, st);
+			pos.make_move(move, 1, state);
 		}
 	}
 
-	// Position::log_board();
+	pos.log_board();
 }
 
 int UCI::parse_move(std::string mov, const Position& pos) {

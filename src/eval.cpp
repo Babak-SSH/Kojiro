@@ -120,7 +120,7 @@ int evaluation(const Position& pos) {
                             BishopPosValue[EG][sq] * (MidgameLimit - phase_score))/MidgameLimit;
 
                     /// mobility of bishop
-                    score += count_bits(get_bishop_attacks(sq, occupancies[NO_COLOR]));
+                    score += count_bits(get_bishop_attacks(sq, pos.occupancies(NO_COLOR)));
                     
                     break;
 
@@ -161,7 +161,7 @@ int evaluation(const Position& pos) {
                         // score -= semi_open_file_score;
 
                     /// king safety bonus
-                    score += count_bits(king_attacks[sq] & occupancies[WHITE]) * king_shield_bonus;
+                    score += count_bits(king_attacks[sq] & pos.occupancies(WHITE)) * king_shield_bonus;
 
                     break;
 
@@ -197,7 +197,7 @@ int evaluation(const Position& pos) {
 
                     /// mobility of bishop
                     /// @todo find an efficient way to find sq threatened by bishops
-                    score -= count_bits(get_bishop_attacks(sq, occupancies[NO_COLOR]));
+                    score -= count_bits(get_bishop_attacks(sq, pos.occupancies(NO_COLOR)));
                     
                     break;
 
@@ -237,7 +237,7 @@ int evaluation(const Position& pos) {
                     //     score += semi_open_file_score;
 
                     // king safety bonus
-                    score -= count_bits(king_attacks[sq] & occupancies[BLACK]) * king_shield_bonus;
+                    score -= count_bits(king_attacks[sq] & pos.occupancies(BLACK)) * king_shield_bonus;
 
                     break;
             }

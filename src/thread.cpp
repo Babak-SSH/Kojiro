@@ -1,4 +1,5 @@
 #include "thread.h"
+#include "bitboard.h"
 #include "logger.h"
 #include "search.h"
 
@@ -117,6 +118,7 @@ void ThreadPool::start_thinking(Position& pos, const Search::GameInfo& info, boo
 	for(Thread* th : *this){
     th->nodes = th->alphabeta_nodes = th->quiescence_nodes = 0;
     th->capture_count = th->enpassant_count = th->castle_count = 0;
+    th->score = 0;
 		th->depth = depth;
     th->scorePV = false;
     th->followPV = true;
@@ -127,25 +129,32 @@ void ThreadPool::start_thinking(Position& pos, const Search::GameInfo& info, boo
     memset(th->pvLength, 0, sizeof(th->pvLength));
     memset(th->pvTable, 0, sizeof(th->pvTable));
 	}
+
 	main()->start_searching();
 }
 
+Thread* ThreadPool::get_best_thread() const {
+  Thread* bestThread = front();
+
+  for(Thread* th: *this) {
+    if (bestThread->score < th->score)
+        bestThread = th;
+  }
+
+  return bestThread;
+}
 /// Start non-main threads
 void ThreadPool::start_searching() {
     for (Thread* th : *this)
-        if (th != front()){
-          printf("non-main thread start searching\n");
+        if (th != front())
             th->start_searching();
-        }
 }
 
 /// Wait for non-main threads
 void ThreadPool::wait_until_search_finished() const {
     for (Thread* th : *this)
-        if (th != front()){
-          printf("wait until non-main thread search finished\n");
+        if (th != front())
             th->wait_until_search_finished();
-        }
 }
 
 }

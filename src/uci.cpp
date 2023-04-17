@@ -133,7 +133,6 @@ void UCI::set_option(std::istringstream& iss) {
 	}
 	else if (name == "Threads") {
 		Threads.set(value);
-		printf("Threads created: %d\n", value);
 	}
 }
 

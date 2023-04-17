@@ -43,6 +43,7 @@ namespace Kojiro{
 			int pvLength[MaxPly];
 			int pvTable[MaxPly][MaxPly];
 			bool scorePV, followPV;
+			int score;
 
 	};
 	

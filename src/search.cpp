@@ -411,21 +411,24 @@ void MainThread::search() {
 	Threads.stop = true;
 
 	Threads.wait_until_search_finished();
+
+	Thread* bestThread = this;
+
+	bestThread = Threads.get_best_thread();
+
+	std::string output = fmt::format("bestmove {}", get_move_string(pvTable[0][0]));
+
+	logger.logIt(output, LOG);
+	sync_cout << output << sync_endl;
 }
 
 void Thread::search() {
 	// clear(reset) helper data(globals)
 	Search::clear();
 
-	if (this == Threads.main()) //{
-		printf("in main thread\n");
-	else
-		printf("thread id: %ld\n", this->idx);
-
-	int score = 0, totalNodes = 0;
+	int totalNodes = 0;
 	std::stringstream pvr;
 	std::string output;
-	int bestmove;
 
     int alpha = -50000;
     int beta = 50000;
@@ -444,34 +447,33 @@ void Thread::search() {
 
 		if(Threads.stop)
 			break;
+		if (this == Threads.main()) {
+			for(int count = 0; count < pvLength[0]; count++) {
+	    	    // print PV moves
+				pvr << get_move_string(pvTable[0][count]); 
+				pvr << ' ';
+	    	}
 
-		for(int count = 0; count < pvLength[0]; count++) {
-    	    // print PV moves
-			pvr << get_move_string(pvTable[0][count]); 
-			pvr << ' ';
-    	}
+			totalNodes = Threads.nodes_searched();
 
-		bestmove = pvTable[0][0];
-		totalNodes = Threads.nodes_searched();
+			if (score > -MateValue && score < -MateScore)
+				output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+								-(score + MateValue) / 2 - 1, current_depth, totalNodes,
+								Time.getElapsed(), pvr.str());
 
-		if (score > -MateValue && score < -MateScore) 
-			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							-(score + MateValue) / 2 - 1, current_depth, totalNodes,
-							Time.getElapsed(), pvr.str());
+			else if (score > MateScore && score < MateValue)
+				output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+								(MateValue - score) / 2 + 1, current_depth, totalNodes,
+								Time.getElapsed(), pvr.str());
+			else
+				output = fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
+								score, current_depth, totalNodes,
+								Time.getElapsed(), pvr.str());
 
-		else if (score > MateScore && score < MateValue)
-			output = fmt::format("info score mate {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							(MateValue - score) / 2 + 1, current_depth, totalNodes,
-							Time.getElapsed(), pvr.str());
-		else
-			output = fmt::format("info score cp {:<6} depth {:<4} nodes {:<12} time {:<12} pv {:<50}", 
-							score, current_depth, totalNodes,
-							Time.getElapsed(), pvr.str());
-
-		logger.logIt(fmt::format("alphabeta: {}, quiescence: {}", Threads.alphabeta_searched(), Threads.quiescence_searched()), LOG);
-		logger.logIt(output, LOG);
-		sync_cout << output << sync_endl;
-
+			logger.logIt(fmt::format("alphabeta: {}, quiescence: {}", Threads.alphabeta_searched(), Threads.quiescence_searched()), LOG);
+			logger.logIt(output, LOG);
+			sync_cout << output << sync_endl;
+		}
 		// outside the window so we need to check again from scratch. 	
 		if ((score <= alpha) || (score >= beta)) {
             alpha = -50000;    
@@ -492,11 +494,6 @@ void Thread::search() {
 			}
 		}
 	}
-
-	output = fmt::format("bestmove {}", get_move_string(bestmove));
-
-	logger.logIt(output, LOG);
-	sync_cout << output << sync_endl;
 }
 
 /// @todo can we get pvr by tracing the hash table back?????
@@ -514,7 +511,7 @@ void Thread::search() {
 // 	}
 // }
 
-void MainThread::check_time(){
+void MainThread::check_time() {
 	/// @todo log information each 1000 ms 
 	TimePoint elapsed = Time.getElapsed();
 
@@ -527,8 +524,7 @@ void Search::clear(){
  	// clear helper datas for search
 }
 
-int Search::is_repetition(const Position& pos)
-{
+int Search::is_repetition(const Position& pos) {
     // loop over repetition indicies range
     for (int index = 0; index < pos.repetition_index(); index++){
         // if we found the hash key same with a current
@@ -540,4 +536,5 @@ int Search::is_repetition(const Position& pos)
     // if no repetition found
     return 0;
 }
+
 } // namespace Kojiro

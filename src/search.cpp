@@ -117,7 +117,8 @@ static int Search::quiescence(int alpha, int beta, Position& pos) {
 		static_cast<MainThread*>(pos.thread())->check_time();
 
 	if(Threads.stop)
-		return 0;
+		return -InfinityValue;
+
 	int pv_node = (beta - alpha) > 1;
 	// probe hash entry
 	int score = TT::probe_hash(alpha, beta, 0, pos);
@@ -153,6 +154,9 @@ static int Search::quiescence(int alpha, int beta, Position& pos) {
 		}
 
 		int score = -Search::quiescence(-beta, -alpha, pos);
+
+		if (abs(score) == InfinityValue)
+			return InfinityValue;
 
 		pos.take_back();
 
@@ -193,7 +197,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 		static_cast<MainThread*>(pos.thread())->check_time();
 
 	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[pos.side()]))
-		return 0;
+		return -InfinityValue;
 
 	int hash_flag = hashfALPHA;
 
@@ -269,9 +273,13 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 		if(temp_enp != no_sq)
 			pos.state()->key ^= Zobrist::enpassant[temp_enp];
 
+		if (Threads.stop)
+			return InfinityValue;
+
 		if (score >= beta)
 			return beta;
 	}
+
 
 	/// razoring
 	if (!pv_node && !in_check && depth <= 3) {
@@ -279,16 +287,24 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 		svalue = eval + 125;
 
 		// fail-low node
-		if (svalue < beta)
+		if (svalue < beta) {
 			if (depth == 1) {
 				qvalue = quiescence(alpha, beta, pos);
+				if (abs(qvalue) == InfinityValue)
+					return InfinityValue;
+
 				return std::max(qvalue, svalue);
 			}
 
-		svalue += 175;
-		if (score < beta && depth <= 2) {
-			if (qvalue < beta)
-				return std::max(qvalue, svalue);	
+			svalue += 175;
+			if (score < beta && depth <= 2) {
+				qvalue = quiescence(alpha, beta, pos);
+				if (abs(qvalue) == InfinityValue)
+					return InfinityValue;
+
+				if (qvalue < beta)
+					return std::max(qvalue, svalue);	
+			}
 		}
 	}
 
@@ -343,6 +359,9 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
                     score = -negamax(-beta, -alpha, depth-1, pos);
             }
 		}
+
+		if (Threads.stop)
+			return InfinityValue;
 
 		pos.take_back();
 	
@@ -408,15 +427,13 @@ void MainThread::search() {
 
 	Thread::search();
 
-	Threads.stop = true;
-
 	Threads.wait_until_search_finished();
 
 	Thread* bestThread = this;
 
 	bestThread = Threads.get_best_thread();
 
-	std::string output = fmt::format("bestmove {}", get_move_string(pvTable[0][0]));
+	std::string output = fmt::format("bestmove {}", get_move_string(bestMove));
 
 	logger.logIt(output, LOG);
 	sync_cout << output << sync_endl;
@@ -434,6 +451,7 @@ void Thread::search() {
     int beta = 50000;
  
 	for (int current_depth = 1; current_depth <= depth; current_depth++){
+		int searchScore = 0;
 		alphabeta_nodes = 0;
 		quiescence_nodes = 0;
 
@@ -443,10 +461,16 @@ void Thread::search() {
 		// enable pv following
 		followPV = true;
 
-		score = Search::negamax(alpha, beta, current_depth, rootPos);
+		searchScore = Search::negamax(alpha, beta, current_depth, rootPos);
+
+		if (abs(searchScore) != InfinityValue) {
+			bestMove = pvTable[0][0];
+			score = searchScore;
+		}
 
 		if(Threads.stop)
 			break;
+
 		if (this == Threads.main()) {
 			for(int count = 0; count < pvLength[0]; count++) {
 	    	    // print PV moves

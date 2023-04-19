@@ -44,6 +44,7 @@ namespace Kojiro{
 			int pvTable[MaxPly][MaxPly];
 			bool scorePV, followPV;
 			int score;
+			int bestMove;
 
 	};
 	

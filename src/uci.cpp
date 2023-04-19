@@ -155,9 +155,6 @@ void UCI::loop(int argc, char* argv[]) {
       	iss >> std::skipws >> token;
 
 		if(token == "quit" || token == "stop") {
-			TT::clear_tt();
-			Search::clear();
-			delete TT::tt;
 			Threads.stop = true;
 		}
 

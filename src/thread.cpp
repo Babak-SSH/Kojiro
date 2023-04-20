@@ -29,7 +29,6 @@ Thread::~Thread() {
 
 /// Thread::clear() reset histories, usually before a new game
 void Thread::clear() {
-    logger.logIt("thread clearing...\n", LOG);
     memset(killer_moves, 0, sizeof(killer_moves));
     memset(history_moves, 0, sizeof(history_moves));
 }

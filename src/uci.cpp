@@ -148,7 +148,9 @@ void UCI::loop(int argc, char* argv[]) {
 		if(argc == 1 && !getline(std::cin, cmd)) {
 			cmd = "quit";
 		}
-		
+
+		logger.logIt(cmd, LOG);
+
 		std::istringstream iss(cmd);
 
       	token.clear(); // Avoid a stale if getline() returns empty or blank line

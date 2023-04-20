@@ -43,7 +43,7 @@ void init_hash_table(int mb) {
     // clear hash table
     clear_tt();
 
-    logger.logIt(fmt::format("Hash table is initialied with {} entries\n", hash_size), LOG);
+    logger.logIt(fmt::format("Hash table is initialied with {} entries", hash_size), LOG);
 }
 
 /// read transposition table entries data and find the proper score or return no_hash_entry

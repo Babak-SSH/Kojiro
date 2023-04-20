@@ -30,6 +30,8 @@ void UCI::go(Position& pos, std::istringstream& iss) {
 			iss >> info.inc[WHITE];
 		else if (token == "binc")
 			iss >> info.inc[BLACK];
+		else if (token == "movetime")
+			iss >> info.movetime;
 	}
 	
 	//search best move

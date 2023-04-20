@@ -196,7 +196,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	if (pos.thread() == Threads.main())
 		static_cast<MainThread*>(pos.thread())->check_time();
 
-	if(Threads.stop || (Search::Info.use_time() && Time.getElapsed() > Search::Info.time[pos.side()]))
+	if(Threads.stop)
 		return -InfinityValue;
 
 	int hash_flag = hashfALPHA;
@@ -508,13 +508,21 @@ void Thread::search() {
         	alpha = score - 50;
         	beta = score + 50;
 		}
-		
+	
 		if (Search::Info.use_time()) {
-			if (Time.getElapsed() > Time.getOptimum()) {
+			if (Time.getElapsed() > Time.getOptimum())
+				Threads.stop = true;
+
+			else if (Time.getElapsed() < Time.getOptimum() * 0.8)
+				depth++;
+		}
+		else if (Search::Info.movetime) {
+			if (Time.getElapsed() > Search::Info.movetime * 0.9) {
+				Search::Info.movetime = TimePoint(0);
 				Threads.stop = true;
 			}
-			else if(Time.getElapsed() < Time.getOptimum() * 0.8) {
-				depth++;
+			else {
+			 	depth++;
 			}
 		}
 	}
@@ -538,9 +546,14 @@ void Thread::search() {
 void MainThread::check_time() {
 	/// @todo log information each 1000 ms 
 	TimePoint elapsed = Time.getElapsed();
-
 	if (Search::Info.use_time() && (elapsed > Time.getMaximum() || Time.getElapsed() > Time.getOptimum())){
 		Threads.stop = true;
+	}
+	else if (Search::Info.movetime) {
+		if (elapsed > Search::Info.movetime * 0.95) {
+			Search::Info.movetime = TimePoint(0);
+			Threads.stop = true;
+		}
 	}
 }
 

@@ -12,7 +12,7 @@ TEST_OBJECTS = ../tests/perft.o ./bishop.o ./cons.o ./king.o ./move.o ./movegen.
 			   ./search.o ./thread.o ./logger.o ./timeman.o ./tt.o
 
 
-main: $(OBJECTS)
+kojiro: $(OBJECTS)
 	$(CXX) $(LDFLAGS) -o $@ $^ -pthread
 
 debug: $(OBJECTS)
@@ -23,7 +23,7 @@ perft: $(TEST_OBJECTS)
 
 clean:
 	rm ./debug
-	rm ./main
+	rm ./kojiro
 	rm ./perft
 
 # Help Target

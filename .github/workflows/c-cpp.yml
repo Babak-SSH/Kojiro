@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: make perft test
+      working-directory: ./src
+      run: make perft
+    - name: make kojiro chess engine
+      working-directory: ./src
+      run: make kojiro

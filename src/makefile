@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -Ofast -std=c++20 -lrt -DUSE_PTHREADS
 LDFLAGS = -lrt -DUSE_PTHREADS
-CXXFLAGS_DEBUG = -Ofast -g
+CXXFLAGS_DEBUG = -Ofast -DDEBUG -g
 
 OBJECTS = ./kojiro.o ./bishop.o ./cons.o ./king.o ./move.o ./movegen.o ./position.o ./magic.o \
 		  ./rook.o ./bitboard.o ./knight.o ./pawn.o ./queen.o ./uci.o ./eval.o ./search.o \
@@ -16,7 +16,7 @@ kojiro: $(OBJECTS)
 	$(CXX) $(LDFLAGS) -o $@ $^ -pthread
 
 debug: $(OBJECTS)
-	$(CXX) $(CXXFLAGS_DEBUG) -o $@ $^
+	$(CXX) $(CXXFLAGS_DEBUG) -o $@ $^ -pthread
 
 perft: $(TEST_OBJECTS)
 	$(CXX) $(LDFLAGS) -o $@ $^ -pthread

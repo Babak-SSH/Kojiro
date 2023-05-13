@@ -31,7 +31,7 @@ int get_bit(uint64_t bitboard, int sq) {
 
 /// change 1s to 0 using xor operator.
 void pop_bit(uint64_t &bitboard, int sq) {
-    /// @TODO &= ~
+    /// @todo &= ~
     bitboard ^= (1ull << sq);
 }
 

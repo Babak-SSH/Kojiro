@@ -5,8 +5,7 @@ namespace Kojiro {
 
 uint64_t knight_attacks[64];
 
-/// masking squares that can be attacked by the 
-/// specified knight.
+/// masking squares that can be attacked by the specified knight.
 uint64_t mask_knight_attacks(int square){
     uint64_t attacks = 0ull;
     uint64_t mask_bitboard = 0ull;

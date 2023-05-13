@@ -224,9 +224,6 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	if(pos.get_ply() > MaxPly-1)
 		return Eval::evaluation(pos);
 
-    // int in_check = is_square_attacked((st->side == WHITE) ? get_ls1b_index(st->bitboards[K]) : 
-                                                        // get_ls1b_index(st->bitboards[k]),
-                                                        // (st->side) ^ 1);
 	in_check = pos.is_check();
 
 	/// @todo check if increasing depth when king is in check can cause huge node increament in certain cases or not.
@@ -527,21 +524,6 @@ void Thread::search() {
 		}
 	}
 }
-
-/// @todo can we get pvr by tracing the hash table back?????
-// void Search::get_pv() {
-// 	TTEntry *hash_entry = &tt[st->key % hash_size];
-// 	// getchar();
-// 	int joke = hash_entry->move;
-// 	StateInfo nst;
-
-// 	if(joke!=0) {
-// 		joke_pvr << get_move_string(joke);
-// 		make_move(joke, 1, nst);
-// 		Search::get_pv();
-// 		take_back();
-// 	}
-// }
 
 void MainThread::check_time() {
 	/// @todo log information each 1000 ms 

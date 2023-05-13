@@ -164,7 +164,9 @@ void UCI::loop(int argc, char* argv[]) {
 
 		else if(token == "uci") {
 			sync_cout << "id name kojiro\n"
-			  << "id author babak sefidgar\n"
+			  << "id author babak-ssh \n"
+			  << "option name Threads default 1\n"
+			  << "option name Hash default 250 min 1 max 250\n"
 			  << "uciok"
 			  << sync_endl;
 		}

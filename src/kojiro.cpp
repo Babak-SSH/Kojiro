@@ -23,8 +23,11 @@
 using namespace Kojiro;
 
 void init_all() {
-    // sliders
+    /// init_magic generates the magic hashes for leaper pieces,
+    /// it only needs to run once if you chnage the random seed.
     // init_magic();
+
+    // sliders
     init_rook_attacks();
     init_bishop_attacks();
     
@@ -41,15 +44,9 @@ void init_all() {
 }
 
 int main(int argc, char* argv[]){
-	int debug = 0;
-
 	logger.setDebug(true);
 
     init_all();
-
-	// Position::init_state();
-	// Position::parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
 	Threads.set(size_t(1));
 
 	UCI::loop(argc, argv);

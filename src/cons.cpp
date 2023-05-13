@@ -73,4 +73,5 @@ const int castling_rights[64] = {
 // ASCII pieces
 const std::string ascii_pieces("PNBRQKpnbrqk");
 
+// normal chess standard position fen
 const std::string START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 

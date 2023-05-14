@@ -91,4 +91,5 @@ there are many techniques and features that will be added:
     - Checks priority
     - En-passant priority
 - Xboard protocol
+- windows support
 - wiki

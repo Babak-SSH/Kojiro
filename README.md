@@ -7,7 +7,7 @@ An UCI-compatible Chess Engine written in C++
 
 ## Description
 
-Kojiro is a free, UCI chess engine written from scratch in C++(20), it uses well-known concepts used in chess programming for many decades.
+**Kojiro** is a free, UCI chess engine written from scratch in C++,which i have developed for fun and to learn about chess programming, it uses well-known concepts used in chess programming for many decades and a lot of ideas are taken from *chessprogramming wiki* and *talk chess* forum and open-source engines.
 
 ## Features
 - Search:
@@ -18,7 +18,7 @@ Kojiro is a free, UCI chess engine written from scratch in C++(20), it uses well
     - Razoring
     - Late Move Reductions
     - Quiescence Search
-    - Lazy SMP
+    - Multi Threads(Lazy SMP)
 - Move Ordering:
     - Hash Move
     - TT Move
@@ -35,6 +35,7 @@ Kojiro is a free, UCI chess engine written from scratch in C++(20), it uses well
     - Zobrist Hashing
     - Transposition Table
     - logging
+    - UCI
 
 ## Usage
 
@@ -63,3 +64,31 @@ usage:
 ./perft depth fen
 ./perft 5 rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 ```
+
+### inspiring open-source chess-engines:
+- BBC by Maksim Korzh
+- Stockfish by Tord Romstad, Joona Kiiski, Gary Linscott, Marco Costalba
+- Rustic by Marcel Vanthoor 
+- Vice by BlueFeverSoft
+
+### Kojiro is still under develop
+there are many techniques and features that will be added:
+- use more modern cpp features to enhance the performance
+- better evalution
+    - pawn (push, shield)
+    - center control, castling
+    - piece pair, blocked pieces
+- futility prunning (in alpha-beta and quiescence)
+- time distribution model for time management of moves
+- opening books
+- Syzygy support
+- NNUE
+- internal iterative deepening
+- better sorting
+    - Counter
+    - LastCaptureBonus
+    - SEE
+    - Checks priority
+    - En-passant priority
+- Xboard protocol
+- wiki

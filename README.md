@@ -1,7 +1,7 @@
 # Kojiro
 
 ![tests](https://github.com/Babak-SSH/Kojiro/actions/workflows/c-cpp.yml/badge.svg)
-<img src="https://img.shields.io/static/v1?label=&message=v1.0&color=blue&style=plastic">
+<img src="https://img.shields.io/static/v1?label=&message=v0.1&color=blue&style=plastic">
 
 An UCI-compatible Chess Engine written in C++
 

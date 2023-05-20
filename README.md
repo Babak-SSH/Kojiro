@@ -78,6 +78,7 @@ there are many techniques and features that will be added:
     - pawn (push, shield)
     - center control, castling
     - piece pair, blocked pieces
+- more tests
 - futility prunning (in alpha-beta and quiescence)
 - time distribution model for time management of moves
 - opening books

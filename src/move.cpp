@@ -3,6 +3,18 @@
 
 namespace Kojiro {
 
+// promoted pieces
+static char promoted_pieces[] = {
+    'q',
+    'r',
+    'b',
+    'n',
+    'Q',
+    'R',
+    'B',
+    'N'
+};
+
 /*
           binary move bits                               hexidecimal constants
     
@@ -43,15 +55,14 @@ moveInfo decode_move(int move){
 }
 
 // get move ( used in UCI communication )
-std::string get_move_string(int move)
-{
+std::string get_move_string(int move) {
     moveInfo info = decode_move(move);
 	std::string move_string = "";
 	std::stringstream ss;
 
 	ss << convert_to_square[info.source] << convert_to_square[info.target];
-    if (info.promoted)
-        ss << promoted_pieces[info.promoted];
+
+    if (info.promoted) {ss << promoted_pieces[info.promoted];}
 
 	move_string = ss.str();
 
@@ -59,8 +70,7 @@ std::string get_move_string(int move)
 }
 
 // print move list (help to debug)
-void print_move_list(moves *move_list)
-{
+void print_move_list(moves *move_list) {
     if (!move_list->count)
     {
         fmt::print("\n     No move in the move list!\n");

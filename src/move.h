@@ -33,18 +33,6 @@ struct moveInfo
     int castling;
 };
 
-// promoted pieces
-static char promoted_pieces[] = {
-    'q',
-    'r',
-    'b',
-    'n',
-    'Q',
-    'R',
-    'B',
-    'N'
-};
-
 /**
  * @brief encode move data
  * 

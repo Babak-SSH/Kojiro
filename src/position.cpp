@@ -1,10 +1,12 @@
 #include "bitboard.h"
+#include "misc.h"
 #include "thread.h"
 #include <atomic>
 #include <cstddef>
 #include <istream>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
@@ -124,8 +126,6 @@ uint64_t Position::generate_hash_key() {
 }
 
 void Position::init_hash() {
-	// random seed. 1804289383 is the first number generated with rand() function in "linux"
-	unsigned int seed_state = 1804289383;
 	for(int bb_piece=W_PAWN;bb_piece <= B_KING;bb_piece++) {
 		for(int sq=0; sq < 64; sq++){
 			Zobrist::psq[bb_piece][sq] = get_random_U64_number();
@@ -233,7 +233,8 @@ Position& Position::parse_fen(const string& fen, StateInfo* state, Thread* th){
     memset(repetitionTable, 0, sizeof(repetitionTable));
     repetitionIndex = 0;
 
-    int square = 0, idx, file, rank;
+    int square = 0, file, rank;
+    std::size_t idx;
     unsigned char token;
     std::istringstream iss (fen);
     // don't skip whitespaces
@@ -244,10 +245,14 @@ Position& Position::parse_fen(const string& fen, StateInfo* state, Thread* th){
             square += token - '0'; // advance the given number of files
         }
         // consider '/' ?
-        else if ((idx = ascii_pieces.find(token)) != string::npos){
-            set_piece(Piece(idx), square);
-            square++;
+        else {
+            idx = ascii_pieces.find(token);
+            if (idx != string::npos){
+                set_piece(Piece(idx), square);
+                square++;
+            }
         }
+        
     }
 
     // side
@@ -375,13 +380,12 @@ int Position::make_move(int move, int move_flag, StateInfo& newSt, int depth){
         st->enpassant = no_sq;
 
         if (m.double_push){
-            if (((m.target+1)%8!=0 && (st->bitboards[(st->side) ? P : p] & (1ULL << (m.target+1)))) || 
-                ((m.target-1)%8!=0 && (st->bitboards[(st->side) ? P : p] & (1ULL << (m.target-1))))) {
-                (st->side) ? st->enpassant = m.target - 8 :
-                    st->enpassant = m.target + 8;
+            if (((not_H_file&(1<<m.target)) && (st->bitboards[(st->side) ? P : p] & (1ULL << (m.target+1)))) || 
+                ((not_A_file&(1<<m.target)) && (st->bitboards[(st->side) ? P : p] & (1ULL << (m.target-1))))) {
+                    st->enpassant = (st->side) ? m.target - 8 : m.target + 8;
 
-			    (st->side) ? st->key ^= Zobrist::enpassant[m.target - 8] :
-                    st->key ^= Zobrist::enpassant[m.target + 8];
+			        (st->side) ? st->key ^= Zobrist::enpassant[m.target - 8] :
+                        st->key ^= Zobrist::enpassant[m.target + 8];
             }
         }
 

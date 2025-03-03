@@ -42,7 +42,7 @@ void MyDebugger::logIt(const std::string message, int type) {
 	}
 }
 
-inline std::string MyDebugger::getCurrentDateTime( std::string s ) {
+std::string MyDebugger::getCurrentDateTime( std::string s ) {
     time_t now = time(0);
     struct tm  tstruct;
     char  buf[80];
@@ -52,5 +52,5 @@ inline std::string MyDebugger::getCurrentDateTime( std::string s ) {
     else if(s=="date")
         strftime(buf, sizeof(buf), "%Y-%m-%d", &tstruct);
     return std::string(buf);
-};
+}
 }

@@ -2,6 +2,7 @@
 #include "eval.h"
 #include "movegen.h"
 #include <atomic>
+#include <vector>
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
@@ -19,6 +20,56 @@ namespace Kojiro {
 
 namespace Search{
 	GameInfo Info;
+
+	/**
+	 * @brief check pv(principle variation) scoring.
+	 * 
+	 * @param move_list 
+	 */
+	static void enable_pv_scoring(moves *move_list, const Position& pos);
+
+	/**
+	 * @brief score moves depending on their type (capture, quite, killer,...)
+	 * 
+	 * @param move 
+	 * @return int 
+	 */
+	static int score_move(int move, const Position& pos);
+
+	/**
+	 * @brief compare scores(first) of pair
+	 * 
+	 * @param t1 
+	 * @param t2 
+	 * @return int 
+	 */
+	static int compare(std::pair<int, int> t1, std::pair<int, int> t2);	
+
+	/**
+	 * @brief sorting moves according to their score.
+	 * 
+	 * @param move_list 
+	 */
+	static void sort_moves(moves *move_list, const Position& pos);
+
+	/**
+	 * @brief quiescence search for horizon effect.
+	 * 
+	 * @param alpha 
+	 * @param beta 
+	 * @return int 
+	 */
+	static int quiescence(int alpha, int beta, Position& pos);
+
+	/**
+	 * @brief negamax alpha beta search (recursive)
+	 * 
+	 * @param alpha 
+	 * @param beta 
+	 * @param depth 
+	 * @return int 
+	 */
+	static int negamax(int alpha, int beta, int depth, Position& pos);
 }
 
 // enable PV move scoring
@@ -93,15 +144,15 @@ static int Search::compare(std::pair<int, int> t1, std::pair<int, int> t2){
 /// sorting moves by their respective score evaluated by Search::score_move function.
 static void Search::sort_moves(moves *move_list, const Position& pos){
 	int move_count = move_list->count;
-	int move_scores[move_count];
-	std::pair<int, int> ms[move_count];
+	// std::vector<int> move_scores(move_count);
+	std::vector<std::pair<int, int>> ms(move_count);
 
 	for(int count = 0; count < move_count; count++){
 		ms[count].first = Search::score_move(move_list->moves[count], pos);
 		ms[count].second = move_list->moves[count];
 	}
 
-	std::sort(ms, ms+move_count, Search::compare);
+	std::sort(ms.begin(), ms.end(), Search::compare);
 
 	for(int count = 0; count < move_count; count++){
 		move_list->moves[count] = ms[count].second;
@@ -119,7 +170,7 @@ static int Search::quiescence(int alpha, int beta, Position& pos) {
 	if(Threads.stop)
 		return -InfinityValue;
 
-	int pv_node = (beta - alpha) > 1;
+	// int pv_node = (beta - alpha) > 1;
 	// probe hash entry
 	int score = TT::probe_hash(alpha, beta, 0, pos);
 	if(score != no_hash_entry) {
@@ -188,7 +239,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
 	int legal_moves = 0;
 	moveInfo mInfo;
 	int score = 0;
-	bool found_pv = false;
+	// bool found_pv = false;
 	int temp_enp;
 	bool in_check;
 	int eval;
@@ -373,7 +424,7 @@ static int Search::negamax(int alpha, int beta, int depth, Position& pos) {
             // principle variation node(move)
             alpha = score;
 
-			found_pv = true;
+			// found_pv = true;
             pos.thread()->pvTable[pos.get_ply()][pos.get_ply()] = move_list->moves[move_count];
             
             for (int next_ply = pos.get_ply() + 1; next_ply < pos.thread()->pvLength[pos.get_ply() + 1]; next_ply++)
@@ -430,7 +481,7 @@ void MainThread::search() {
 
 	bestThread = Threads.get_best_thread();
 
-	std::string output = fmt::format("bestmove {}", get_move_string(bestMove));
+	std::string output = fmt::format("bestmove {}", get_move_string(bestThread->pvTable[0][0]));
 
 	logger.logIt(output, LOG);
 	sync_cout << output << sync_endl;

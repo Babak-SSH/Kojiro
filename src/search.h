@@ -50,55 +50,6 @@ namespace Search
 		TimePoint movetime, time[2], inc[2], startTime;
 	};
 	
-	/**
-	 * @brief check pv(principle variation) scoring.
-	 * 
-	 * @param move_list 
-	 */
-	static inline void enable_pv_scoring(moves *move_list, const Position& pos);
-
-	/**
-	 * @brief score moves depending on their type (capture, quite, killer,...)
-	 * 
-	 * @param move 
-	 * @return int 
-	 */
-	static int score_move(int move, const Position& pos);
-
-	/**
-	 * @brief compare scores(first) of pair
-	 * 
-	 * @param t1 
-	 * @param t2 
-	 * @return int 
-	 */
-	static int compare(std::pair<int, int> t1, std::pair<int, int> t2);	
-
-	/**
-	 * @brief sorting moves according to their score.
-	 * 
-	 * @param move_list 
-	 */
-	static void sort_moves(moves *move_list, const Position& pos);
-
-	/**
-	 * @brief quiescence search for horizon effect.
-	 * 
-	 * @param alpha 
-	 * @param beta 
-	 * @return int 
-	 */
-	static int quiescence(int alpha, int beta, Position& pos);
-
-	/**
-	 * @brief negamax alpha beta search (recursive)
-	 * 
-	 * @param alpha 
-	 * @param beta 
-	 * @param depth 
-	 * @return int 
-	 */
-	static int negamax(int alpha, int beta, int depth, Position& pos);
 
 	/**
 	 * @brief main search function to get best move

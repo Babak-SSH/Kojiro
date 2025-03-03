@@ -11,7 +11,7 @@ namespace MoveGen {
 /// @todo shatter to small functions.
 /// generate all legal pawn moves in current state.
 void generate_pawn_moves(moves *move_list, const Position& pos) {
-    uint64_t bb, bb_attacks, promotion_rank, double_push, attacks;
+    uint64_t bb, promotion_rank, double_push, attacks;
     int source_sq, target_sq;
     Color side = Color(pos.side());
 

@@ -2,6 +2,7 @@
 #include "bitboard.h"
 #include "cons.h"
 #include "logger.h"
+#include "misc.h"
 #include "position.h"
 #include "search.h"
 #include "thread.h"
@@ -60,8 +61,7 @@ void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
 		while (iss >> token) {
 			move = UCI::parse_move(token, pos);
 
-			if(!move)
-				break;
+			if(!move) {break;} // couldn't parse the moves in fen (wrong format)
 
 			pos.make_move(move, 1, state);
 		}
@@ -73,7 +73,7 @@ void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
 int UCI::parse_move(std::string mov, const Position& pos) {
 
 	int source_sq, target_sq;
-	char promoted_piece;
+	// char promoted_piece;
 	moves move_list[1];
 	moveInfo info;
 

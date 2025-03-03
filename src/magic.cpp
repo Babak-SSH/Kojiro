@@ -57,7 +57,7 @@ uint64_t find_magic(int square, int relevant_bits, PieceType type) {
     uint64_t occupancies[4096];
     uint64_t attacks[4096];
     uint64_t used_attacks[4096];
-    uint64_t attack_mask;
+    uint64_t attack_mask = 0;
     
     if(type == BISHOP) {
         attack_mask = mask_bishop_attacks_relevant(square);

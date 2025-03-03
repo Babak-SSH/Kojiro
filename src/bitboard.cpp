@@ -88,7 +88,7 @@ uint64_t set_occupancy(int index, uint64_t attack_mask) {
 uint64_t set_rank(int rank) {
     uint64_t mask = RANK1;
 
-    if (rank < 0 | rank > 7) 
+    if ((rank < 0) | (rank > 7)) 
         return 0;
     return mask >> (8*(rank));
 }
@@ -96,7 +96,7 @@ uint64_t set_rank(int rank) {
 uint64_t set_file(int file) {
     uint64_t mask = A_file;
     
-    if (file < 0 | file > 7)
+    if ((file < 0) | (file > 7))
         return 0;
     return mask << file;
 }

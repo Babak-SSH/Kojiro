@@ -1,18 +1,16 @@
 #include "move.h"
+#include "misc.h"
 
 
 namespace Kojiro {
 
 // promoted pieces
 static char promoted_pieces[] = {
-    'q',
-    'r',
-    'b',
+    'p',
     'n',
-    'Q',
-    'R',
-    'B',
-    'N'
+    'b',
+    'r',
+    'q',
 };
 
 /*
@@ -28,6 +26,7 @@ static char promoted_pieces[] = {
     1000 0000 0000 0000 0000 0000    castling flag       0x800000
 */
 /// @todo define structure or fluent interface
+/// @todo promoted piece doesn't need 4 bits anymore look if it can be utilized for other game variations and if not move bits to occupy less space
 int encode_move(int source, int target, int piece, int promoted, int capture, int double_push, int enpassant, int castling){
     return ((source) |          \
     (target << 6) |     \

@@ -1,6 +1,7 @@
 #include "movegen.h"
 #include "bitboard.h"
 #include "position.h"
+#include "types.h"
 
 
 namespace Kojiro {
@@ -29,13 +30,13 @@ void generate_pawn_moves(moves *move_list, const Position& pos) {
             // pawn promotion
             if ((1ull << source_sq) & promotion_rank) {
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         Q, 0, 0, 0, 0));
+                         QUEEN, 0, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         R, 0, 0, 0, 0));
+                         ROOK, 0, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         B, 0, 0, 0, 0));
+                         BISHOP, 0, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         N, 0, 0, 0, 0));
+                         KNIGHT, 0, 0, 0, 0));
             }
             else {
                 // one square ahead pawn move
@@ -59,13 +60,13 @@ void generate_pawn_moves(moves *move_list, const Position& pos) {
             // pawn promotion
             if ((1ull << source_sq) & promotion_rank) {
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         Q, 1, 0, 0, 0));
+                         QUEEN, 1, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         R, 1, 0, 0, 0));
+                         ROOK, 1, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         B, 1, 0, 0, 0));
+                         BISHOP, 1, 0, 0, 0));
                 add_move(move_list, encode_move(source_sq, target_sq, piece,
-                         N, 1, 0, 0, 0));
+                         KNIGHT, 1, 0, 0, 0));
             }
             else {
                 // one square ahead pawn move

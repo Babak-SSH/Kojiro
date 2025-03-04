@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Werror -Wpedantic -Wextra -Ofast -std=c++20 -lrt -DUSE_PTHREADS
+CXXFLAGS = -Wall -Werror -Wpedantic -Wextra -Wno-stringop-overflow -Ofast -std=c++20 -lrt -DUSE_PTHREADS
 LDFLAGS = -lrt -DUSE_PTHREADS
 CXXFLAGS_DEBUG = -Ofast -DDEBUG -g
 

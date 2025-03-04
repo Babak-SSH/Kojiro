@@ -4,6 +4,7 @@
 *.o
 src/*.o
 src/kojiro
+src/perft
 
 *.txt
 

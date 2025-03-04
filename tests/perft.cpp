@@ -79,7 +79,6 @@ void perft_test(int depth, Position& pos) {
         perft_driver(depth - 1, pos);
         
         pos.take_back();
-        moveInfo info = decode_move(move);
     }
     
     // print results
@@ -105,7 +104,6 @@ int main(int argc, char* argv[]) {
 		pos.parse_fen(argv[2], &state, Threads.main());
 		pos.log_board();
 
-		int start = get_time_ms();
 		perft_test(atoi(argv[1]), pos);
 		
 		/// @todo optimize speed?

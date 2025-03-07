@@ -1,17 +1,17 @@
 ### Establish the operating system name
-KERNEL = $(shell uname -s)
-ifeq ($(KERNEL),Linux)
-	OS = $(shell uname -o)
-endif
-
-### Target Windows OS
 ifeq ($(OS),Windows_NT)
 	ifneq ($(COMP),ndk)
 		target_windows = yes
 	endif
 else ifeq ($(COMP),mingw)
 	target_windows = yes
+else
+	KERNEL = $(shell uname -s)
+	ifeq ($(KERNEL),Linux)
+		OS = $(shell uname -o)
+	endif
 endif
+
 
 CXX = g++
 CXXFLAGS = -Wall -Werror -Wpedantic -Wextra -Wcast-qual -Wno-stringop-overflow -O3 -march=native -std=c++20 -flto -DUSE_PTHREADS

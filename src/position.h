@@ -37,7 +37,7 @@ struct StateInfo {
     int rule50;
     int enpassant;
     int play_count;
-	u_int64_t key; // position hash key 
+	uint64_t key; // position hash key 
 
     StateInfo* previous;
 };
@@ -140,9 +140,9 @@ class Position {
         int side() const;
         int castle() const;
         int play_count() const;
-        u_int64_t bitboards(int p) const;
-        u_int64_t occupancies(int color) const;
-        u_int64_t key() const;
+        uint64_t bitboards(int p) const;
+        uint64_t occupancies(int color) const;
+        uint64_t key() const;
         int get_ply() const;
         uint64_t repetition_table(int index) const;
         int repetition_index() const;
@@ -166,15 +166,15 @@ inline int Position::play_count() const {
     return st->play_count;
 }
 
-inline u_int64_t Position::bitboards(int p) const {
+inline uint64_t Position::bitboards(int p) const {
     return st->bitboards[p];
 }
 
-inline u_int64_t Position::occupancies(int color) const {
+inline uint64_t Position::occupancies(int color) const {
     return st->occupancies[color];
 }
 
-inline u_int64_t Position::key() const {
+inline uint64_t Position::key() const {
     return st->key;
 }
 

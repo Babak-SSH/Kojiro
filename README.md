@@ -45,11 +45,17 @@ also you can challenge it on Lichess! --> https://lichess.org/@/tha_kojiro
 
 ## Compiling Kojiro
 
+### Linux
 to compile the engine use:
 ```
 cd src
 make kojiro
 ./kojiro
+```
+### Windows
+* To build on **windows** use mingw64 
+```
+mingw32-make.exe
 ```
 
 ## Tests
@@ -92,5 +98,4 @@ there are many techniques and features that will be added:
     - Checks priority
     - En-passant priority
 - Xboard protocol
-- windows support
 - wiki

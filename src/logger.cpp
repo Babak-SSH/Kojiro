@@ -1,6 +1,5 @@
 #include "logger.h"
 #include "fmt/core.h"
-#include <bits/types/FILE.h>
 #include <cstddef>
 #include <string>
 

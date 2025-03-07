@@ -16,7 +16,7 @@ void print_bitboard(uint64_t  bitboard) {
         printf("\n");
     }
     printf("   a  b  c  d  e  f  g  h\n\n");
-    printf("BITBOARD: %lud\n\n", bitboard);
+    printf("BITBOARD: %lu \n\n", bitboard);
 }
 
 /// set a bit to 1 using or operater.
@@ -41,7 +41,7 @@ void pop_bit(uint64_t &bitboard, int sq) {
 //#define count_bits(bitboard) __builtin_popcountll(bitboard)
 
 /// counts bits in a bitboard by removing each 1 bit 
-/// in each loop until the bitboard became empty.
+/// in each loop until the bitboard becomes empty.
 int count_bits(uint64_t bitboard) {
     int count = 0;
     while(bitboard) {

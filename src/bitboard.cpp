@@ -1,5 +1,7 @@
 #include "bitboard.h"
 
+#include <string>
+
 
 namespace Kojiro {
     
@@ -16,7 +18,8 @@ void print_bitboard(uint64_t  bitboard) {
         printf("\n");
     }
     printf("   a  b  c  d  e  f  g  h\n\n");
-    printf("BITBOARD: %lu \n\n", bitboard);
+    std::string bb_num = std::to_string(bitboard);
+    printf("BITBOARD: %s \n\n", bb_num.c_str());
 }
 
 /// set a bit to 1 using or operater.

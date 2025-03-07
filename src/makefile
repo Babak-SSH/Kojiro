@@ -42,9 +42,7 @@ perft: $(TEST_OBJECTS)
 	$(CXX) $(LDFLAGS) -o $@ $^ -pthread
 
 clean:
-	rm ./debug
-	rm ./kojiro
-	rm ./perft
+	@rm -f kojiro kojiro.exe *.o 
 
 # Help Target
 help:

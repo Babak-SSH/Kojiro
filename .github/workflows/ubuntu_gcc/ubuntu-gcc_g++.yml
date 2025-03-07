@@ -1,0 +1,26 @@
+name: Ubuntu C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  ubuntu_build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4.1.1
+        # we need to make sure we checkout the head commit, rather than the merge commit the github actions pipeline generates for us.
+        # This ensures we can extract the expected bench from the commit message.
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: make perft test
+      working-directory: ./src
+      run: make perft -j4
+
+    - name: make kojiro chess engine
+      working-directory: ./src
+      run: make kojiro -j4

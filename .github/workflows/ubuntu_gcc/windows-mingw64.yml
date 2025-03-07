@@ -1,0 +1,40 @@
+name: Windows (Mingw64) 
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  windows_build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        config: 
+          - { system: mingw64, package: x86_64-gcc, compiler: g++ }
+        # runners only seem to support up to avx2-pext
+        # target: [pgo, legacy, sse4, avx, avx2, avx2-pext]
+
+    steps:
+    - uses: actions/checkout@v4.1.1
+        # we need to make sure we checkout the head commit, rather than the merge commit the github actions pipeline generates for us.
+        # This ensures we can extract the expected bench from the commit message.
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+    - uses: msys2/setup-msys2@v2.22.0
+        with:
+          msystem: ${{matrix.config.system}}
+          install: mingw-w64-${{matrix.config.package}} make git
+
+    - name: Add compiler to $PATH env
+      shell: bash
+      run: echo "PATH=$PATH:/c/msys64/${{ matrix.config.system }}/bin" >> $GITHUB_ENV
+
+    - name: Build kojiro
+      shell: msys2 {0}
+      run: |
+         cd src
+         make CXX=${{ matrix.config.compiler }} -j4

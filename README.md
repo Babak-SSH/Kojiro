@@ -1,8 +1,15 @@
 # Kojiro
 
+<div align="center">
+
+
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Babak-SSH/Kojiro?style=for-the-badge)](https://github.com/Babak-SSH/Kojiro/releases/latest)
+[![GitHub Downloads (specific asset, all releases)](https://img.shields.io/github/downloads/Babak-SSH/Kojiro/Kojiro0.1.3-ubuntu-x86-64?style=for-the-badge)](https://github.com/Babak-SSH/Kojiro/releases/latest)
+
 ![Ubuntu](https://github.com/Babak-SSH/Kojiro/actions/workflows/ubuntu-gcc.yml/badge.svg)
 ![Windows (MinGW64)](https://github.com/Babak-SSH/Kojiro/actions/workflows/windows-mingw64.yml/badge.svg)
-<img src="https://img.shields.io/static/v1?label=&message=v0.1.1&color=blue&style=plastic">
+
+</div>
 
 An UCI-compatible Chess Engine written in C++
 

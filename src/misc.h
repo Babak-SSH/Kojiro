@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 
+const std::string version = "0.1.2";
 
 enum SyncCout { IO_LOCK, IO_UNLOCK };
 #define sync_cout std::cout << IO_LOCK

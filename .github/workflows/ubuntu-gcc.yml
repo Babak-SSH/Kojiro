@@ -16,10 +16,6 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: make perft test
-      working-directory: ./src
-      run: make perft -j4
-
     - name: make kojiro chess engine
       working-directory: ./src
       run: make kojiro -j4

@@ -25,11 +25,7 @@ endif
 
 OBJECTS = ./kojiro.o ./bishop.o ./cons.o ./king.o ./move.o ./movegen.o ./position.o ./magic.o \
 		  ./rook.o ./bitboard.o ./knight.o ./pawn.o ./queen.o ./uci.o ./eval.o ./search.o \
-		  ./thread.o ./logger.o ./timeman.o ./tt.o
-
-TEST_OBJECTS = ../tests/perft.o ./bishop.o ./cons.o ./king.o ./move.o ./movegen.o ./position.o \
-			   ./magic.o ./rook.o ./bitboard.o ./knight.o ./pawn.o ./queen.o ./uci.o ./eval.o \
-			   ./search.o ./thread.o ./logger.o ./timeman.o ./tt.o
+		  ./thread.o ./logger.o ./timeman.o ./tt.o ./perft.o
 
 
 kojiro: $(OBJECTS)
@@ -37,9 +33,6 @@ kojiro: $(OBJECTS)
 
 debug: $(OBJECTS)
 	$(CXX) $(CXXFLAGS_DEBUG) -o $@ $^ -pthread
-
-perft: $(TEST_OBJECTS)
-	$(CXX) $(LDFLAGS) -o $@ $^ -pthread
 
 clean:
 	@rm -f kojiro kojiro.exe *.o 
@@ -49,5 +42,4 @@ help:
 	@echo "The following are some of the valid targets for this Makefile:"
 	@echo "... main (the default if no target is provided)"
 	@echo "... debug"
-	@echo "... perft"
 	@echo "... clean"

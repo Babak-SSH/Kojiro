@@ -7,6 +7,8 @@
 #include "search.h"
 #include "thread.h"
 #include "tt.h"
+#include "perft.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -158,11 +160,10 @@ void UCI::loop(int argc, char* argv[]) {
       	token.clear(); // Avoid a stale if getline() returns empty or blank line
       	iss >> std::skipws >> token;
 
-		if(token == "quit" || token == "stop") {
+        if(token == "quit" || token == "stop") {
 			Threads.stop = true;
 		}
-
-		else if(token == "uci") {
+        else if(token == "uci") {
 			sync_cout << "id name kojiro " << version << "\n"
 			  << "id author babak-ssh \n"
 			  << "option name Threads type spin default 1 min 1 max 512\n"
@@ -170,22 +171,27 @@ void UCI::loop(int argc, char* argv[]) {
 			  << "uciok"
 			  << sync_endl;
 		}
-		else if(token == "isready") {
+        else if(token == "isready") {
 			sync_cout << "readyok" << sync_endl;
 		}
-		else if(token == "go") {
+        else if(token == "go") {
 			go(pos, iss);
 		}
-		else if(token == "position") {
+        else if(token == "position") {
 			UCI::position(iss, pos, state);
 			TT::clear_tt();
 		}
-		else if(token == "ucinewgame") {
+        else if(token == "ucinewgame") {
 			TT::clear_tt();
 			Search::clear();
-		}	
-		else if (token == "setoption") {
-			set_option(iss);	
-		}
+        }	
+        else if (token == "setoption") {
+            set_option(iss);	
+        }
+        else if (token == "perft") {
+            int depth;
+            iss >> depth;
+            perft(depth, pos);
+        }
 	}while (token != "quit" && argc == 1);
 }

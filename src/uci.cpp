@@ -9,6 +9,8 @@
 #include "tt.h"
 #include "perft.h"
 
+#include <cstddef>
+#include <ios>
 #include <iostream>
 #include <sstream>
 
@@ -39,6 +41,34 @@ void UCI::go(Position& pos, std::istringstream& iss) {
 	
 	//search best move
 	Threads.start_thinking(pos, info, false, depth);
+}
+
+void UCI::bench(Position& pos, StateInfo& state ,int depth) {
+    long BenchStartTime = now();
+
+    uint64_t nodes = 0;
+
+    for (size_t i = 0; i < benchmarkPositions.size(); i++) {
+        Search::GameInfo info;
+        info.startTime = now();
+        
+        std::istringstream iss("fen " + std::string(benchmarkPositions[i]), std::ios_base::in);
+        position(iss, pos, state);
+
+        TT::clear_tt();
+
+	    Threads.start_thinking(pos, info, false, depth);
+        Threads.main()->wait_until_search_finished();
+
+        nodes += Threads.nodes_searched();
+    }
+
+    sync_cout << "============================\n" 
+              << "Nodes Searched: " << nodes << "\n"
+              << "Nodes/Second: " << nodes/1000 << "\n"
+              << "Total Time: " << now() - BenchStartTime << "ms\n" 
+              << "============================\n"
+              << sync_endl;
 }
 
 void UCI::position(std::istringstream& iss, Position& pos, StateInfo& state) {
@@ -189,9 +219,14 @@ void UCI::loop(int argc, char* argv[]) {
             set_option(iss);	
         }
         else if (token == "perft") {
-            int depth;
+            int depth = 6;
             iss >> depth;
             perft(depth, pos);
+        }
+        else if (token == "bench") {
+            int depth = 10;
+            iss >> depth;
+            bench(pos, state, depth);
         }
 	}while (token != "quit" && argc == 1);
 }

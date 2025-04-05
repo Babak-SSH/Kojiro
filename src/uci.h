@@ -35,6 +35,15 @@ namespace UCI{
 	 */
 	void loop(int argc, char* argv[]);
 
+    /**
+     * @brief Benchmark command to run a standard search benchmark on pre-selected positions.
+     * 
+     * @param pos
+     * @param state
+     * @param depth 
+     */
+    void bench(Kojiro::Position& pos, Kojiro::StateInfo& state, int depth);
+
 	/**
 	 * @brief UCI go command (depth, searchmoves,...)
 	 * 

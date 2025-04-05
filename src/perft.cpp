@@ -43,7 +43,7 @@ void perft(int depth, Position& pos) {
     MoveGen::generate_all(move_list, pos);
     
     // init start time
-    long startTime = now();
+    long PerftStartTime = now();
     
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {   
@@ -63,5 +63,5 @@ void perft(int depth, Position& pos) {
     fmt::print("\nDepth: {:<6}\n", depth);
     fmt::print("Nodes: {:<10}\n", nodes);
     fmt::print("captures: {:<10}\nenpassant: {:<10}\ncastles: {:<10}\n", Threads.captures_searched(), Threads.enpassants_searched(), Threads.captures_searched());
-    fmt::print("Time(ms): {:<10}\n", now() - startTime);
+    fmt::print("Time(ms): {:<10}\n", now() - PerftStartTime);
 }

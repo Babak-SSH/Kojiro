@@ -1,5 +1,4 @@
 *.exe
-*.sh
 *.out
 *.o
 src/*.o

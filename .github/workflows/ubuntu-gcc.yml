@@ -8,7 +8,7 @@ on:
 
 jobs:
   ubuntu_build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4.1.1
       # we need to make sure we checkout the head commit, rather than the merge commit the github actions pipeline generates for us.
@@ -16,6 +16,77 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: make kojiro chess engine
+    - name: Extract the bench number from the commit history
+      run: |
+        git log HEAD | grep "\b[Bb]ench[ :]\+[0-9]\{7\}" | head -n 1 | sed "s/[^0-9]*\([0-9]*\).*/\1/g" > git_sig
+        [ -s git_sig ] && echo "benchref=$(cat git_sig)" >> $GITHUB_ENV && echo "Reference bench:" $(cat git_sig) || echo "No bench found"
+
+    - name: Kojiro native build
       working-directory: ./src
-      run: make kojiro -j4
+      run: |
+        make clean
+        make native EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro legacy build
+      working-directory: ./src
+      run: |
+        make clean
+        make legacy EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro sse4 build
+      working-directory: ./src
+      run: |
+        make clean
+        make sse4 EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro avx build
+      working-directory: ./src
+      run: |
+        make clean
+        make avx EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro avx2 build
+      working-directory: ./src
+      run: |
+        make clean
+        make avx EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro avx2-pext build
+      working-directory: ./src
+      run: |
+        make clean
+        make avx2-pext EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro avx512 build
+      working-directory: ./src
+      run: |
+        make clean
+        make avx512 EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro avx512-pext build
+      working-directory: ./src
+      run: |
+        make clean
+        make avx512-pext EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro avx512vnni build
+      working-directory: ./src
+      run: |
+        make clean
+        make avx512vnni EXE=kojiro -j4
+        ../tests/signature.sh $benchref
+
+    - name: Kojiro avx512vnni-pext build
+      working-directory: ./src
+      run: |
+        make clean
+        make avx512vnni-pext EXE=kojiro -j4
+        ../tests/signature.sh $benchref

@@ -6,7 +6,7 @@
 #include <string_view>
 #include <array>
 
-const std::string version = "0.1.3";
+const std::string version = "0.1.4";
 
 // positions copied from stockfish
 const std::array<std::string_view, 36> benchmarkPositions = {

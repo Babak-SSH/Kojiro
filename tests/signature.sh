@@ -10,7 +10,6 @@ error()
 trap 'error ${LINENO}' ERR
 
 # obtain
-
 signature=`./kojiro bench 2>&1 | grep "Nodes Searched: " | awk '{print $3}'`
 
 if [ $# -gt 0 ]; then

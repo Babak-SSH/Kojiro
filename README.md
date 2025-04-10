@@ -54,38 +54,40 @@ also you can challenge it on Lichess! --> https://lichess.org/@/tha_kojiro
 ## Compiling Kojiro
 
 ### Linux
-to compile the engine use:
+To Build the engine use:
 ```
 cd src
-make kojiro
+make native
 ./kojiro
 ```
 ### Windows
-* To build on **windows** use mingw64 
+To build on **windows** use mingw64 
 ```
-mingw32-make.exe
+mingw32-make.exe native
+```
+To Build it for specific ISA look into:
+```
+make help
 ```
 
 ## Tests
 
-to compile perft tests
+### perft test
 ```
-cd src
-make perft
+kojiro perft <depth>
 ```
-usage:
+### Bench
 ```
-./perft depth fen
-./perft 5 rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+kojiro bench
 ```
-
-### inspiring open-source chess-engines:
+---
+## inspiring open-source chess-engines:
 - BBC by Maksim Korzh
 - Stockfish by Tord Romstad, Joona Kiiski, Gary Linscott, Marco Costalba
 - Rustic by Marcel Vanthoor 
 - Vice by BlueFeverSoft
 
-### Kojiro is still under develop
+## Kojiro is still under develop
 there are many techniques and features that will be added:
 - use more modern cpp features to enhance the performance
 - better evalution

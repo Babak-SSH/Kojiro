@@ -22,6 +22,8 @@ RFLAGS = -O3 $(AFLAGS) -flto
 CXXFLAGS_DEBUG = -O1 $(AFLAGS) -Werror -DDEBUG
 
 LDFLAGS =  -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
+PGOGEN = -fprofile-generate
+PGOUSE = -fprofile-use -fprofile-partial-training -fno-peel-loops -fno-tracer
 
 # Different instruction sets targeting different architectures. For the AVX sets, we consider them a series where each level contains
 # all previous sets instructions
@@ -52,16 +54,47 @@ OBJECTS = ./kojiro.o ./bishop.o ./cons.o ./king.o ./move.o ./movegen.o ./positio
 
 # Help
 help:
-	@echo "The following are some of the valid targets for this Makefile:"
-	@echo "help"
-	@echo "native"
-	@echo "debug"
-	@echo "clean"
+	@echo ""
+	@echo "To compile Kojiro, Type:"
+	@echo ""
+	@echo "make native -j"
+	@echo ""
+	@echo "Supported Targets:"
+	@echo "native                  > Standard build"
+	@echo "help                    > Help page"
+	@echo "profile-build           > Build with profile-guided optimization"
+	@echo "legacy                  > Build for legacy systems"
+	@echo "sse4                    > Nehalem (2008)"
+	@echo "avx                     > Sandy Bridge (2011)"
+	@echo "avx2                    > Haswell (2013)"
+	@echo "avx2-pext               > avx2 with support of bmi"
+	@echo "avx512                  > Skylake (2017)"
+	@echo "avx512-pext             > avx512 with support of bmi"
+	@echo "avx512vnni              > Skylake (2019)"
+	@echo "avx512vnni-pext         > avx512vnni with suuport of bmi"
+	@echo "debug                   > debug build"
+	@echo "clean                   > Clean up"
 
-.PHONY: help build native debug clean\
+.PHONY: help build native profile-build pgo-instrumented pgo-compile debug objclean profileclean clean\
 		legacy sse4 avx avx2 avx2-pext avx512 avx512-pext avx512vnni avx512vnni-pext release
 #-------------------------------------------------------------------
 # native builds optimized by supported instruction sets.
+
+profile-build: objclean profileclean
+	$(MAKE) pgo-instrumented
+	$(MAKE) objclean
+	$(MAKE) pgo-compile
+
+pgo-instrumented: CXXFLAGS += $(CFLAGS) $(PGOGEN) -fno-lto
+pgo-instrumented: LDFLAGS += $(PGOGEN) -fno-lto -pthread -lgcov
+pgo-instrumented: EXE := $(addsuffix -pgo-instrumented,$(EXE))
+pgo-instrumented: build
+	./$(EXE) bench
+
+pgo-compile: CXXFLAGS += $(CFLAGS) $(PGOUSE)
+pgo-compile: LDFLAGS += -flto $(PGOUSE) -pthread -lgcov
+pgo-compile: EXE := $(addsuffix -pgo-compile,$(EXE))
+pgo-compile: build
 
 native: CXXFLAGS += $(CFLAGS)
 native: LDFLAGS += -flto -pthread
@@ -125,8 +158,13 @@ avx512vnni-pext: build
 build: $(OBJECTS)
 	$(CXX) $(LDFLAGS) -o $(EXE) $^
 
-clean:
-	@rm -f kojiro kojiro.exe kojiro-* *.o 
+objclean:
+	@rm -f kojiro kojiro.exe kojiro-* *.o
+
+profileclean:
+	@rm -f *.gcda *.gcno
+
+clean: objclean profileclean
 
 default:
 	native	

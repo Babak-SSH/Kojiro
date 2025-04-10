@@ -16,103 +16,103 @@ jobs:
           - { system: mingw64, package: x86_64-gcc, compiler: g++ }
 
     steps:
-    - uses: actions/checkout@v4.1.1
-      # we need to make sure we checkout the head commit, rather than the merge commit the github actions pipeline generates for us.
-      # This ensures we can extract the expected bench from the commit message.
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@v4.1.1
+        # we need to make sure we checkout the head commit, rather than the merge commit the github actions pipeline generates for us.
+        # This ensures we can extract the expected bench from the commit message.
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
-    - uses: msys2/setup-msys2@v2.22.0
-      with:
-        msystem: ${{matrix.config.system}}
-        install: mingw-w64-${{matrix.config.package}} make git
+      - uses: msys2/setup-msys2@v2.22.0
+        with:
+          msystem: ${{matrix.config.system}}
+          install: mingw-w64-${{matrix.config.package}} make git
 
-    - name: Add compiler to $PATH env
-      shell: bash
-      run: echo "PATH=$PATH:/c/msys64/${{ matrix.config.system }}/bin" >> $GITHUB_ENV
+      - name: Add compiler to $PATH env
+        shell: bash
+        run: echo "PATH=$PATH:/c/msys64/${{ matrix.config.system }}/bin" >> $GITHUB_ENV
 
-    - name: Extract the bench number from the commit history
-      shell: bash
-      run: | 
-        git show --summary | grep "\b[Bb]ench[ :]\+[0-9]\{7\}" | head -n 1 | sed "s/[^0-9]*\([0-9]*\).*/\1/g" > git_sig
-        [ -s git_sig ] && echo "benchref=$(cat git_sig)" >> $GITHUB_ENV && echo "Reference bench:" $(cat git_sig) || echo "No bench found"
+      - name: Extract the bench number from the commit history
+        shell: bash
+        run: | 
+          git show --summary | grep "\b[Bb]ench[ :]\+[0-9]\{7\}" | head -n 1 | sed "s/[^0-9]*\([0-9]*\).*/\1/g" > git_sig
+          [ -s git_sig ] && echo "benchref=$(cat git_sig)" >> $GITHUB_ENV && echo "Reference bench:" $(cat git_sig) || echo "No bench found"
 
-    - name: Kojiro native build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make native CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro native build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make native CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro legacy build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make legacy EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro legacy build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make legacy EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro sse4 build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make sse4 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro sse4 build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make sse4 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro avx build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make avx EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro avx build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make avx EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro avx2 build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make avx2 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro avx2 build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make avx2 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro avx2-pext build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make avx2-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro avx2-pext build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make avx2-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro avx512 build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make avx512 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro avx512 build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make avx512 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro avx512-pext build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make avx512-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro avx512-pext build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make avx512-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro avx512vnni build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make avx512vnni EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro avx512vnni build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make avx512vnni EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref
 
-    - name: Kojiro avx512vnni-pext build
-      shell: msys2 {0}
-      working-directory: ./src
-      run: |
-        make clean CXX=${{ matrix.config.compiler }}
-        make avx512vnni-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-        ../tests/signature.sh $benchref
+      - name: Kojiro avx512vnni-pext build
+        shell: msys2 {0}
+        working-directory: ./src
+        run: |
+          make clean CXX=${{ matrix.config.compiler }}
+          make avx512vnni-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+          ../tests/signature.sh $benchref

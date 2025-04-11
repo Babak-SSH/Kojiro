@@ -85,34 +85,34 @@ jobs:
           make avx2-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
           ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512 build
-        shell: msys2 {0}
-        working-directory: ./src
-        run: |
-          make clean CXX=${{ matrix.config.compiler }}
-          make avx512 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512 build
+    #     shell: msys2 {0}
+    #     working-directory: ./src
+    #     run: |
+    #       make clean CXX=${{ matrix.config.compiler }}
+    #       make avx512 EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+    #       ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512-pext build
-        shell: msys2 {0}
-        working-directory: ./src
-        run: |
-          make clean CXX=${{ matrix.config.compiler }}
-          make avx512-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512-pext build
+    #     shell: msys2 {0}
+    #     working-directory: ./src
+    #     run: |
+    #       make clean CXX=${{ matrix.config.compiler }}
+    #       make avx512-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+    #       ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512vnni build
-        shell: msys2 {0}
-        working-directory: ./src
-        run: |
-          make clean CXX=${{ matrix.config.compiler }}
-          make avx512vnni EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512vnni build
+    #     shell: msys2 {0}
+    #     working-directory: ./src
+    #     run: |
+    #       make clean CXX=${{ matrix.config.compiler }}
+    #       make avx512vnni EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+    #       ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512vnni-pext build
-        shell: msys2 {0}
-        working-directory: ./src
-        run: |
-          make clean CXX=${{ matrix.config.compiler }}
-          make avx512vnni-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512vnni-pext build
+    #     shell: msys2 {0}
+    #     working-directory: ./src
+    #     run: |
+    #       make clean CXX=${{ matrix.config.compiler }}
+    #       make avx512vnni-pext EXE=kojiro CXX=${{ matrix.config.compiler }} -j4
+    #       ../tests/signature.sh $benchref

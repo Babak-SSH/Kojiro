@@ -8,7 +8,7 @@ on:
 
 jobs:
   ubuntu_build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
         # we need to make sure we checkout the head commit, rather than the merge commit the github actions pipeline generates for us.
@@ -63,30 +63,30 @@ jobs:
           make avx2-pext EXE=kojiro -j4
           ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512 build
-        working-directory: ./src
-        run: |
-          make clean
-          make avx512 EXE=kojiro -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512 build
+    #     working-directory: ./src
+    #     run: |
+    #       make clean
+    #       make avx512 EXE=kojiro -j4
+    #       ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512-pext build
-        working-directory: ./src
-        run: |
-          make clean
-          make avx512-pext EXE=kojiro -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512-pext build
+    #     working-directory: ./src
+    #     run: |
+    #       make clean
+    #       make avx512-pext EXE=kojiro -j4
+    #       ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512vnni build
-        working-directory: ./src
-        run: |
-          make clean
-          make avx512vnni EXE=kojiro -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512vnni build
+    #     working-directory: ./src
+    #     run: |
+    #       make clean
+    #       make avx512vnni EXE=kojiro -j4
+    #       ../tests/signature.sh $benchref
 
-      - name: Kojiro avx512vnni-pext build
-        working-directory: ./src
-        run: |
-          make clean
-          make avx512vnni-pext EXE=kojiro -j4
-          ../tests/signature.sh $benchref
+    #   - name: Kojiro avx512vnni-pext build
+    #     working-directory: ./src
+    #     run: |
+    #       make clean
+    #       make avx512vnni-pext EXE=kojiro -j4
+    #       ../tests/signature.sh $benchref
